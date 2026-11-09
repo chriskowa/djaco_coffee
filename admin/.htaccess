@@ -1,0 +1,6 @@
+# BEGIN DJACO ADMIN PROTECTION
+AuthType Basic
+AuthName "DJACO Admin Panel - Silakan Login"
+AuthUserFile "/home/ruangdid/djaco.web.id/admin/.htpasswd"
+Require valid-user
+# END DJACO ADMIN PROTECTION
