@@ -1129,6 +1129,178 @@ switch ($action) {
         }
         break;
 
+    // ---------------------------------------------------------
+    // 16. COMPREHENSIVE REPORTS & FINANCIAL STATEMENT (P&L)
+    // ---------------------------------------------------------
+    case 'getreports':
+        $currentUser = requireAuth($pdo);
+
+        $startDate = trim($_GET['startDate'] ?? '') ?: date('Y-m-01');
+        $endDate   = trim($_GET['endDate'] ?? '') ?: date('Y-m-d');
+
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate)) $startDate = date('Y-m-01');
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDate)) $endDate = date('Y-m-d');
+        if ($startDate > $endDate) {
+            $t = $startDate; $startDate = $endDate; $endDate = $t;
+        }
+
+        $startDateTime = $startDate . ' 00:00:00';
+        $endDateTime   = $endDate . ' 23:59:59';
+
+        // 1. Sales & Orders Summary
+        $salesStmt = $pdo->prepare("
+            SELECT 
+                COUNT(*) as totalOrders,
+                COUNT(CASE WHEN status != 'Cancelled' THEN 1 END) as completedOrders,
+                COUNT(CASE WHEN status = 'Cancelled' THEN 1 END) as cancelledOrders,
+                COUNT(CASE WHEN status = 'Pending' THEN 1 END) as pendingOrders,
+                COALESCE(SUM(CASE WHEN status != 'Cancelled' THEN total ELSE 0 END), 0) as netSales,
+                COALESCE(SUM(CASE WHEN status != 'Cancelled' AND payment_method = 'QRIS' THEN total ELSE 0 END), 0) as qrisSales,
+                COALESCE(SUM(CASE WHEN status != 'Cancelled' AND payment_method = 'Tunai' THEN total ELSE 0 END), 0) as cashSales,
+                COUNT(CASE WHEN status != 'Cancelled' AND payment_method = 'QRIS' THEN 1 END) as qrisCount,
+                COUNT(CASE WHEN status != 'Cancelled' AND payment_method = 'Tunai' THEN 1 END) as cashCount
+            FROM orders
+            WHERE created_at BETWEEN :start_dt AND :end_dt
+        ");
+        $salesStmt->execute([':start_dt' => $startDateTime, ':end_dt' => $endDateTime]);
+        $salesSummary = $salesStmt->fetch();
+
+        // 2. COGS (HPP) of sold items
+        $cogsStmt = $pdo->prepare("
+            SELECT COALESCE(SUM(oi.qty * COALESCE(p.cogs, 0)), 0) as totalCogs
+            FROM order_items oi
+            JOIN orders o ON oi.order_id = o.id
+            LEFT JOIN products p ON oi.product_id = p.id
+            WHERE o.created_at BETWEEN :start_dt AND :end_dt AND o.status != 'Cancelled'
+        ");
+        $cogsStmt->execute([':start_dt' => $startDateTime, ':end_dt' => $endDateTime]);
+        $totalCogs = (float)$cogsStmt->fetchColumn();
+
+        // 3. Operating Expenses
+        $expStmt = $pdo->prepare("
+            SELECT 
+                COALESCE(SUM(amount), 0) as totalExpenses,
+                COUNT(*) as expenseCount
+            FROM expenses
+            WHERE expense_date BETWEEN :start_date AND :end_date
+        ");
+        $expStmt->execute([':start_date' => $startDate, ':end_date' => $endDate]);
+        $expSummary = $expStmt->fetch();
+        $totalExpenses = (float)$expSummary['totalExpenses'];
+
+        // Expenses breakdown by Category
+        $catExpStmt = $pdo->prepare("
+            SELECT category, COALESCE(SUM(amount), 0) as amount, COUNT(*) as count
+            FROM expenses
+            WHERE expense_date BETWEEN :start_date AND :end_date
+            GROUP BY category
+            ORDER BY amount DESC
+        ");
+        $catExpStmt->execute([':start_date' => $startDate, ':end_date' => $endDate]);
+        $rawCatExpenses = $catExpStmt->fetchAll();
+        $expensesByCategory = array_map(function($c) {
+            return [
+                'category' => (string)$c['category'],
+                'amount'   => (float)$c['amount'],
+                'count'    => (int)$c['count']
+            ];
+        }, $rawCatExpenses);
+
+        // 4. Product Sales Performance
+        $itemStmt = $pdo->prepare("
+            SELECT 
+                oi.product_id as productId,
+                oi.product_name as productName,
+                oi.category,
+                COALESCE(p.cogs, 0) as cogsPerUnit,
+                SUM(oi.qty) as qtySold,
+                COALESCE(SUM(oi.subtotal), 0) as totalSales,
+                COALESCE(SUM(oi.qty * COALESCE(p.cogs, 0)), 0) as totalCogs
+            FROM order_items oi
+            JOIN orders o ON oi.order_id = o.id
+            LEFT JOIN products p ON oi.product_id = p.id
+            WHERE o.created_at BETWEEN :start_dt AND :end_dt AND o.status != 'Cancelled'
+            GROUP BY oi.product_id, oi.product_name, oi.category, p.cogs
+            ORDER BY totalSales DESC
+        ");
+        $itemStmt->execute([':start_dt' => $startDateTime, ':end_dt' => $endDateTime]);
+        $rawItemSales = $itemStmt->fetchAll();
+
+        $itemSales = array_map(function($row) {
+            $sales = (float)$row['totalSales'];
+            $cogs  = (float)$row['totalCogs'];
+            $gross = $sales - $cogs;
+            $marginPct = $sales > 0 ? round(($gross / $sales) * 100, 1) : 0;
+            return [
+                'productId'   => (string)$row['productId'],
+                'productName' => (string)$row['productName'],
+                'category'    => (string)$row['category'],
+                'cogsPerUnit' => (float)$row['cogsPerUnit'],
+                'qtySold'     => (int)$row['qtySold'],
+                'totalSales'  => $sales,
+                'totalCogs'   => $cogs,
+                'grossProfit' => $gross,
+                'marginPct'   => $marginPct
+            ];
+        }, $rawItemSales);
+
+        // 5. Daily Trend
+        $trendStmt = $pdo->prepare("
+            SELECT 
+                DATE(created_at) as orderDate,
+                COALESCE(SUM(CASE WHEN status != 'Cancelled' THEN total ELSE 0 END), 0) as dailySales,
+                COUNT(CASE WHEN status != 'Cancelled' THEN 1 END) as dailyOrders
+            FROM orders
+            WHERE created_at BETWEEN :start_dt AND :end_dt
+            GROUP BY DATE(created_at)
+            ORDER BY orderDate ASC
+        ");
+        $trendStmt->execute([':start_dt' => $startDateTime, ':end_dt' => $endDateTime]);
+        $dailyTrend = array_map(function($t) {
+            return [
+                'date'   => (string)$t['orderDate'],
+                'sales'  => (float)$t['dailySales'],
+                'orders' => (int)$t['dailyOrders']
+            ];
+        }, $trendStmt->fetchAll());
+
+        // 6. Calculations
+        $netSales = (float)$salesSummary['netSales'];
+        $grossProfit = $netSales - $totalCogs;
+        $grossMarginPct = $netSales > 0 ? round(($grossProfit / $netSales) * 100, 1) : 0;
+        $netProfit = $grossProfit - $totalExpenses;
+        $netMarginPct = $netSales > 0 ? round(($netProfit / $netSales) * 100, 1) : 0;
+
+        jsonSuccess([
+            'period' => [
+                'startDate' => $startDate,
+                'endDate'   => $endDate
+            ],
+            'financialSummary' => [
+                'netSales'        => $netSales,
+                'totalCogs'       => $totalCogs,
+                'grossProfit'     => $grossProfit,
+                'grossMarginPct'  => $grossMarginPct,
+                'totalExpenses'   => $totalExpenses,
+                'netProfit'       => $netProfit,
+                'netMarginPct'    => $netMarginPct,
+                'totalOrders'     => (int)$salesSummary['totalOrders'],
+                'completedOrders' => (int)$salesSummary['completedOrders'],
+                'cancelledOrders' => (int)$salesSummary['cancelledOrders'],
+                'pendingOrders'   => (int)$salesSummary['pendingOrders']
+            ],
+            'paymentMethods' => [
+                'qrisSales'  => (float)$salesSummary['qrisSales'],
+                'cashSales'  => (float)$salesSummary['cashSales'],
+                'qrisCount'  => (int)$salesSummary['qrisCount'],
+                'cashCount'  => (int)$salesSummary['cashCount']
+            ],
+            'expensesByCategory' => $expensesByCategory,
+            'itemSales'          => $itemSales,
+            'dailyTrend'         => $dailyTrend
+        ]);
+        break;
+
     default:
         jsonError("Aksi '$action' tidak dikenali", 404);
         break;

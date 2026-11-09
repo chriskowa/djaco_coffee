@@ -101,7 +101,7 @@
 
       // Read URL hash on load (e.g. #pos, #products)
       const hash = (window.location.hash || '').replace('#', '').trim();
-      const validTabs = ['dashboard', 'pos', 'orders', 'products', 'ingredients', 'expenses', 'settings'];
+      const validTabs = ['dashboard', 'pos', 'orders', 'products', 'ingredients', 'expenses', 'reports', 'settings'];
       const initialTab = validTabs.includes(hash) ? hash : 'dashboard';
       switchTab(initialTab);
 
@@ -112,7 +112,7 @@
     // Responsive URL Hash Change routing
     window.addEventListener('hashchange', () => {
       const hash = (window.location.hash || '').replace('#', '').trim();
-      const validTabs = ['dashboard', 'pos', 'orders', 'products', 'ingredients', 'expenses', 'settings'];
+      const validTabs = ['dashboard', 'pos', 'orders', 'products', 'ingredients', 'expenses', 'reports', 'settings'];
       if (validTabs.includes(hash) && activeTab !== hash) {
         switchTab(hash);
       }

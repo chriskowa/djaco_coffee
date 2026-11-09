@@ -39,16 +39,17 @@
         padding: 0 !important;
       }
 
-      .no-print,
-      aside.sidebar,
-      header.content-header,
-      .tab-section,
-      .modal-overlay:not(#invoiceModalOverlay),
-      .modal-head {
+      /* Normal 58mm Thermal Receipt Printing */
+      body:not(.printing-report) .no-print,
+      body:not(.printing-report) aside.sidebar,
+      body:not(.printing-report) header.content-header,
+      body:not(.printing-report) .tab-section,
+      body:not(.printing-report) .modal-overlay:not(#invoiceModalOverlay),
+      body:not(.printing-report) .modal-head {
         display: none !important;
       }
 
-      .modal-overlay#invoiceModalOverlay {
+      body:not(.printing-report) .modal-overlay#invoiceModalOverlay {
         position: static !important;
         background: transparent !important;
         backdrop-filter: none !important;
@@ -57,7 +58,7 @@
         opacity: 1 !important;
       }
 
-      .modal-overlay#invoiceModalOverlay .modal-box {
+      body:not(.printing-report) .modal-overlay#invoiceModalOverlay .modal-box {
         box-shadow: none !important;
         border: none !important;
         width: 58mm !important;
@@ -67,24 +68,78 @@
         transform: none !important;
       }
 
-      #printArea {
+      body:not(.printing-report) #printArea {
         width: 58mm !important;
         max-width: 58mm !important;
         margin: 0 !important;
         padding: 0 !important;
       }
 
-      .invoicebox {
+      body:not(.printing-report) .invoicebox {
         border: none !important;
         padding: 0 !important;
       }
 
-      .qrbox {
+      body:not(.printing-report) .qrbox {
         border: none !important;
         margin-top: 5mm !important;
       }
 
-      .qrbox img {
+      body:not(.printing-report) .qrbox img {
         width: 38mm !important;
+      }
+
+      /* Comprehensive Financial Report Printing (A4 / Document Mode) */
+      body.printing-report {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+        font-size: 11px !important;
+        line-height: 1.5 !important;
+        padding: 15px !important;
+      }
+
+      body.printing-report .no-print,
+      body.printing-report aside.sidebar,
+      body.printing-report header.content-header,
+      body.printing-report .period-filter-bar,
+      body.printing-report .modal-overlay,
+      body.printing-report #section-dashboard,
+      body.printing-report #section-pos,
+      body.printing-report #section-orders,
+      body.printing-report #section-products,
+      body.printing-report #section-ingredients,
+      body.printing-report #section-expenses,
+      body.printing-report #section-settings,
+      body.printing-report .report-action-buttons,
+      body.printing-report .search-box {
+        display: none !important;
+      }
+
+      body.printing-report #section-reports {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      body.printing-report .report-print-header {
+        display: block !important;
+      }
+
+      body.printing-report .panel {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+        page-break-inside: avoid;
+        margin-bottom: 20px !important;
+      }
+
+      body.printing-report table.data-table th {
+        background-color: #f3f3f3 !important;
+        color: #000 !important;
+        border-bottom: 2px solid #333 !important;
+      }
+
+      body.printing-report table.data-table td {
+        border-bottom: 1px solid #ddd !important;
       }
     }

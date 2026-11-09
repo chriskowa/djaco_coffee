@@ -189,6 +189,7 @@
         'products': 'Kelola Database Produk',
         'ingredients': 'Master Bahan Baku & Kalkulator HPP',
         'expenses': 'Beban & Pengeluaran Operasional',
+        'reports': 'Laporan Keuangan & Penjualan Lengkap',
         'settings': 'Pengaturan Dashboard'
       };
       document.getElementById('pageTitle').innerText = titles[tabId] || 'Admin Panel';
@@ -212,7 +213,7 @@
         floatBar.style.display = 'none';
       }
 
-      if (tabId === 'dashboard' && reports) {
+      if (tabId === 'dashboard') {
         renderDashboardOverview();
       } else if (tabId === 'pos') {
         renderPosMenu();
@@ -221,6 +222,10 @@
         renderIngredientsGrid();
       } else if (tabId === 'expenses') {
         renderExpensesList();
+      } else if (tabId === 'reports') {
+        if (typeof renderReportsModule === 'function') {
+          renderReportsModule();
+        }
       }
     }
 

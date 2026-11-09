@@ -139,6 +139,9 @@
         <a href="#expenses" class="nav-item" id="nav-expenses" onclick="switchTab('expenses')">
           <i class="fa-solid fa-receipt"></i> Biaya & Beban
         </a>
+        <a href="#reports" class="nav-item" id="nav-reports" onclick="switchTab('reports')">
+          <i class="fa-solid fa-chart-pie"></i> Laporan Keuangan
+        </a>
         <a href="#settings" class="nav-item" id="nav-settings" onclick="switchTab('settings')">
           <i class="fa-solid fa-sliders"></i> Pengaturan
         </a>
@@ -171,17 +174,57 @@
 
       <!-- TAB: DASHBOARD -->
       <section class="tab-section active" id="section-dashboard">
+        <!-- Date Period Filter Bar -->
+        <div class="period-filter-bar">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span style="font-size: 13px; font-weight: 700; color: var(--coffee);"><i class="fa-solid fa-filter"></i> Periode:</span>
+            <div class="period-btn-group" id="dashPeriodBtnGroup">
+              <button type="button" class="period-btn" onclick="setDashboardPeriod('today')">Hari Ini</button>
+              <button type="button" class="period-btn" onclick="setDashboardPeriod('7days')">7 Hari</button>
+              <button type="button" class="period-btn active" onclick="setDashboardPeriod('thismonth')">Bulan Ini</button>
+              <button type="button" class="period-btn" onclick="setDashboardPeriod('lastmonth')">Bulan Lalu</button>
+              <button type="button" class="period-btn" onclick="setDashboardPeriod('custom')"><i class="fa-regular fa-calendar"></i> Kustom</button>
+            </div>
+          </div>
+
+          <div id="dashCustomDateBox" class="custom-date-box" style="display: none;">
+            <input type="date" id="dashStartDate" aria-label="Tanggal Mulai">
+            <span style="font-size: 12px; color: #8c7365;">s/d</span>
+            <input type="date" id="dashEndDate" aria-label="Tanggal Selesai">
+            <button type="button" class="btn btn-sm btn-primary" onclick="applyCustomDashboardDate()">Terapkan</button>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="status-badge" id="dashActivePeriodBadge" style="background: var(--cream); color: var(--coffee); border: 1px solid var(--border); font-size: 12px; font-weight: 700;">
+              <i class="fa-regular fa-calendar-check"></i> Memuat periode...
+            </span>
+            <span id="dashPeriodLoading" style="display: none; color: var(--coffee); font-size: 13px;">
+              <i class="fa-solid fa-spinner fa-spin"></i>
+            </span>
+          </div>
+        </div>
+
         <!-- Stat Cards Grid -->
-        <div class="overview-grid">
+        <div class="overview-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
           <div class="stat-card">
             <span class="card-lbl">Total Omset</span>
             <span class="card-val" id="stat-revenue">Rp0</span>
             <div class="card-footer"><i class="fa-solid fa-wallet"></i> Penjualan Bersih</div>
           </div>
           <div class="stat-card">
+            <span class="card-lbl">Total HPP / COGS</span>
+            <span class="card-val" id="stat-cogs" style="color: #b45309;">Rp0</span>
+            <div class="card-footer"><i class="fa-solid fa-boxes-stacked"></i> Modal Bahan Terpakai</div>
+          </div>
+          <div class="stat-card">
+            <span class="card-lbl">Beban Operasional</span>
+            <span class="card-val" id="stat-expenses" style="color: var(--danger);">Rp0</span>
+            <div class="card-footer"><i class="fa-solid fa-receipt"></i> Biaya Toko & Gaji</div>
+          </div>
+          <div class="stat-card">
             <span class="card-lbl">Laba Bersih</span>
-            <span class="card-val" id="stat-profit">Rp0</span>
-            <div class="card-footer"><i class="fa-solid fa-circle-dollar-to-slot"></i> Setelah COGS & Beban</div>
+            <span class="card-val" id="stat-profit" style="color: var(--success);">Rp0</span>
+            <div class="card-footer"><i class="fa-solid fa-circle-dollar-to-slot"></i> Setelah HPP & Beban</div>
           </div>
           <div class="stat-card">
             <span class="card-lbl">Total Order</span>
@@ -191,7 +234,7 @@
           <div class="stat-card">
             <span class="card-lbl">Rerata Transaksi</span>
             <span class="card-val" id="stat-avg">Rp0</span>
-            <div class="card-footer"><i class="fa-solid fa-calculator"></i> Rata-rata per belanja</div>
+            <div class="card-footer"><i class="fa-solid fa-calculator"></i> Basket Size Kasir</div>
           </div>
         </div>
 
@@ -199,7 +242,7 @@
         <div class="dashboard-details-grid">
           <!-- Chart panel -->
           <div class="panel">
-            <div class="panel-title">Grafik Penjualan Harian (15 Hari Terakhir)</div>
+            <div class="panel-title" id="dashChartTitle">Grafik Penjualan Harian</div>
             <div class="chart-container">
               <canvas id="salesChart"></canvas>
             </div>
@@ -661,6 +704,244 @@
                 </tr>
               </thead>
               <tbody id="expensesTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: FINANCIAL & SALES REPORTS -->
+      <section class="tab-section" id="section-reports">
+        <!-- Print Header (Visible only when printing) -->
+        <div class="report-print-header">
+          <h2 style="font-family:'Outfit', sans-serif; font-size: 22px; color: #3b1f12; margin-bottom: 4px;">DjaCo Coffee & Roastery</h2>
+          <div style="font-size: 14px; font-weight: 700; color: #5c3523; text-transform: uppercase; letter-spacing: 1px;">Laporan Keuangan & Penjualan Lengkap (P&L)</div>
+          <div id="repPrintPeriodLabel" style="font-size: 12px; color: #666; margin-top: 6px;">Periode: -</div>
+        </div>
+
+        <!-- Filter & Control Bar -->
+        <div class="period-filter-bar">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span style="font-size: 13px; font-weight: 700; color: var(--coffee);"><i class="fa-solid fa-calendar-days"></i> Periode:</span>
+            <div class="period-btn-group" id="reportPeriodBtnGroup">
+              <button type="button" class="period-btn" onclick="setReportPeriod('today')">Hari Ini</button>
+              <button type="button" class="period-btn" onclick="setReportPeriod('7days')">7 Hari</button>
+              <button type="button" class="period-btn active" onclick="setReportPeriod('thismonth')">Bulan Ini</button>
+              <button type="button" class="period-btn" onclick="setReportPeriod('lastmonth')">Bulan Lalu</button>
+              <button type="button" class="period-btn" onclick="setReportPeriod('thisyear')">Tahun Ini</button>
+              <button type="button" class="period-btn" onclick="setReportPeriod('custom')"><i class="fa-regular fa-calendar"></i> Kustom</button>
+            </div>
+          </div>
+
+          <div id="reportCustomDateBox" class="custom-date-box" style="display: none;">
+            <input type="date" id="reportStartDate" aria-label="Tanggal Mulai">
+            <span style="font-size: 12px; color: #8c7365;">s/d</span>
+            <input type="date" id="reportEndDate" aria-label="Tanggal Selesai">
+            <button type="button" class="btn btn-sm btn-primary" onclick="applyCustomReportDates()">Terapkan</button>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;" class="report-action-buttons">
+            <button type="button" class="btn btn-sm btn-outline" onclick="downloadReportsCSV()" title="Download Laporan Format CSV / Excel">
+              <i class="fa-solid fa-file-csv"></i> Export CSV
+            </button>
+            <button type="button" class="btn btn-sm btn-primary" onclick="printFinancialReport()" title="Cetak Laporan Format Dokumen A4">
+              <i class="fa-solid fa-print"></i> Cetak (A4)
+            </button>
+            <span id="reportLoadingSpinner" style="display: none; color: var(--coffee); font-size: 13px;">
+              <i class="fa-solid fa-spinner fa-spin"></i>
+            </span>
+          </div>
+        </div>
+
+        <!-- Period Summary Alert / Header Subtitle -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+          <div style="font-size: 14px; font-weight: 700; color: var(--coffee);">
+            <i class="fa-solid fa-circle-info"></i> <span id="reportActivePeriodText">Menghitung laporan...</span>
+          </div>
+          <div style="font-size: 12px; color: #8c7365;">
+            Metode: Akuntansi Kas & HPP Resep Bahan Terpakai
+          </div>
+        </div>
+
+        <!-- Executive Financial Cards (P&L Income Statement) -->
+        <div class="report-kpi-grid">
+          <!-- 1. Omset Penjualan Bersih -->
+          <div class="report-kpi-card">
+            <div class="kpi-label">
+              <span>Total Omset Bersih</span>
+              <i class="fa-solid fa-wallet" style="color: var(--gold);"></i>
+            </div>
+            <div class="kpi-value" id="rep-net-sales">Rp0</div>
+            <div class="kpi-sub" id="rep-sales-sub"><i class="fa-solid fa-circle-check" style="color: var(--success);"></i> 0 transaksi sukses</div>
+          </div>
+
+          <!-- 2. COGS (HPP Bahan Terpakai) -->
+          <div class="report-kpi-card">
+            <div class="kpi-label">
+              <span>HPP Bahan (COGS)</span>
+              <i class="fa-solid fa-boxes-stacked" style="color: #b45309;"></i>
+            </div>
+            <div class="kpi-value" id="rep-cogs" style="color: #b45309;">Rp0</div>
+            <div class="kpi-sub" id="rep-cogs-sub"><i class="fa-solid fa-percent"></i> 0% dari omset</div>
+          </div>
+
+          <!-- 3. Laba Kotor (Gross Profit) -->
+          <div class="report-kpi-card">
+            <div class="kpi-label">
+              <span>Laba Kotor (Gross)</span>
+              <i class="fa-solid fa-scale-balanced" style="color: var(--coffee);"></i>
+            </div>
+            <div class="kpi-value" id="rep-gross-profit">Rp0</div>
+            <div class="kpi-sub" id="rep-gross-sub"><i class="fa-solid fa-chart-line"></i> Margin kotor: 0%</div>
+          </div>
+
+          <!-- 4. Beban Operasional -->
+          <div class="report-kpi-card">
+            <div class="kpi-label">
+              <span>Beban Operasional</span>
+              <i class="fa-solid fa-receipt" style="color: var(--danger);"></i>
+            </div>
+            <div class="kpi-value" id="rep-expenses" style="color: var(--danger);">Rp0</div>
+            <div class="kpi-sub" id="rep-expenses-sub"><i class="fa-solid fa-list-check"></i> 0 pos beban toko</div>
+          </div>
+
+          <!-- 5. Laba Bersih (Net Profit) -->
+          <div class="report-kpi-card highlight-profit" id="rep-net-profit-card">
+            <div class="kpi-label">
+              <span>Laba Bersih (Net)</span>
+              <i class="fa-solid fa-coins" style="color: var(--success);"></i>
+            </div>
+            <div class="kpi-value" id="rep-net-profit" style="color: var(--success);">Rp0</div>
+            <div class="kpi-sub" id="rep-net-sub"><i class="fa-solid fa-trophy" style="color: var(--success);"></i> Net Margin: 0%</div>
+          </div>
+        </div>
+
+        <!-- Charts Grid (Trend & Expenses Composition) -->
+        <div class="report-charts-grid">
+          <!-- Daily Trend Chart -->
+          <div class="panel" style="margin-bottom: 0;">
+            <div class="panel-title">
+              <span><i class="fa-solid fa-chart-area"></i> Tren Penjualan & Laba Harian</span>
+              <span style="font-size: 11px; font-weight: 500; color: #8c7365;">Nominal Omset vs Laba</span>
+            </div>
+            <div class="chart-container" style="height: 280px;">
+              <canvas id="reportTrendChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Expenses Composition & Payment Breakdown -->
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="panel" style="margin-bottom: 0;">
+              <div class="panel-title">
+                <span><i class="fa-solid fa-chart-pie"></i> Komposisi Beban</span>
+              </div>
+              <div style="position: relative; height: 160px; display: flex; align-items: center; justify-content: center;">
+                <canvas id="reportExpenseChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Payment Methods Box -->
+            <div class="panel" style="margin-bottom: 0;">
+              <div class="panel-title">
+                <span><i class="fa-solid fa-credit-card"></i> Metode Pembayaran</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="payment-summary-box">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-qrcode" style="font-size: 20px; color: var(--coffee);"></i>
+                    <div>
+                      <div style="font-weight: 700; font-size: 13px;">QRIS Dinamis</div>
+                      <div style="font-size: 11px; color: #8c7365;" id="rep-qris-count">0 transaksi</div>
+                    </div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-weight: 800; font-size: 14px; color: var(--coffee);" id="rep-qris-sales">Rp0</div>
+                    <div style="font-size: 11px; color: var(--gold); font-weight: 700;" id="rep-qris-pct">0%</div>
+                  </div>
+                </div>
+
+                <div class="payment-summary-box">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-money-bill-wave" style="font-size: 20px; color: var(--success);"></i>
+                    <div>
+                      <div style="font-weight: 700; font-size: 13px;">Tunai (Cash)</div>
+                      <div style="font-size: 11px; color: #8c7365;" id="rep-cash-count">0 transaksi</div>
+                    </div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-weight: 800; font-size: 14px; color: var(--coffee);" id="rep-cash-sales">Rp0</div>
+                    <div style="font-size: 11px; color: var(--success); font-weight: 700;" id="rep-cash-pct">0%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Product Sales Performance Panel -->
+        <div class="panel" style="margin-top: 24px;">
+          <div class="panel-title" style="flex-wrap: wrap; gap: 10px;">
+            <div>
+              <i class="fa-solid fa-mug-hot"></i> Laporan Penjualan Per Produk
+              <div style="font-size: 12px; font-weight: 500; color: #8c7365;">Rincian omset, modal HPP bahan, dan margin laba kotor tiap produk terjual</div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;" class="no-print">
+              <div class="search-box">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="reportProductSearch" placeholder="Cari produk di laporan..." oninput="filterReportProducts()">
+              </div>
+              <select class="form-control" id="reportCategoryFilter" style="width: 170px; padding: 8px 12px; font-size: 13px;" onchange="filterReportProducts()">
+                <option value="Semua">Semua Kategori</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="data-table" id="reportProductsTable">
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center;">No</th>
+                  <th>Nama Produk</th>
+                  <th>Kategori</th>
+                  <th style="text-align: center;">Qty</th>
+                  <th style="text-align: right;">HPP/Unit</th>
+                  <th style="text-align: right;">Total Omset</th>
+                  <th style="text-align: right;">Total HPP</th>
+                  <th style="text-align: right;">Laba Kotor</th>
+                  <th style="text-align: right;">Margin %</th>
+                </tr>
+              </thead>
+              <tbody id="reportProductsTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+              <tfoot id="reportProductsTableFoot" style="font-weight: 800; background: #f6ebd9;">
+                <!-- Dynamically populated totals -->
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Operating Expenses Breakdown Panel -->
+        <div class="panel" style="margin-top: 24px;">
+          <div class="panel-title">
+            <div>
+              <i class="fa-solid fa-list-check"></i> Rincian Pengeluaran Beban Operasional Per Kategori
+              <div style="font-size: 12px; font-weight: 500; color: #8c7365;">Distribusi pengeluaran biaya toko pada periode terpilih</div>
+            </div>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="data-table" id="reportExpensesBreakdownTable">
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center;">No</th>
+                  <th>Kategori Beban</th>
+                  <th style="text-align: center;">Jumlah Transaksi</th>
+                  <th style="text-align: right;">Total Pengeluaran (Rp)</th>
+                  <th style="text-align: right;">Porsi dari Total Beban</th>
+                </tr>
+              </thead>
+              <tbody id="reportExpensesBreakdownBody">
                 <!-- Dynamically populated -->
               </tbody>
             </table>
@@ -1163,6 +1444,7 @@
   <script src="js/products.js"></script>
   <script src="js/ingredients.js"></script>
   <script src="js/expenses.js"></script>
+  <script src="js/reports.js"></script>
   <script src="js/app.js"></script>
 </body>
 
