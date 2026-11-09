@@ -147,7 +147,7 @@
 
       // Register Service Worker for Chrome Mobile push notifications support
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('../sw.js', { scope: '/' })
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
           .then(reg => console.log('ServiceWorker registered for Admin scope', reg))
           .catch(err => console.warn('ServiceWorker registration failed', err));
       }

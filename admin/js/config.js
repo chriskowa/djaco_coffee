@@ -1,7 +1,7 @@
 // System Configurations
-    const DEFAULT_API_URL = '../api/index.php';
+    const DEFAULT_API_URL = '/api/index.php';
     let savedApiUrl = localStorage.getItem('djaco_admin_api_url');
-    if (savedApiUrl && savedApiUrl.includes('script.google.com')) {
+    if (savedApiUrl && (savedApiUrl.includes('script.google.com') || savedApiUrl === '../api/index.php')) {
       savedApiUrl = null;
       localStorage.removeItem('djaco_admin_api_url');
     }
@@ -139,20 +139,20 @@
           navigator.serviceWorker.ready.then(reg => {
             reg.showNotification(title, {
               body: body,
-              icon: '../assets/favicon.png' || '/assets/icon-192.png',
-              badge: '../assets/favicon.png'
+              icon: '/assets/favicon.png' || '/assets/icon-192.png',
+              badge: '/assets/favicon.png'
             });
           }).catch(err => {
             console.warn("Service Worker notification failed, falling back:", err);
             new Notification(title, {
               body: body,
-              icon: '../assets/favicon.png' || '/assets/icon-192.png'
+              icon: '/assets/favicon.png' || '/assets/icon-192.png'
             });
           });
         } else {
           new Notification(title, {
             body: body,
-            icon: '../assets/favicon.png' || '/assets/icon-192.png'
+            icon: '/assets/favicon.png' || '/assets/icon-192.png'
           });
         }
       }

@@ -564,3 +564,4 @@ function printFinancialReport() {
     document.body.classList.remove('printing-report');
   };
 }
+
