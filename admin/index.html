@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DjaCo Coffee | Admin Panel & POS</title>
-  
+
   <!-- Fonts & Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
   <!-- Chart.js for reports -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -28,14 +31,14 @@
       --bg: #faf6f0;
       --card-bg: rgba(255, 255, 255, 0.9);
       --border: rgba(59, 31, 18, 0.12);
-      
+
       --success: #49633c;
       --success-bg: #eaf1e8;
       --warning: #b57a26;
       --warning-bg: #faf2e6;
       --danger: #ad3d2b;
       --danger-bg: #faebe8;
-      
+
       --sidebar-width: 250px;
     }
 
@@ -215,9 +218,20 @@
     }
 
     @keyframes pulse {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(73, 99, 60, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(73, 99, 60, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(73, 99, 60, 0); }
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(73, 99, 60, 0.7);
+      }
+
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(73, 99, 60, 0);
+      }
+
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(73, 99, 60, 0);
+      }
     }
 
     /* Toast Notification */
@@ -287,12 +301,32 @@
       border-radius: 8px;
     }
 
-    .btn-success { background-color: var(--success); color: var(--cream); }
-    .btn-success:hover { filter: brightness(1.1); }
-    .btn-warning { background-color: var(--warning); color: var(--cream); }
-    .btn-warning:hover { filter: brightness(1.1); }
-    .btn-danger { background-color: var(--danger); color: var(--cream); }
-    .btn-danger:hover { filter: brightness(1.1); }
+    .btn-success {
+      background-color: var(--success);
+      color: var(--cream);
+    }
+
+    .btn-success:hover {
+      filter: brightness(1.1);
+    }
+
+    .btn-warning {
+      background-color: var(--warning);
+      color: var(--cream);
+    }
+
+    .btn-warning:hover {
+      filter: brightness(1.1);
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      color: var(--cream);
+    }
+
+    .btn-danger:hover {
+      filter: brightness(1.1);
+    }
 
     .btn:active {
       transform: scale(0.97);
@@ -309,8 +343,15 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* Overview Cards */
@@ -431,10 +472,25 @@
       letter-spacing: 0.03em;
     }
 
-    .status-pending { background-color: var(--warning-bg); color: var(--warning); }
-    .status-processed { background-color: rgba(92, 53, 35, 0.1); color: var(--coffee); }
-    .status-completed { background-color: var(--success-bg); color: var(--success); }
-    .status-cancelled { background-color: var(--danger-bg); color: var(--danger); }
+    .status-pending {
+      background-color: var(--warning-bg);
+      color: var(--warning);
+    }
+
+    .status-processed {
+      background-color: rgba(92, 53, 35, 0.1);
+      color: var(--coffee);
+    }
+
+    .status-completed {
+      background-color: var(--success-bg);
+      color: var(--success);
+    }
+
+    .status-cancelled {
+      background-color: var(--danger-bg);
+      color: var(--danger);
+    }
 
     .badge-stock {
       font-size: 11px;
@@ -442,9 +498,21 @@
       border-radius: 8px;
       font-weight: 700;
     }
-    .stock-ok { background-color: var(--success-bg); color: var(--success); }
-    .stock-low { background-color: var(--warning-bg); color: var(--warning); }
-    .stock-empty { background-color: var(--danger-bg); color: var(--danger); }
+
+    .stock-ok {
+      background-color: var(--success-bg);
+      color: var(--success);
+    }
+
+    .stock-low {
+      background-color: var(--warning-bg);
+      color: var(--warning);
+    }
+
+    .stock-empty {
+      background-color: var(--danger-bg);
+      color: var(--danger);
+    }
 
     /* Orders Section List */
     .orders-controls {
@@ -639,7 +707,7 @@
       text-transform: uppercase;
       padding: 4px 8px;
       border-radius: 6px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
     .product-badge-inactive {
@@ -896,50 +964,291 @@
       display: grid;
       grid-template-columns: 3fr 2fr;
       gap: 24px;
+      align-items: start;
+    }
+
+    /* POS Mobile / Tablet Navigation Toggle */
+    .pos-mobile-nav {
+      display: none;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .pos-mobile-nav button {
+      flex: 1;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .pos-nav-badge {
+      background-color: var(--danger);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    /* POS Floating Bottom Cart Bar */
+    .pos-floating-cart-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 16px;
+      right: 16px;
+      max-width: 520px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, #2b1408 0%, #442416 100%);
+      color: #fff;
+      border-radius: 20px;
+      padding: 12px 18px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 14px 35px rgba(35, 18, 10, 0.45), 0 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 990;
+      cursor: pointer;
+      border: 1px solid rgba(197, 155, 98, 0.4);
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .pos-floating-cart-bar:active {
+      transform: scale(0.98);
+    }
+
+    .pos-floating-cart-bar.cart-bump {
+      animation: cartBumpAnim 0.35s ease-out;
+    }
+
+    @keyframes cartBumpAnim {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.04); }
+      75% { transform: scale(0.98); }
+      100% { transform: scale(1); }
+    }
+
+    .pos-floating-cart-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pos-floating-cart-icon-wrap {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      background: var(--gold);
+      color: var(--coffee-dark);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .pos-floating-cart-count {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--danger);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .pos-floating-cart-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pos-floating-cart-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--latte);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .pos-floating-cart-price {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+      line-height: 1.2;
+    }
+
+    .pos-floating-cart-action {
+      background: #fff;
+      color: var(--coffee-dark);
+      border-radius: 12px;
+      padding: 9px 14px;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      flex-shrink: 0;
+    }
+
+    .pos-cart-mobile-back,
+    .pos-cart-mobile-bottom-back {
+      display: none;
+    }
+
+    @media (min-width: 993px) {
+      .pos-products-column {
+        display: block !important;
+      }
+      .pos-cart-panel {
+        display: flex !important;
+      }
     }
 
     @media (max-width: 992px) {
       .pos-container {
         grid-template-columns: 1fr;
+        gap: 16px;
       }
+
       .pos-mobile-nav {
         display: flex !important;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: var(--bg);
+        padding: 8px 0;
+        box-shadow: 0 4px 12px rgba(59, 31, 18, 0.04);
       }
+
       .pos-container.show-cart .pos-products-column {
         display: none !important;
       }
+
       .pos-container:not(.show-cart) .pos-cart-panel {
         display: none !important;
       }
+
       .pos-cart-panel {
         position: static !important;
         height: auto !important;
         max-height: none !important;
         width: 100% !important;
         box-shadow: none !important;
+        padding: 18px !important;
+        border-radius: 20px !important;
       }
-      .pos-category-select {
+
+      .pos-cart-items-wrapper {
+        max-height: 380px !important;
+      }
+
+      .pos-cart-mobile-back,
+      .pos-cart-mobile-bottom-back {
         display: block !important;
       }
+
       #posCategoryPills {
+        display: flex !important;
+        gap: 8px;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 6px;
+      }
+
+      .pos-category-select {
         display: none !important;
+      }
+
+      main.main-content {
+        padding-bottom: 96px !important;
       }
     }
 
     @media (max-width: 768px) {
+      .pos-mobile-nav {
+        top: 56px !important;
+      }
+
       .orders-controls {
         flex-direction: column !important;
         align-items: stretch !important;
       }
-      .orders-controls > div {
+
+      .orders-controls>div {
         width: 100% !important;
       }
+
+      #posProductsGrid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+        gap: 10px !important;
+      }
+
+      .pos-product-card {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        padding: 10px !important;
+        border-radius: 14px !important;
+      }
+
+      .pos-product-image {
+        width: 100% !important;
+        height: 100px !important;
+        border-radius: 10px !important;
+      }
+
+      .pos-product-name {
+        font-size: 13px !important;
+        line-height: 1.3 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+      }
+
+      .pos-product-stock-tag {
+        font-size: 10px !important;
+      }
+
+      .pos-product-price {
+        font-size: 13px !important;
+      }
+
+      .qty-counter button {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 16px !important;
+      }
+
       .modal-box {
         border-radius: 20px !important;
       }
+
       .modal-body {
         padding: 16px !important;
       }
+
       .modal-head {
         padding: 16px 20px !important;
       }
@@ -947,39 +1256,32 @@
 
     @media (max-width: 480px) {
       #posProductsGrid {
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
-        gap: 10px !important;
-      }
-      .pos-product-card {
-        flex-direction: column !important;
-        align-items: stretch !important;
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 8px !important;
-        padding: 10px !important;
-        border-radius: 12px !important;
       }
+
+      .pos-product-card {
+        padding: 8px !important;
+      }
+
       .pos-product-image {
-        width: 100% !important;
-        height: 90px !important;
-        border-radius: 8px !important;
+        height: 85px !important;
       }
+
       .pos-product-name {
         font-size: 12px !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
       }
-      .pos-product-stock-tag {
-        font-size: 9px !important;
-      }
+
       .pos-product-price {
         font-size: 12px !important;
       }
-      
+
       /* Product Catalog (Tab: Produk) Mobile optimizations */
       .products-grid {
         grid-template-columns: 1fr !important;
         gap: 10px !important;
       }
+
       .product-card {
         flex-direction: row !important;
         align-items: center !important;
@@ -987,25 +1289,30 @@
         border-radius: 12px !important;
         gap: 12px !important;
       }
+
       .product-image-container {
         width: 70px !important;
         height: 70px !important;
         flex-shrink: 0 !important;
         border-radius: 8px !important;
       }
+
       .product-card-body {
         padding: 0 !important;
         gap: 4px !important;
         flex: 1 !important;
       }
+
       .product-title {
         font-size: 13px !important;
         white-space: normal !important;
         line-height: 1.2;
       }
+
       .product-desc {
         display: none !important;
       }
+
       .product-details-row {
         flex-direction: row !important;
         justify-content: space-between !important;
@@ -1014,14 +1321,17 @@
         padding-top: 0 !important;
         margin-top: 0 !important;
       }
+
       .product-card-price {
         font-size: 13px !important;
       }
+
       .product-card-actions {
         flex-direction: row !important;
         gap: 6px !important;
         margin-top: 4px !important;
       }
+
       .product-card-actions button {
         flex: 1 !important;
         padding: 6px !important;
@@ -1033,6 +1343,7 @@
         border-radius: 16px !important;
         max-height: 95vh !important;
       }
+
       .variant-option-row {
         grid-template-columns: 1fr 1fr !important;
         gap: 6px !important;
@@ -1041,13 +1352,16 @@
         margin-bottom: 8px;
         align-items: center;
       }
+
       .variant-option-row input:first-child {
         grid-column: span 2;
       }
+
       .variant-group-header {
         flex-direction: column !important;
         gap: 6px !important;
       }
+
       .variant-group-header button {
         width: 100% !important;
       }
@@ -1194,7 +1508,10 @@
       padding-bottom: 6px;
       scrollbar-width: none;
     }
-    .category-pills::-webkit-scrollbar { display: none; }
+
+    .category-pills::-webkit-scrollbar {
+      display: none;
+    }
 
     .category-pill {
       flex-shrink: 0;
@@ -1272,6 +1589,7 @@
       gap: 6px;
       flex-wrap: wrap;
     }
+
     .opt-chip {
       padding: 6px 10px;
       border-radius: 8px;
@@ -1281,6 +1599,7 @@
       cursor: pointer;
       font-weight: 600;
     }
+
     .opt-chip.active {
       background-color: var(--coffee);
       color: var(--cream);
@@ -1313,14 +1632,27 @@
       justify-content: center;
       border: none;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     }
 
     @media (max-width: 768px) {
-      aside.sidebar { transform: translateX(-100%); }
-      aside.sidebar.show { transform: translateX(0); }
-      main.main-content { margin-left: 0; padding: 20px; padding-top: 72px; }
-      .menu-toggle { display: flex; }
+      aside.sidebar {
+        transform: translateX(-100%);
+      }
+
+      aside.sidebar.show {
+        transform: translateX(0);
+      }
+
+      main.main-content {
+        margin-left: 0;
+        padding: 20px;
+        padding-top: 72px;
+      }
+
+      .menu-toggle {
+        display: flex;
+      }
     }
 
     /* Receipt print layout classes */
@@ -1332,18 +1664,21 @@
       font-size: 12px;
       line-height: 1.4;
     }
+
     .invoicebox h3 {
       text-align: center;
       margin-bottom: 5px;
       text-transform: uppercase;
       font-weight: bold;
     }
+
     .receipt-row {
       display: flex;
       justify-content: space-between;
       border-bottom: 1px dashed #ccc;
       padding: 5px 0;
     }
+
     .receipt-meta {
       text-align: center;
       margin-bottom: 10px;
@@ -1360,9 +1695,16 @@
         margin: 0 !important;
         padding: 0 !important;
       }
-      .no-print, aside.sidebar, header.content-header, .tab-section, .modal-overlay:not(#invoiceModalOverlay), .modal-head {
+
+      .no-print,
+      aside.sidebar,
+      header.content-header,
+      .tab-section,
+      .modal-overlay:not(#invoiceModalOverlay),
+      .modal-head {
         display: none !important;
       }
+
       .modal-overlay#invoiceModalOverlay {
         position: static !important;
         background: transparent !important;
@@ -1371,6 +1713,7 @@
         display: block !important;
         opacity: 1 !important;
       }
+
       .modal-overlay#invoiceModalOverlay .modal-box {
         box-shadow: none !important;
         border: none !important;
@@ -1380,26 +1723,31 @@
         padding: 0 !important;
         transform: none !important;
       }
+
       #printArea {
         width: 58mm !important;
         max-width: 58mm !important;
         margin: 0 !important;
         padding: 0 !important;
       }
+
       .invoicebox {
         border: none !important;
         padding: 0 !important;
       }
+
       .qrbox {
         border: none !important;
         margin-top: 5mm !important;
       }
+
       .qrbox img {
         width: 38mm !important;
       }
     }
   </style>
 </head>
+
 <body>
 
   <!-- Mobile Toggle Button -->
@@ -1414,39 +1762,54 @@
   </div>
 
   <!-- Login Screen Overlay -->
-  <div class="modal-overlay show" id="loginOverlay" style="z-index: 9999; background: linear-gradient(135deg, #1b0e07 0%, #3b1f12 100%);">
-    <div class="modal-box" style="width: 100%; max-width: 420px; border-radius: 28px; padding: 36px 30px; box-shadow: 0 25px 70px rgba(0,0,0,0.6); text-align: center; border: 1px solid rgba(197, 155, 98, 0.2);">
+  <div class="modal-overlay show" id="loginOverlay"
+    style="z-index: 9999; background: linear-gradient(135deg, #1b0e07 0%, #3b1f12 100%);">
+    <div class="modal-box"
+      style="width: 100%; max-width: 420px; border-radius: 28px; padding: 36px 30px; box-shadow: 0 25px 70px rgba(0,0,0,0.6); text-align: center; border: 1px solid rgba(197, 155, 98, 0.2);">
       <div style="margin-bottom: 24px;">
-        <div style="font-family: 'Outfit', sans-serif; font-size: 34px; font-weight: 800; color: var(--coffee); display: inline-flex; align-items: center; gap: 8px;">
+        <div
+          style="font-family: 'Outfit', sans-serif; font-size: 34px; font-weight: 800; color: var(--coffee); display: inline-flex; align-items: center; gap: 8px;">
           DjaC<span class="bean-logo" style="width: 18px; height: 26px;"></span>
         </div>
         <h2 style="font-size: 20px; font-weight: 800; margin-top: 8px; color: var(--dark);">Admin & POS Login</h2>
-        <p style="font-size: 13px; color: #795d48; margin-top: 4px;">Sistem manajemen pesanan & inventaris terproteksi</p>
+        <p style="font-size: 13px; color: #795d48; margin-top: 4px;">Sistem manajemen pesanan & inventaris terproteksi
+        </p>
       </div>
 
-      <div id="loginAlert" style="display:none; padding: 12px 14px; border-radius: 12px; font-size: 13px; margin-bottom: 18px; font-weight: 600;"></div>
+      <div id="loginAlert"
+        style="display:none; padding: 12px 14px; border-radius: 12px; font-size: 13px; margin-bottom: 18px; font-weight: 600;">
+      </div>
 
       <form id="loginForm" onsubmit="handleLoginSubmit(event)" style="text-align: left;">
         <div class="form-group" style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--dark);">Username</label>
+          <label
+            style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--dark);">Username</label>
           <div style="position: relative;">
-            <input type="text" id="loginUsername" required autocomplete="username" placeholder="Contoh: admin" style="width: 100%; padding: 13px 14px 13px 40px; border-radius: 14px; border: 1px solid var(--border); font-family: inherit; font-size: 14px; outline: none; background: #fffcf8;" />
-            <i class="fa-solid fa-user" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--gold);"></i>
+            <input type="text" id="loginUsername" required autocomplete="username" placeholder="Contoh: admin"
+              style="width: 100%; padding: 13px 14px 13px 40px; border-radius: 14px; border: 1px solid var(--border); font-family: inherit; font-size: 14px; outline: none; background: #fffcf8;" />
+            <i class="fa-solid fa-user"
+              style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--gold);"></i>
           </div>
         </div>
 
         <div class="form-group" style="margin-bottom: 22px;">
-          <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--dark);">Password</label>
+          <label
+            style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--dark);">Password</label>
           <div style="position: relative;">
-            <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="Masukkan password" style="width: 100%; padding: 13px 40px 13px 40px; border-radius: 14px; border: 1px solid var(--border); font-family: inherit; font-size: 14px; outline: none; background: #fffcf8;" />
-            <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--gold);"></i>
-            <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888; font-size: 15px;">
+            <input type="password" id="loginPassword" required autocomplete="current-password"
+              placeholder="Masukkan password"
+              style="width: 100%; padding: 13px 40px 13px 40px; border-radius: 14px; border: 1px solid var(--border); font-family: inherit; font-size: 14px; outline: none; background: #fffcf8;" />
+            <i class="fa-solid fa-lock"
+              style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--gold);"></i>
+            <button type="button" onclick="togglePasswordVisibility()"
+              style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888; font-size: 15px;">
               <i class="fa-solid fa-eye" id="passwordToggleIcon"></i>
             </button>
           </div>
         </div>
 
-        <button type="submit" id="loginSubmitBtn" style="width: 100%; padding: 14px; background: var(--coffee); color: #fff; border: none; border-radius: 16px; font-weight: 800; font-size: 15px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(59,31,18,0.25);">
+        <button type="submit" id="loginSubmitBtn"
+          style="width: 100%; padding: 14px; background: var(--coffee); color: #fff; border: none; border-radius: 16px; font-weight: 800; font-size: 15px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(59,31,18,0.25);">
           <span>Masuk Dashboard</span> <i class="fa-solid fa-arrow-right"></i>
         </button>
       </form>
@@ -1458,7 +1821,7 @@
   </div>
 
   <div class="admin-container" id="adminAppContainer" style="display:none;">
-    
+
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebarMenu">
       <div class="sidebar-header">
@@ -1466,16 +1829,21 @@
       </div>
 
       <!-- User Profile Card -->
-      <div id="sidebarUserBox" style="padding: 10px 12px; background: rgba(255,255,255,0.07); border-radius: 14px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.1);">
-        <div style="width: 34px; height: 34px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; color: var(--coffee-dark); font-weight: 800;">
+      <div id="sidebarUserBox"
+        style="padding: 10px 12px; background: rgba(255,255,255,0.07); border-radius: 14px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.1);">
+        <div
+          style="width: 34px; height: 34px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; color: var(--coffee-dark); font-weight: 800;">
           <i class="fa-solid fa-user-shield"></i>
         </div>
         <div style="overflow: hidden; flex: 1;">
-          <div id="currentUserName" style="font-size: 13px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; color: #fff;">Admin</div>
-          <span id="currentUserRole" style="font-size: 10px; background: rgba(197,155,98,0.3); color: var(--latte); padding: 1px 6px; border-radius: 4px; text-transform: uppercase; font-weight: 800;">ADMIN</span>
+          <div id="currentUserName"
+            style="font-size: 13px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; color: #fff;">
+            Admin</div>
+          <span id="currentUserRole"
+            style="font-size: 10px; background: rgba(197,155,98,0.3); color: var(--latte); padding: 1px 6px; border-radius: 4px; text-transform: uppercase; font-weight: 800;">ADMIN</span>
         </div>
       </div>
-      
+
       <nav class="sidebar-nav">
         <a href="#dashboard" class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
           <i class="fa-solid fa-chart-line"></i> Dashboard
@@ -1484,7 +1852,7 @@
           <i class="fa-solid fa-cash-register"></i> POS Kasir
         </a>
         <a href="#orders" class="nav-item" id="nav-orders" onclick="switchTab('orders')">
-          <i class="fa-solid fa-shopping-bag"></i> Pesanan 
+          <i class="fa-solid fa-shopping-bag"></i> Pesanan
           <span class="badge" id="newOrdersBadge" style="display:none">0</span>
         </a>
         <a href="#products" class="nav-item" id="nav-products" onclick="switchTab('products')">
@@ -1503,7 +1871,7 @@
           <i class="fa-solid fa-right-from-bracket"></i> Keluar (Logout)
         </a>
       </nav>
-      
+
       <div class="sidebar-footer">
         DjaCo Coffee v6.0<br>&copy; 2026 Admin Panel
       </div>
@@ -1511,7 +1879,7 @@
 
     <!-- Main Content Area -->
     <main class="main-content">
-      
+
       <!-- Content Header -->
       <header class="content-header">
         <div class="header-title">
@@ -1521,7 +1889,8 @@
           <div id="listeningDot" class="listening-indicator">
             <span class="dot"></span> <span class="lbl">Monitoring Order...</span>
           </div>
-          <button class="btn btn-outline" onclick="reloadData()"><i class="fa-solid fa-arrows-rotate"></i> Sync Data</button>
+          <button class="btn btn-outline" onclick="reloadData()"><i class="fa-solid fa-arrows-rotate"></i> Sync
+            Data</button>
         </div>
       </header>
 
@@ -1565,9 +1934,11 @@
           <div style="display: flex; flex-direction: column; gap: 20px;">
             <!-- Low stock alert panel -->
             <div class="panel" style="margin-bottom: 0;">
-              <div class="panel-title" style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Sisa Stok Menipis</div>
+              <div class="panel-title" style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i>
+                Sisa Stok Menipis</div>
               <div style="max-height: 120px; overflow-y: auto;">
-                <ul id="low-stock-list" style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                <ul id="low-stock-list"
+                  style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
                   <li style="color: #927568;">Stok aman.</li>
                 </ul>
               </div>
@@ -1585,7 +1956,9 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr><td colspan="2" style="color: #927568; text-align: center;">Memuat produk terlaris...</td></tr>
+                    <tr>
+                      <td colspan="2" style="color: #927568; text-align: center;">Memuat produk terlaris...</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -1607,7 +1980,9 @@
                 </tr>
               </thead>
               <tbody>
-                <tr><td colspan="4" style="color: #927568; text-align: center;">Memuat laporan penjualan item...</td></tr>
+                <tr>
+                  <td colspan="4" style="color: #927568; text-align: center;">Memuat laporan penjualan item...</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -1616,19 +1991,19 @@
 
       <!-- TAB: POS KASIR -->
       <section class="tab-section" id="section-pos">
-        
+
         <!-- Mobile POS Navigation Toggle -->
-        <div class="pos-mobile-nav no-print" style="display: none; margin-bottom: 16px; gap: 8px;">
-          <button class="btn btn-primary active" id="pos-btn-menu" onclick="togglePosMobileView('menu')" style="flex: 1; border-radius: 99px; font-size: 13px;">
+        <div class="pos-mobile-nav no-print" id="posMobileNav">
+          <button type="button" class="btn btn-primary active" id="pos-btn-menu" onclick="togglePosMobileView('menu')">
             <i class="fa-solid fa-mug-hot"></i> Menu Catalog
           </button>
-          <button class="btn btn-outline" id="pos-btn-cart" onclick="togglePosMobileView('cart')" style="flex: 1; border-radius: 99px; font-size: 13px; position: relative;">
-            <i class="fa-solid fa-cart-shopping"></i> Keranjang <span id="posMobileCartBadge" style="background-color: var(--danger); color: white; padding: 2px 8px; border-radius: 99px; font-size: 11px; margin-left: 4px; display: none;">0</span>
+          <button type="button" class="btn btn-outline" id="pos-btn-cart" onclick="togglePosMobileView('cart')">
+            <i class="fa-solid fa-basket-shopping"></i> Keranjang Belanja <span id="posMobileCartBadge" class="pos-nav-badge" style="display: none;">0</span>
           </button>
         </div>
 
         <div class="pos-container">
-          
+
           <!-- Left Column: POS Menu list -->
           <div class="pos-products-column">
             <div class="orders-controls" style="margin-bottom: 0;">
@@ -1637,11 +2012,12 @@
                 <input type="text" id="posSearch" placeholder="Cari produk di POS..." oninput="filterPosMenu()">
               </div>
               <!-- Mobile Category Dropdown Select -->
-              <select class="form-control pos-category-select" id="posCategorySelect" onchange="selectPosCategory(this.value)" style="display: none; width: 150px; padding: 10px;">
+              <select class="form-control pos-category-select" id="posCategorySelect"
+                onchange="selectPosCategory(this.value)" style="display: none; width: 150px; padding: 10px;">
                 <option value="Semua">Semua Kategori</option>
               </select>
             </div>
-            
+
             <div class="category-pills" id="posCategoryPills">
               <!-- Dynamically populated category filters -->
             </div>
@@ -1653,20 +2029,33 @@
 
           <!-- Right Column: POS Cashier Cart -->
           <div class="pos-cart-panel">
+
+            <!-- Mobile Return to Menu Button (Header) -->
+            <div class="pos-cart-mobile-back no-print">
+              <button type="button" class="btn btn-outline" onclick="togglePosMobileView('menu')"
+                style="width: 100%; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; background: #fff; color: var(--coffee); margin-bottom: 12px;">
+                <i class="fa-solid fa-arrow-left"></i> Tambah Menu Lain
+              </button>
+            </div>
+
             <div class="pos-cart-title">
               <span>Keranjang Belanja</span>
-              <button class="btn btn-outline btn-sm" onclick="clearPosCart()"><i class="fa-solid fa-trash-can"></i> Reset</button>
+              <button class="btn btn-outline btn-sm" onclick="clearPosCart()"><i class="fa-solid fa-trash-can"></i>
+                Reset</button>
             </div>
-            
+
             <div class="pos-cart-items-wrapper" id="posCartItemsWrapper">
               <!-- Dynamically populated cart items -->
             </div>
 
             <!-- Customer detail fields -->
             <div style="display:flex; flex-direction:column; gap:8px; margin-bottom: 12px;">
-              <input type="text" id="posCustomerName" class="form-control form-control-sm" style="padding:8px;" placeholder="Nama Pembeli (opsional)">
-              <input type="tel" id="posCustomerPhone" class="form-control form-control-sm" style="padding:8px;" placeholder="No WhatsApp Pembeli (opsional)">
-              <input type="text" id="posOrderNotes" class="form-control form-control-sm" style="padding:8px;" placeholder="Catatan Tambahan Order">
+              <input type="text" id="posCustomerName" class="form-control form-control-sm" style="padding:8px;"
+                placeholder="Nama Pembeli (opsional)">
+              <input type="tel" id="posCustomerPhone" class="form-control form-control-sm" style="padding:8px;"
+                placeholder="No WhatsApp Pembeli (opsional)">
+              <input type="text" id="posOrderNotes" class="form-control form-control-sm" style="padding:8px;"
+                placeholder="Catatan Tambahan Order">
             </div>
 
             <!-- Checkout calculations -->
@@ -1688,7 +2077,8 @@
             <!-- Payment Method & Change Calculator -->
             <div class="form-group" style="margin-bottom:12px;">
               <label style="font-size:11px; font-weight:700; color:#8c7365;">METODE PEMBAYARAN</label>
-              <select id="posPaymentMethod" class="form-control" style="padding:8px;" onchange="togglePosPayment(this.value)">
+              <select id="posPaymentMethod" class="form-control" style="padding:8px;"
+                onchange="togglePosPayment(this.value)">
                 <option value="QRIS">QRIS Dinamis</option>
                 <option value="Tunai">Tunai (Cash)</option>
               </select>
@@ -1697,7 +2087,9 @@
             <div class="pos-change-calculator" id="posChangeCalculator" style="display:none; margin-bottom:12px;">
               <div class="pos-total-row" style="align-items: center; margin-bottom: 6px;">
                 <span>Bayar Cash (Rp)</span>
-                <input type="number" id="posCashReceived" class="form-control" style="width: 130px; padding: 6px; text-align: right;" placeholder="0" min="0" oninput="calculatePosChange()">
+                <input type="number" id="posCashReceived" class="form-control"
+                  style="width: 130px; padding: 6px; text-align: right;" placeholder="0" min="0"
+                  oninput="calculatePosChange()">
               </div>
               <div class="pos-total-row" style="font-weight: 700; color: var(--success);">
                 <span>Kembalian</span>
@@ -1705,24 +2097,56 @@
               </div>
             </div>
 
-            <button class="btn btn-primary" style="width:100%; padding:12px; margin-bottom: 8px;" onclick="checkoutPosOrder()">
+            <button class="btn btn-primary" style="width:100%; padding:12px; margin-bottom: 8px;"
+              onclick="checkoutPosOrder()">
               <i class="fa-solid fa-cash-register"></i> Amankan & Cetak Order
             </button>
-            <button class="btn btn-warning" style="width:100%; padding:10px; background-color: var(--warning); color: white; border:0; border-radius:10px; font-weight:bold; cursor:pointer;" onclick="holdPosOrder()">
+            <button class="btn btn-warning"
+              style="width:100%; padding:10px; background-color: var(--warning); color: white; border:0; border-radius:10px; font-weight:bold; cursor:pointer;"
+              onclick="holdPosOrder()">
               <i class="fa-solid fa-pause"></i> Simpan Transaksi Sementara
             </button>
 
             <!-- Held Orders List -->
-            <div class="held-orders-container" style="margin-top: 20px; border-top: 2px dashed var(--border); padding-top: 15px;">
-              <h4 style="font-size:11px; font-weight:700; color:#8c7365; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; text-transform: uppercase;">
+            <div class="held-orders-container"
+              style="margin-top: 20px; border-top: 2px dashed var(--border); padding-top: 15px;">
+              <h4
+                style="font-size:11px; font-weight:700; color:#8c7365; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; text-transform: uppercase;">
                 <i class="fa-solid fa-folder-open"></i> Transaksi Sementara (Hold)
               </h4>
-              <div id="posHeldOrdersWrapper" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
+              <div id="posHeldOrdersWrapper"
+                style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
                 <!-- Dynamically populated held orders -->
               </div>
             </div>
+
+            <!-- Mobile Return to Menu Button (Bottom) -->
+            <div class="pos-cart-mobile-bottom-back no-print">
+              <button type="button" class="btn btn-outline" onclick="togglePosMobileView('menu')"
+                style="width: 100%; border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; background: #fff; color: var(--coffee); margin-top: 14px;">
+                <i class="fa-solid fa-arrow-left"></i> Kembali ke Katalog Menu
+              </button>
+            </div>
           </div>
 
+        </div>
+
+        <!-- Floating Bottom Cart Bar (Mobile & Tablet) -->
+        <div class="pos-floating-cart-bar no-print" id="posFloatingCartBar" onclick="togglePosMobileView('cart')">
+          <div class="pos-floating-cart-left">
+            <div class="pos-floating-cart-icon-wrap">
+              <i class="fa-solid fa-basket-shopping"></i>
+              <span class="pos-floating-cart-count" id="posFloatingCartCount">0</span>
+            </div>
+            <div class="pos-floating-cart-text">
+              <span class="pos-floating-cart-title">Keranjang Kasir</span>
+              <span class="pos-floating-cart-price" id="posFloatingCartTotal">Rp0</span>
+            </div>
+          </div>
+          <div class="pos-floating-cart-action">
+            <span>Lihat Keranjang & Bayar</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </div>
         </div>
       </section>
 
@@ -1731,7 +2155,8 @@
         <div class="orders-controls">
           <div class="search-box">
             <i class="fa-solid fa-search"></i>
-            <input type="text" id="orderSearch" placeholder="Cari berdasarkan nomor invoice, nama pembeli..." oninput="filterOrders()">
+            <input type="text" id="orderSearch" placeholder="Cari berdasarkan nomor invoice, nama pembeli..."
+              oninput="filterOrders()">
           </div>
           <button class="btn btn-outline" onclick="requestNotificationPermission()" id="notifyPermissionBtn">
             <i class="fa-solid fa-bell"></i> Aktifkan Notifikasi Browser
@@ -1750,12 +2175,13 @@
             <i class="fa-solid fa-search"></i>
             <input type="text" id="productSearch" placeholder="Cari nama produk..." oninput="filterProducts()">
           </div>
-          
+
           <div style="display: flex; gap: 10px;">
-            <select class="form-control" id="productCategoryFilter" style="width: 160px; padding: 10px;" onchange="filterProducts()">
+            <select class="form-control" id="productCategoryFilter" style="width: 160px; padding: 10px;"
+              onchange="filterProducts()">
               <option value="Semua">Semua Kategori</option>
             </select>
-            
+
             <button class="btn btn-primary" onclick="openAddProductModal()">
               <i class="fa-solid fa-plus"></i> Tambah Produk
             </button>
@@ -1771,13 +2197,14 @@
       <section class="tab-section" id="section-settings">
         <div class="panel settings-card">
           <div class="panel-title"><i class="fa-solid fa-gears"></i> Konfigurasi API & Notifikasi</div>
-          
+
           <div class="form-group">
             <label for="settings-api-url">Google Apps Script API URL</label>
             <input type="text" id="settings-api-url" class="form-control" placeholder="../api/index.php">
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+          <div
+            style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
             <label class="form-row-checkbox">
               <input type="checkbox" id="settings-play-sound" checked> Play alarm sound when new order arrives
             </label>
@@ -1785,26 +2212,31 @@
               <input type="checkbox" id="settings-show-push" checked> Show browser push notification bubble
             </label>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
-              <button class="btn btn-outline btn-sm" onclick="testNotificationSound()"><i class="fa-solid fa-volume-up"></i> Test Sound</button>
-              <button class="btn btn-outline btn-sm" onclick="triggerTestPush()"><i class="fa-solid fa-message"></i> Test Push Notification</button>
+              <button class="btn btn-outline btn-sm" onclick="testNotificationSound()"><i
+                  class="fa-solid fa-volume-up"></i> Test Sound</button>
+              <button class="btn btn-outline btn-sm" onclick="triggerTestPush()"><i class="fa-solid fa-message"></i>
+                Test Push Notification</button>
             </div>
           </div>
-          
+
           <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
             <button class="btn btn-primary" onclick="saveSettings()">Simpan Pengaturan</button>
           </div>
         </div>
 
         <div class="panel settings-card">
-          <div class="panel-title"><i class="fa-solid fa-shield-halved"></i> Keamanan Login (Database & Bearer Token)</div>
+          <div class="panel-title"><i class="fa-solid fa-shield-halved"></i> Keamanan Login (Database & Bearer Token)
+          </div>
           <p style="font-size: 13px; line-height: 1.6; color: var(--dark);">
-            Sistem autentikasi kini menggunakan database MySQL dengan enkripsi <b>Bcrypt</b> dan <b>Bearer Token 256-bit</b> yang aman.
+            Sistem autentikasi kini menggunakan database MySQL dengan enkripsi <b>Bcrypt</b> dan <b>Bearer Token
+              256-bit</b> yang aman.
             <br><br>
             Akun default yang tersedia di database:
             <br>• Username: <code>admin</code> (Password: <code>admin123</code> - Hak akses penuh)
             <br>• Username: <code>kasir</code> (Password: <code>kasir123</code> - Hak akses POS & Pesanan)
             <br><br>
-            <span style="color: var(--success); font-weight: 700;"><i class="fa-solid fa-circle-check"></i> Proteksi API Aktif:</span>
+            <span style="color: var(--success); font-weight: 700;"><i class="fa-solid fa-circle-check"></i> Proteksi API
+              Aktif:</span>
             Setiap endpoint perubahan data produk, order, dan rekap keuangan di-validasi secara ketat oleh server API.
           </p>
         </div>
@@ -1822,7 +2254,8 @@
             <button class="btn btn-primary" onclick="openAddIngredientModal()">
               <i class="fa-solid fa-plus"></i> Tambah Bahan
             </button>
-            <button class="btn btn-outline" onclick="openRestockModal()" style="border-color: var(--coffee); color: var(--coffee); font-weight:700;">
+            <button class="btn btn-outline" onclick="openRestockModal()"
+              style="border-color: var(--coffee); color: var(--coffee); font-weight:700;">
               <i class="fa-solid fa-truck-ramp-box"></i> Restock Pembelian
             </button>
           </div>
@@ -1832,7 +2265,8 @@
         <div class="panel" style="margin-bottom: 24px;">
           <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center;">
             <span><i class="fa-solid fa-boxes-stacked"></i> Master Bahan Baku & Harga Satuan</span>
-            <span class="badge" id="ingredientCountBadge" style="background:var(--coffee); color:#fff; font-size:12px; padding:4px 10px;">0 Bahan</span>
+            <span class="badge" id="ingredientCountBadge"
+              style="background:var(--coffee); color:#fff; font-size:12px; padding:4px 10px;">0 Bahan</span>
           </div>
           <div style="overflow-x: auto;">
             <table class="data-table" style="width:100%; border-collapse: collapse;" id="ingredientsTable">
@@ -1860,7 +2294,8 @@
             <div>
               <i class="fa-solid fa-calculator"></i> Kalkulator Resep & HPP Menu Otomatis (BOM)
               <div style="font-size:12px; font-weight:normal; color:#795d48; margin-top:4px;">
-                Tentukan komposisi takaran bahan per cup / porsi. HPP menu otomatis terhitung saat harga bahan baku berubah!
+                Tentukan komposisi takaran bahan per cup / porsi. HPP menu otomatis terhitung saat harga bahan baku
+                berubah!
               </div>
             </div>
           </div>
@@ -1894,7 +2329,8 @@
               <i class="fa-solid fa-search"></i>
               <input type="text" id="expenseSearch" placeholder="Cari pengeluaran..." oninput="filterExpenses()">
             </div>
-            <select class="form-control" id="expenseCategoryFilter" style="width: 190px; padding: 10px;" onchange="filterExpenses()">
+            <select class="form-control" id="expenseCategoryFilter" style="width: 190px; padding: 10px;"
+              onchange="filterExpenses()">
               <option value="Semua">Semua Kategori</option>
               <option value="Gaji & Upah">Gaji & Upah</option>
               <option value="Servis & Maintenance">Servis & Maintenance</option>
@@ -1913,7 +2349,9 @@
         <div class="panel">
           <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center;">
             <span><i class="fa-solid fa-receipt"></i> Riwayat Beban & Pengeluaran Operasional</span>
-            <span class="badge" id="totalExpenseAmountBadge" style="background:var(--danger); color:#fff; font-size:13px; padding:6px 12px; font-weight:700;">Total: Rp0</span>
+            <span class="badge" id="totalExpenseAmountBadge"
+              style="background:var(--danger); color:#fff; font-size:13px; padding:6px 12px; font-weight:700;">Total:
+              Rp0</span>
           </div>
           <div style="overflow-x: auto;">
             <table class="data-table" style="width:100%; border-collapse: collapse;" id="expensesTable">
@@ -1949,7 +2387,7 @@
       <div class="modal-body">
         <form id="productForm" onsubmit="saveProductForm(event)">
           <div class="form-grid">
-            
+
             <!-- Left Column: Basic Info -->
             <div>
               <div class="form-group">
@@ -1965,7 +2403,8 @@
               <div class="form-grid" style="gap: 10px; margin-bottom: 0;">
                 <div class="form-group">
                   <label for="prod-category">Kategori*</label>
-                  <input type="text" id="prod-category" class="form-control" placeholder="Contoh: Coffee Based" list="categories-list" required>
+                  <input type="text" id="prod-category" class="form-control" placeholder="Contoh: Coffee Based"
+                    list="categories-list" required>
                   <datalist id="categories-list">
                     <option value="Coffee Based">
                     <option value="Non-Coffee">
@@ -1986,7 +2425,8 @@
               <div class="form-grid" style="gap: 10px; margin-bottom: 0;">
                 <div class="form-group">
                   <label for="prod-price">Harga Jual (Rp)*</label>
-                  <input type="number" id="prod-price" class="form-control" placeholder="Contoh: 15000" min="0" required>
+                  <input type="number" id="prod-price" class="form-control" placeholder="Contoh: 15000" min="0"
+                    required>
                 </div>
                 <div class="form-group">
                   <label for="prod-cogs">HPP / COGS (Rp)</label>
@@ -2013,7 +2453,8 @@
 
               <div class="form-group">
                 <label for="prod-description">Deskripsi Produk</label>
-                <textarea id="prod-description" class="form-control" rows="3" placeholder="Deskripsi singkat produk..."></textarea>
+                <textarea id="prod-description" class="form-control" rows="3"
+                  placeholder="Deskripsi singkat produk..."></textarea>
               </div>
             </div>
 
@@ -2021,16 +2462,18 @@
             <div>
               <div class="form-group">
                 <label class="form-row-checkbox" style="font-size: 14px; font-weight: 700; color: var(--coffee);">
-                  <input type="checkbox" id="prod-has-variant" onchange="toggleVariantBuilder(this.checked)"> Produk Memiliki Varian / Varian Dropdown
+                  <input type="checkbox" id="prod-has-variant" onchange="toggleVariantBuilder(this.checked)"> Produk
+                  Memiliki Varian / Varian Dropdown
                 </label>
               </div>
 
               <div class="variant-builder-panel" id="variantBuilderPanel" style="display: none;">
                 <h4 style="display: flex; justify-content: space-between; align-items: center;">
-                  Kelola Varian 
-                  <button type="button" class="btn btn-outline btn-sm" onclick="addVariantGroupUI()"><i class="fa fa-plus"></i> Tambah Grup</button>
+                  Kelola Varian
+                  <button type="button" class="btn btn-outline btn-sm" onclick="addVariantGroupUI()"><i
+                      class="fa fa-plus"></i> Tambah Grup</button>
                 </h4>
-                
+
                 <div id="variantGroupsContainer" style="max-height: 400px; overflow-y: auto; padding-right: 4px;">
                   <!-- Dynamically added group elements -->
                 </div>
@@ -2039,7 +2482,8 @@
 
           </div>
 
-          <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px;">
+          <div
+            style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px;">
             <button type="button" class="btn btn-outline" onclick="closeProductModal()">Batal</button>
             <button type="submit" class="btn btn-primary" id="saveProductFormBtn">Simpan Produk</button>
           </div>
@@ -2059,25 +2503,26 @@
         <div id="posOptionList" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
           <!-- Dynamically populated group chips -->
         </div>
-        
+
         <div class="form-group">
           <label for="posItemNote" style="font-size:11px; font-weight:700; color:#8c7365;">CATATAN ITEM</label>
           <input type="text" id="posItemNote" class="form-control" placeholder="Contoh: Less sugar, extra hot">
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
           <div>
             <div style="font-size:11px; color:#8c7365; font-weight:700;">TOTAL ITEM</div>
             <div id="posModalTotalPrice" style="font-size:18px; font-weight:800; color:var(--coffee);">Rp0</div>
           </div>
-          
+
           <div style="display: flex; align-items: center; gap: 14px;">
             <div class="qty-counter">
               <button onclick="changePosModalQty(-1)" style="width:30px; height:30px; font-size:16px;">−</button>
               <span id="posModalQty" style="font-size:16px; min-width:20px;">1</span>
               <button onclick="changePosModalQty(1)" style="width:30px; height:30px; font-size:16px;">+</button>
             </div>
-            
+
             <button class="btn btn-primary" onclick="addPosModalItemToCart()">Tambah</button>
           </div>
         </div>
@@ -2095,7 +2540,7 @@
       <div class="modal-body">
         <form id="ingredientForm" onsubmit="saveIngredientForm(event)">
           <input type="hidden" id="ing-id" value="0">
-          
+
           <div class="form-group">
             <label for="ing-code">Kode Bahan (Unik)*</label>
             <input type="text" id="ing-code" class="form-control" placeholder="Contoh: RAW-BEANS, RAW-MILK" required>
@@ -2119,7 +2564,8 @@
             </div>
             <div class="form-group">
               <label for="ing-cost">Harga Beli / Satuan (Rp)*</label>
-              <input type="number" id="ing-cost" step="0.01" class="form-control" placeholder="Contoh: 120" min="0" required>
+              <input type="number" id="ing-cost" step="0.01" class="form-control" placeholder="Contoh: 120" min="0"
+                required>
             </div>
           </div>
 
@@ -2159,24 +2605,29 @@
             </select>
           </div>
 
-          <div id="restock-current-info" style="background:#fffcf8; border:1px solid #ead7ba; border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:13px; color:#6d5442;">
+          <div id="restock-current-info"
+            style="background:#fffcf8; border:1px solid #ead7ba; border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:13px; color:#6d5442;">
             Stok saat ini: <b id="restock-current-stock">-</b> | Harga per unit lama: <b id="restock-current-cost">-</b>
           </div>
 
           <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0;">
             <div class="form-group">
               <label for="restock-qty">Jumlah Dibeli*</label>
-              <input type="number" id="restock-qty" step="0.01" class="form-control" placeholder="Contoh: 1000" min="0.01" required oninput="calcRestockUnitCost()">
+              <input type="number" id="restock-qty" step="0.01" class="form-control" placeholder="Contoh: 1000"
+                min="0.01" required oninput="calcRestockUnitCost()">
             </div>
             <div class="form-group">
               <label for="restock-total-cost">Total Biaya Beli (Rp)*</label>
-              <input type="number" id="restock-total-cost" class="form-control" placeholder="Contoh: 180000" min="1" required oninput="calcRestockUnitCost()">
+              <input type="number" id="restock-total-cost" class="form-control" placeholder="Contoh: 180000" min="1"
+                required oninput="calcRestockUnitCost()">
             </div>
           </div>
 
-          <div id="restock-preview" style="background:#eaf1e8; border:1px solid #c3dbc0; border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:12px; color:#2e4b24; display:none;">
+          <div id="restock-preview"
+            style="background:#eaf1e8; border:1px solid #c3dbc0; border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:12px; color:#2e4b24; display:none;">
             Harga beli baru: <b id="restock-new-unit-cost">Rp0</b> / satuan<br>
-            Estimasi Moving Average Cost baru: <b id="restock-avg-cost">Rp0</b> / satuan (HPP menu terkait otomatis ter-update!)
+            Estimasi Moving Average Cost baru: <b id="restock-avg-cost">Rp0</b> / satuan (HPP menu terkait otomatis
+            ter-update!)
           </div>
 
           <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0;">
@@ -2192,7 +2643,8 @@
 
           <div style="margin: 16px 0;">
             <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; cursor:pointer;">
-              <input type="checkbox" id="restock-record-expense" checked style="width:18px; height:18px; accent-color:var(--coffee);">
+              <input type="checkbox" id="restock-record-expense" checked
+                style="width:18px; height:18px; accent-color:var(--coffee);">
               <span>Catat otomatis ke laporan Pengeluaran Kas (Bahan Baku)</span>
             </label>
           </div>
@@ -2235,15 +2687,20 @@
           <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; text-align:center;">
             <div>
               <div style="font-size:11px; color:#795d48; font-weight:700; text-transform:uppercase;">Harga Jual</div>
-              <div id="recipe-summary-price" style="font-size:18px; font-weight:800; color:var(--dark); margin-top:4px;">Rp0</div>
+              <div id="recipe-summary-price"
+                style="font-size:18px; font-weight:800; color:var(--dark); margin-top:4px;">Rp0</div>
             </div>
             <div>
-              <div style="font-size:11px; color:var(--danger); font-weight:700; text-transform:uppercase;">HPP Otomatis (BOM)</div>
-              <div id="recipe-summary-cogs" style="font-size:18px; font-weight:800; color:var(--danger); margin-top:4px;">Rp0</div>
+              <div style="font-size:11px; color:var(--danger); font-weight:700; text-transform:uppercase;">HPP Otomatis
+                (BOM)</div>
+              <div id="recipe-summary-cogs"
+                style="font-size:18px; font-weight:800; color:var(--danger); margin-top:4px;">Rp0</div>
             </div>
             <div>
-              <div style="font-size:11px; color:var(--success); font-weight:700; text-transform:uppercase;">Gross Profit (Margin)</div>
-              <div id="recipe-summary-margin" style="font-size:18px; font-weight:800; color:var(--success); margin-top:4px;">Rp0 (0%)</div>
+              <div style="font-size:11px; color:var(--success); font-weight:700; text-transform:uppercase;">Gross Profit
+                (Margin)</div>
+              <div id="recipe-summary-margin"
+                style="font-size:18px; font-weight:800; color:var(--success); margin-top:4px;">Rp0 (0%)</div>
             </div>
           </div>
         </div>
@@ -2289,7 +2746,8 @@
 
           <div class="form-group">
             <label for="exp-title">Keterangan / Nama Pengeluaran*</label>
-            <input type="text" id="exp-title" class="form-control" placeholder="Contoh: Gaji Barista Dadang, Servis Mesin Espresso" required>
+            <input type="text" id="exp-title" class="form-control"
+              placeholder="Contoh: Gaji Barista Dadang, Servis Mesin Espresso" required>
           </div>
 
           <div class="form-group">
@@ -2299,7 +2757,8 @@
 
           <div class="form-group">
             <label for="exp-notes">Catatan Tambahan (Opsional)</label>
-            <textarea id="exp-notes" class="form-control" rows="2" placeholder="Contoh: Penggantian seal gasket grouphead"></textarea>
+            <textarea id="exp-notes" class="form-control" rows="2"
+              placeholder="Contoh: Penggantian seal gasket grouphead"></textarea>
           </div>
 
           <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
@@ -2321,18 +2780,25 @@
       <div class="modal-body" style="padding: 16px;">
         <div id="printArea">
           <div class="invoicebox" id="adminInvoiceBox"></div>
-          
-          <div class="qrbox" id="adminInvoiceQrBox" style="text-align: center; margin-top: 15px; border:1px solid var(--border); border-radius:18px; padding:16px; background:#fff;">
+
+          <div class="qrbox" id="adminInvoiceQrBox"
+            style="text-align: center; margin-top: 15px; border:1px solid var(--border); border-radius:18px; padding:16px; background:#fff;">
             <div class="qris-title" style="font-weight:800; font-size:16px; color:var(--coffee);">DJACO KAFE</div>
-            <div class="muted" style="font-size: 11px; color: #795d48; margin-top:2px;">NMID: ID1026526313303<br>Total Pembayaran: <b id="adminQrisAmount">Rp0</b></div>
-            <img id="adminQrisImg" alt="QRIS dinamis DjaCo" style="width: 220px; max-width: 100%; border-radius: 12px; margin-top: 10px;" />
+            <div class="muted" style="font-size: 11px; color: #795d48; margin-top:2px;">NMID: ID1026526313303<br>Total
+              Pembayaran: <b id="adminQrisAmount">Rp0</b></div>
+            <img id="adminQrisImg" alt="QRIS dinamis DjaCo"
+              style="width: 220px; max-width: 100%; border-radius: 12px; margin-top: 10px;" />
           </div>
         </div>
-        
-        <div class="no-print" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
-          <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Struk (58mm)</button>
-          <button class="btn btn-outline" id="adminDownloadQrisBtn" onclick="downloadAdminQris()"><i class="fa-solid fa-download"></i> Download QRIS</button>
-          <a class="btn btn-success" id="adminWaLink" target="_blank" style="text-decoration: none;"><i class="fa-brands fa-whatsapp"></i> Kirim Struk via WhatsApp</a>
+
+        <div class="no-print"
+          style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
+          <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Struk
+            (58mm)</button>
+          <button class="btn btn-outline" id="adminDownloadQrisBtn" onclick="downloadAdminQris()"><i
+              class="fa-solid fa-download"></i> Download QRIS</button>
+          <a class="btn btn-success" id="adminWaLink" target="_blank" style="text-decoration: none;"><i
+              class="fa-brands fa-whatsapp"></i> Kirim Struk via WhatsApp</a>
         </div>
       </div>
     </div>
@@ -2347,8 +2813,8 @@
       localStorage.removeItem('djaco_admin_api_url');
     }
     let API_URL = savedApiUrl || DEFAULT_API_URL;
-    const QRIS_STATIC='00020101021126760024ID.CO.SPEEDCASH.MERCHANT01189360081530004376840215ID10260043768480303UKE51440014ID.CO.QRIS.WWW0215ID10265263133030303UKE5204581253033605802ID5910DJACO KAFE6006MALANG61056514662410509S392458630117202606291523420830703A0163040F0E';
-    
+    const QRIS_STATIC = '00020101021126760024ID.CO.SPEEDCASH.MERCHANT01189360081530004376840215ID10260043768480303UKE51440014ID.CO.QRIS.WWW0215ID10265263133030303UKE5204581253033605802ID5910DJACO KAFE6006MALANG61056514662410509S392458630117202606291523420830703A0163040F0E';
+
     // Application States
     let products = [];
     let productOptions = [];
@@ -2363,14 +2829,14 @@
     let knownOrderInvoices = [];
     let isInitialLoad = true;
     let pollingIntervalId = null;
-    
+
     // POS Cart & Modal Selector State
     let posCart = [];
     let posSelectedCategory = 'Semua';
     let posModalProduct = null;
     let posModalQty = 1;
     let posModalSelections = {}; // { groupName: optionName }
-    
+
     // Active Invoice Modal State
     let activeInvoiceOrder = null;
 
@@ -2388,14 +2854,14 @@
     function showToast(message, isAlert = false) {
       const toastEl = document.getElementById('adminToast');
       const textEl = document.getElementById('toastMessage');
-      
+
       textEl.innerText = message;
       if (isAlert) {
         toastEl.style.borderLeft = '4px solid var(--danger)';
       } else {
         toastEl.style.borderLeft = '4px solid var(--success)';
       }
-      
+
       toastEl.classList.add('show');
       setTimeout(() => {
         toastEl.classList.remove('show');
@@ -2407,26 +2873,26 @@
       if (!document.getElementById('settings-play-sound').checked) return;
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
+
         const chime = (freq, startTime, duration) => {
           const osc1 = audioCtx.createOscillator();
           const osc2 = audioCtx.createOscillator();
           const gainNode = audioCtx.createGain();
-          
+
           osc1.type = 'sine';
           osc1.frequency.setValueAtTime(freq, startTime);
           osc1.frequency.exponentialRampToValueAtTime(freq * 1.5, startTime + duration * 0.2);
-          
+
           osc2.type = 'triangle';
           osc2.frequency.setValueAtTime(freq * 1.2, startTime);
-          
+
           gainNode.gain.setValueAtTime(0.2, startTime);
           gainNode.gain.exponentialRampToValueAtTime(0.005, startTime + duration);
-          
+
           osc1.connect(gainNode);
           osc2.connect(gainNode);
           gainNode.connect(audioCtx.destination);
-          
+
           osc1.start(startTime);
           osc2.start(startTime);
           osc1.stop(startTime + duration);
@@ -2461,7 +2927,7 @@
     function updateNotificationBtn(permission) {
       const btn = document.getElementById('notifyPermissionBtn');
       if (!btn) return;
-      
+
       if (permission === 'granted') {
         btn.innerHTML = '<i class="fa-solid fa-circle-check" style="color: #fff;"></i> Notifikasi Browser Aktif';
         btn.className = 'btn btn-success';
@@ -2519,10 +2985,10 @@
       activeTab = tabId;
       document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-      
+
       document.getElementById(`section-${tabId}`).classList.add('active');
       document.getElementById(`nav-${tabId}`).classList.add('active');
-      
+
       const titles = {
         'dashboard': 'Dashboard Ringkasan',
         'pos': 'POS Kasir / Point of Sale',
@@ -2533,9 +2999,15 @@
         'settings': 'Pengaturan Dashboard'
       };
       document.getElementById('pageTitle').innerText = titles[tabId] || 'Admin Panel';
-      
+
       if (window.innerWidth <= 768) {
         document.getElementById('sidebarMenu').classList.remove('show');
+      }
+
+      // Hide Floating Cart Bar when leaving POS
+      const floatBar = document.getElementById('posFloatingCartBar');
+      if (floatBar && tabId !== 'pos') {
+        floatBar.style.display = 'none';
       }
 
       if (tabId === 'dashboard' && reports) {
@@ -2696,9 +3168,9 @@
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const response = await fetch(`${API_URL}?${urlParams.toString()}`, { 
+      const response = await fetch(`${API_URL}?${urlParams.toString()}`, {
         headers,
-        cache: 'no-store' 
+        cache: 'no-store'
       });
 
       if (response.status === 401) {
@@ -2736,7 +3208,7 @@
     async function reloadData() {
       const listeningDot = document.getElementById('listeningDot');
       listeningDot.style.opacity = '0.5';
-      
+
       try {
         const data = await apiFetch('admindata', { limit: 50 });
         products = data.products || [];
@@ -2746,14 +3218,14 @@
         recipes = data.recipes || [];
         reports = data.reports;
         orders = data.orders || [];
-        
+
         checkNewOrders(orders);
-        
+
         renderDashboardOverview();
         filterOrders();
         renderProductsGrid();
         populateCategoryFilter();
-        
+
         if (activeTab === 'pos') {
           renderPosMenu();
         } else if (activeTab === 'ingredients') {
@@ -2761,7 +3233,7 @@
         } else if (activeTab === 'expenses') {
           renderExpensesList();
         }
-        
+
         listeningDot.style.opacity = '1';
         if (isInitialLoad) {
           isInitialLoad = false;
@@ -2781,16 +3253,16 @@
     // Check if new orders are present
     function checkNewOrders(fetchedOrders) {
       if (fetchedOrders.length === 0) return;
-      
+
       const currentInvoices = fetchedOrders.map(o => o.invoiceNo);
-      
+
       if (isInitialLoad) {
         knownOrderInvoices = currentInvoices;
         return;
       }
-      
+
       const newOrders = fetchedOrders.filter(o => !knownOrderInvoices.includes(o.invoiceNo));
-      
+
       if (newOrders.length > 0) {
         playNotificationSound();
         const newest = newOrders[0];
@@ -2799,12 +3271,12 @@
           `Invoice: ${newest.invoiceNo} - ${newest.customerName} (${rupiah(newest.netSales)})`
         );
         showToast(`Order baru masuk: ${newest.invoiceNo}`);
-        
+
         const badge = document.getElementById('newOrdersBadge');
         const currentCount = Number(badge.innerText || 0) + newOrders.length;
         badge.innerText = currentCount;
         badge.style.display = 'inline-block';
-        
+
         knownOrderInvoices = [...knownOrderInvoices, ...newOrders.map(o => o.invoiceNo)];
       }
     }
@@ -2827,7 +3299,7 @@
       document.getElementById('stat-revenue').innerText = rupiah(revenue);
       document.getElementById('stat-profit').innerText = rupiah(profit);
       document.getElementById('stat-orders').innerText = ordersCount;
-      
+
       const avg = ordersCount > 0 ? (revenue / ordersCount) : 0;
       document.getElementById('stat-avg').innerText = rupiah(avg);
 
@@ -2893,12 +3365,12 @@
     function renderSalesChart() {
       if (!reports || !reports.dailySales) return;
       const ctx = document.getElementById('salesChart').getContext('2d');
-      
+
       const dates = Object.keys(reports.dailySales);
       const recentDates = dates.slice(-15);
       const revenueData = recentDates.map(d => reports.dailySales[d].revenue);
       const profitData = recentDates.map(d => reports.dailySales[d].profit);
-      
+
       if (salesChartInstance) {
         salesChartInstance.destroy();
       }
@@ -2944,8 +3416,8 @@
             y: {
               beginAtZero: true,
               ticks: {
-                callback: function(value) {
-                  return 'Rp' + (value >= 1000000 ? (value/1000000).toFixed(1) + 'M' : (value/1000).toFixed(0) + 'k');
+                callback: function (value) {
+                  return 'Rp' + (value >= 1000000 ? (value / 1000000).toFixed(1) + 'M' : (value / 1000).toFixed(0) + 'k');
                 }
               }
             }
@@ -2958,7 +3430,7 @@
     function renderPosMenu() {
       const grid = document.getElementById('posProductsGrid');
       const q = document.getElementById('posSearch').value.toLowerCase();
-      
+
       // Filter menu items
       const activeProducts = products.filter(p => {
         const isAct = String(p.status || 'Active').toLowerCase() === 'active';
@@ -2989,7 +3461,7 @@
       grid.innerHTML = activeProducts.map(p => {
         const hasOpt = productOptions.some(o => o.productId === p.id && String(o.status).toLowerCase() !== 'inactive');
         const imgStyle = p.image ? `background-image: url('${p.image}');` : `background-image: linear-gradient(135deg, #efe0c8, #d9b98c);`;
-        
+
         let stockText = `Stok: ${p.stock}`;
         let disabledAttr = '';
         if (p.stock <= 0) {
@@ -3017,6 +3489,8 @@
       }).join('');
     }
 
+
+
     function selectPosCategory(cat) {
       posSelectedCategory = cat;
       const selectWrapper = document.getElementById('posCategorySelect');
@@ -3033,9 +3507,9 @@
     function clickPosProduct(productId) {
       const p = products.find(prod => prod.id === productId);
       if (!p || p.stock <= 0) return;
-      
+
       const optionsList = productOptions.filter(o => o.productId === p.id && String(o.status).toLowerCase() !== 'inactive');
-      
+
       if (optionsList.length > 0) {
         // Has variants, open selector modal
         openPosProductModal(p, optionsList);
@@ -3071,7 +3545,7 @@
           checked: true
         });
       }
-      
+
       showToast(`${product.name} dimasukkan keranjang`);
       renderPosCart();
     }
@@ -3081,7 +3555,7 @@
       posModalProduct = product;
       posModalQty = 1;
       posModalSelections = {};
-      
+
       // Group options by type
       const groups = {};
       optionsList.forEach(o => {
@@ -3097,10 +3571,10 @@
 
       document.getElementById('posModalTitle').innerText = product.name;
       document.getElementById('posItemNote').value = '';
-      
+
       renderPosModalOptions(groups);
       updatePosModalPrice();
-      
+
       document.getElementById('posProductModalOverlay').classList.add('show');
     }
 
@@ -3110,7 +3584,7 @@
 
     function renderPosModalOptions(groupedOptions) {
       const container = document.getElementById('posOptionList');
-      
+
       container.innerHTML = Object.entries(groupedOptions).map(([groupName, opts]) => {
         const chipsHtml = opts.map(o => {
           const isActive = posModalSelections[groupName]?.option === o.option;
@@ -3130,12 +3604,14 @@
       }).join('');
     }
 
+
+
     function selectPosModalOption(groupName, optionName) {
       const opts = productOptions.filter(o => o.productId === posModalProduct.id && o.group === groupName);
       const selected = opts.find(o => o.option === optionName);
       if (selected) {
         posModalSelections[groupName] = selected;
-        
+
         // Re-group and re-render
         const activeOptions = productOptions.filter(o => o.productId === posModalProduct.id && String(o.status).toLowerCase() !== 'inactive');
         const groups = {};
@@ -3152,7 +3628,7 @@
       const basePrice = posModalProduct.price;
       const extraPrice = Object.values(posModalSelections).reduce((s, o) => s + (o.priceAdd || 0), 0);
       const unitPrice = basePrice + extraPrice;
-      
+
       document.getElementById('posModalQty').innerText = posModalQty;
       document.getElementById('posModalTotalPrice').innerText = rupiah(unitPrice * posModalQty);
     }
@@ -3160,7 +3636,7 @@
     function changePosModalQty(change) {
       const cartQty = posCart.filter(item => item.productId === posModalProduct.id).reduce((s, i) => s + i.qty, 0);
       const maxAvailable = posModalProduct.stock - cartQty;
-      
+
       posModalQty = Math.max(1, Math.min(maxAvailable, posModalQty + change));
       updatePosModalPrice();
     }
@@ -3208,29 +3684,52 @@
     // POS Cart rendering
     function renderPosCart() {
       const wrapper = document.getElementById('posCartItemsWrapper');
+      const floatBar = document.getElementById('posFloatingCartBar');
+      const container = document.querySelector('.pos-container');
+      const isCartView = container && container.classList.contains('show-cart');
+
       if (posCart.length === 0) {
-        wrapper.innerHTML = `<div style="text-align:center; padding:40px 0; color:#8c7365; font-size:13px;">Keranjang kosong.</div>`;
+        if (wrapper) {
+          wrapper.innerHTML = `<div style="text-align:center; padding:40px 10px; color:#8c7365; font-size:13px;">
+            <i class="fa-solid fa-basket-shopping" style="font-size:36px; opacity:0.3; margin-bottom:12px; display:block;"></i>
+            Keranjang belanja kosong.<br><small style="color:#aaa;">Pilih menu untuk menambahkan pesanan.</small>
+          </div>`;
+        }
         document.getElementById('pos-subtotal').innerText = 'Rp0';
         document.getElementById('pos-grandtotal').innerText = 'Rp0';
+
+        // Reset Mobile Badge
+        const mBadge = document.getElementById('posMobileCartBadge');
+        if (mBadge) {
+          mBadge.innerText = '0';
+          mBadge.style.display = 'none';
+        }
+
+        // Hide Floating Bar
+        if (floatBar) {
+          floatBar.style.display = 'none';
+        }
+
+        calculatePosChange();
         return;
       }
 
       wrapper.innerHTML = posCart.map(item => `
-        <div class="pos-cart-item" style="display:flex; align-items:center;">
-          <input type="checkbox" ${item.checked !== false ? 'checked' : ''} onchange="togglePosCartItemSelection('${item.uid}')" style="margin-right:10px; width:18px; height:18px; cursor:pointer; accent-color:var(--coffee);">
-          <div class="pos-cart-item-info" style="flex:1;">
-            <h4>${item.name}</h4>
-            ${item.optionsText ? `<small>${item.optionsText}<br></small>` : ''}
-            ${item.itemNote ? `<small style="color:var(--danger); font-weight:600;">Catatan: ${item.itemNote}<br></small>` : ''}
-            <span class="pos-cart-item-price">${rupiah(item.unitPrice)}</span>
+        <div class="pos-cart-item" style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" ${item.checked !== false ? 'checked' : ''} onchange="togglePosCartItemSelection('${item.uid}')" style="width:18px; height:18px; cursor:pointer; accent-color:var(--coffee); flex-shrink:0;">
+          <div class="pos-cart-item-info" style="flex:1; min-width:0;">
+            <h4 style="font-size:13px; font-weight:700; color:var(--coffee-dark); margin:0 0 2px 0; word-break:break-word;">${item.name}</h4>
+            ${item.optionsText ? `<small style="font-size:11px; color:#8c7365; display:block;">${item.optionsText}</small>` : ''}
+            ${item.itemNote ? `<small style="font-size:11px; color:var(--danger); font-weight:600; display:block;">Catatan: ${item.itemNote}</small>` : ''}
+            <span class="pos-cart-item-price" style="font-size:12px; font-weight:700; color:var(--coffee);">${rupiah(item.unitPrice)}</span>
           </div>
           
-          <div class="pos-cart-item-actions">
+          <div class="pos-cart-item-actions" style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0;">
             <span style="font-weight:700; font-size:13px; color:var(--coffee);">${rupiah(item.subtotal)}</span>
             <div class="qty-counter">
-              <button onclick="changePosCartQty('${item.uid}', -1)">−</button>
-              <span>${item.qty}</span>
-              <button onclick="changePosCartQty('${item.uid}', 1)">+</button>
+              <button type="button" onclick="changePosCartQty('${item.uid}', -1)" title="Kurang">−</button>
+              <span style="font-weight:700; font-size:13px; min-width:20px; text-align:center;">${item.qty}</span>
+              <button type="button" onclick="changePosCartQty('${item.uid}', 1)" title="Tambah">+</button>
             </div>
           </div>
         </div>
@@ -3238,20 +3737,40 @@
 
       const checkedItems = posCart.filter(i => i.checked !== false);
       const subtotal = checkedItems.reduce((s, i) => s + i.subtotal, 0);
+      const totalQty = posCart.reduce((s, i) => s + i.qty, 0);
+
       document.getElementById('pos-subtotal').innerText = rupiah(subtotal);
       document.getElementById('pos-grandtotal').innerText = rupiah(subtotal);
-      
+
       calculatePosChange();
-      
-      // Update Mobile POS Cart Badge
-      const totalItems = posCart.reduce((s, i) => s + i.qty, 0);
+
+      // Update Mobile POS Cart Badge in top tab
       const mBadge = document.getElementById('posMobileCartBadge');
       if (mBadge) {
-        if (totalItems > 0) {
-          mBadge.innerText = totalItems;
+        if (totalQty > 0) {
+          mBadge.innerText = totalQty;
           mBadge.style.display = 'inline-block';
         } else {
           mBadge.style.display = 'none';
+        }
+      }
+
+      // Update Floating Bottom Cart Bar
+      if (floatBar) {
+        const floatCount = document.getElementById('posFloatingCartCount');
+        const floatTotal = document.getElementById('posFloatingCartTotal');
+        if (floatCount) floatCount.innerText = totalQty;
+        if (floatTotal) floatTotal.innerText = rupiah(subtotal);
+
+        // Show floating bar only on mobile/tablet (<= 992px) when in menu catalog view
+        if (window.innerWidth <= 992 && !isCartView && activeTab === 'pos') {
+          floatBar.style.display = 'flex';
+          // Trigger bump animation
+          floatBar.classList.remove('cart-bump');
+          void floatBar.offsetWidth;
+          floatBar.classList.add('cart-bump');
+        } else {
+          floatBar.style.display = 'none';
         }
       }
     }
@@ -3261,31 +3780,46 @@
       const container = document.querySelector('.pos-container');
       const btnMenu = document.getElementById('pos-btn-menu');
       const btnCart = document.getElementById('pos-btn-cart');
-      
-      if (!container || !btnMenu || !btnCart) return;
-      
+      const floatBar = document.getElementById('posFloatingCartBar');
+
+      if (!container) return;
+
       if (view === 'cart') {
         container.classList.add('show-cart');
-        btnCart.classList.add('active', 'btn-primary');
-        btnCart.classList.remove('btn-outline');
-        btnMenu.classList.remove('active', 'btn-primary');
-        btnMenu.classList.add('btn-outline');
+        if (btnCart) {
+          btnCart.classList.add('active', 'btn-primary');
+          btnCart.classList.remove('btn-outline');
+        }
+        if (btnMenu) {
+          btnMenu.classList.remove('active', 'btn-primary');
+          btnMenu.classList.add('btn-outline');
+        }
+        if (floatBar) floatBar.style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         container.classList.remove('show-cart');
-        btnMenu.classList.add('active', 'btn-primary');
-        btnMenu.classList.remove('btn-outline');
-        btnCart.classList.remove('active', 'btn-primary');
-        btnCart.classList.add('btn-outline');
+        if (btnMenu) {
+          btnMenu.classList.add('active', 'btn-primary');
+          btnMenu.classList.remove('btn-outline');
+        }
+        if (btnCart) {
+          btnCart.classList.remove('active', 'btn-primary');
+          btnCart.classList.add('btn-outline');
+        }
+        // Show floating bar if on mobile and cart has items
+        if (floatBar && posCart.length > 0 && window.innerWidth <= 992 && activeTab === 'pos') {
+          floatBar.style.display = 'flex';
+        }
       }
     }
 
     function changePosCartQty(uid, change) {
       const index = posCart.findIndex(i => i.uid === uid);
       if (index === -1) return;
-      
+
       const item = posCart[index];
       const p = products.find(prod => prod.id === item.productId);
-      
+
       // Calculate other items using same ID
       const otherQty = posCart.filter(i => i.productId === item.productId && i.uid !== uid).reduce((s, i) => s + i.qty, 0);
       const maxAvailable = p.stock - otherQty;
@@ -3296,7 +3830,7 @@
       } else {
         item.subtotal = item.qty * item.unitPrice;
       }
-      
+
       renderPosCart();
     }
 
@@ -3323,7 +3857,7 @@
       const subtotal = checkedItems.reduce((s, i) => s + i.subtotal, 0);
       const cashVal = Number(document.getElementById('posCashReceived').value || 0);
       const changeDue = Math.max(0, cashVal - subtotal);
-      
+
       document.getElementById('posChangeDue').innerText = cashVal >= subtotal ? rupiah(changeDue) : "Uang belum cukup";
     }
 
@@ -3370,7 +3904,7 @@
       try {
         showToast("Memproses transaksi POS...");
         const result = await apiPost('createorder', payload);
-        
+
         // Save state for invoice printing
         activeInvoiceOrder = {
           ...payload,
@@ -3384,11 +3918,11 @@
 
         // Open Invoice & reset
         showAdminInvoiceModal(activeInvoiceOrder);
-        
+
         // Remove only checked items, and reset remaining items to checked
         posCart = posCart.filter(i => i.checked === false);
         posCart.forEach(i => i.checked = true);
-        
+
         renderPosCart();
         togglePosMobileView('menu');
         await reloadData();
@@ -3408,7 +3942,7 @@
     function loadHeldOrders() {
       try {
         heldOrders = JSON.parse(localStorage.getItem(HELD_ORDERS_KEY) || '[]');
-      } catch(e) {
+      } catch (e) {
         heldOrders = [];
       }
       renderHeldOrders();
@@ -3417,7 +3951,7 @@
     function saveHeldOrders() {
       try {
         localStorage.setItem(HELD_ORDERS_KEY, JSON.stringify(heldOrders));
-      } catch(e) {}
+      } catch (e) { }
       renderHeldOrders();
     }
 
@@ -3430,11 +3964,11 @@
       const defaultName = 'Grup ' + (heldOrders.length + 1);
       const title = prompt("Masukkan Nama Grup / Nomor Meja untuk transaksi sementara ini:", nameInput || defaultName);
       if (title === null) return; // cancelled
-      
+
       const labelName = title.trim() || defaultName;
       const customerPhone = document.getElementById('posCustomerPhone').value.trim();
       const notes = document.getElementById('posOrderNotes').value.trim();
-      
+
       const heldObj = {
         id: 'held-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
         label: labelName,
@@ -3444,10 +3978,10 @@
         items: JSON.parse(JSON.stringify(posCart)),
         createdAt: new Date().toISOString()
       };
-      
+
       heldOrders.push(heldObj);
       saveHeldOrders();
-      
+
       // Reset POS Cart
       posCart = [];
       document.getElementById('posCustomerName').value = '';
@@ -3460,7 +3994,7 @@
     function resumeHeldOrder(id) {
       const idx = heldOrders.findIndex(h => h.id === id);
       if (idx === -1) return;
-      
+
       const held = heldOrders[idx];
       if (posCart.length > 0) {
         const confirmMerge = confirm("Keranjang aktif tidak kosong. Apakah Anda ingin MENGGABUNGKAN item keranjang ini?");
@@ -3481,11 +4015,14 @@
         document.getElementById('posCustomerPhone').value = held.customerPhone || '';
         document.getElementById('posOrderNotes').value = held.notes || '';
       }
-      
+
       heldOrders.splice(idx, 1);
       saveHeldOrders();
-      
+
       renderPosCart();
+      if (window.innerWidth <= 992) {
+        togglePosMobileView('cart');
+      }
       showToast("Transaksi dibuka kembali!");
     }
 
@@ -3504,7 +4041,7 @@
         wrapper.innerHTML = `<div style="text-align:center; padding:10px 0; color:#8c7365; font-size:11px;">Tidak ada transaksi hold.</div>`;
         return;
       }
-      
+
       wrapper.innerHTML = heldOrders.map(h => {
         const totalItems = h.items.reduce((s, i) => s + i.qty, 0);
         const totalCost = h.items.reduce((s, i) => s + i.subtotal, 0);
@@ -3529,48 +4066,50 @@
       }).join('');
     }
 
+
+
     // ---------------- QRIS GENERATOR ALGORITHM ----------------
     function parseTLV(s) {
-      let a=[], i=0;
-      while(i<s.length){
-        let id=s.substr(i,2), len=parseInt(s.substr(i+2,2),10), val=s.substr(i+4,len);
-        a.push({id,len,val});
-        i+=4+len;
+      let a = [], i = 0;
+      while (i < s.length) {
+        let id = s.substr(i, 2), len = parseInt(s.substr(i + 2, 2), 10), val = s.substr(i + 4, len);
+        a.push({ id, len, val });
+        i += 4 + len;
       }
       return a;
     }
-    function buildTLV(a) { return a.map(x=>x.id+String(x.val.length).padStart(2,'0')+x.val).join(''); }
+    function buildTLV(a) { return a.map(x => x.id + String(x.val.length).padStart(2, '0') + x.val).join(''); }
     function crc16ccitt(str) {
-      let crc=0xFFFF;
-      for(let i=0;i<str.length;i++){
-        crc^=str.charCodeAt(i)<<8;
-        for(let j=0;j<8;j++) crc=(crc&0x8000)?((crc<<1)^0x1021):(crc<<1);
-        crc&=0xFFFF;
+      let crc = 0xFFFF;
+      for (let i = 0; i < str.length; i++) {
+        crc ^= str.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+        crc &= 0xFFFF;
       }
-      return crc.toString(16).toUpperCase().padStart(4,'0');
+      return crc.toString(16).toUpperCase().padStart(4, '0');
     }
     function qrisDynamic(amount) {
-      const base=QRIS_STATIC.replace(/6304[0-9A-F]{4}$/i,''), arr=parseTLV(base), out=[];
-      let has54=false;
-      arr.forEach(x=>{
-        if(x.id==='01') x.val='12';
-        if(x.id==='54'){ x.val=String(amount); has54=true; }
-        if(x.id==='62') return;
+      const base = QRIS_STATIC.replace(/6304[0-9A-F]{4}$/i, ''), arr = parseTLV(base), out = [];
+      let has54 = false;
+      arr.forEach(x => {
+        if (x.id === '01') x.val = '12';
+        if (x.id === '54') { x.val = String(amount); has54 = true; }
+        if (x.id === '62') return;
         out.push(x);
-        if(x.id==='53'&&!has54){ out.push({id:'54',val:String(amount)}); has54=true; }
+        if (x.id === '53' && !has54) { out.push({ id: '54', val: String(amount) }); has54 = true; }
       });
-      const noCrc=buildTLV(out)+'6304';
-      return noCrc+crc16ccitt(noCrc);
+      const noCrc = buildTLV(out) + '6304';
+      return noCrc + crc16ccitt(noCrc);
     }
 
     // ---------------- INVOICE & RECEIPT RENDERER ----------------
     function showAdminInvoiceModal(order) {
       activeInvoiceOrder = order;
-      
+
       // Render receipt text inside .invoicebox
       const box = document.getElementById('adminInvoiceBox');
       const orderDateStr = order.createdAt ? new Date(order.createdAt).toLocaleString('id-ID') : new Date().toLocaleString('id-ID');
-      
+
       const itemsRowsHtml = order.items.map(it => `
         <div class="receipt-row">
           <span>${it.name} x${it.qty}${it.optionsText ? `<br><small style="color:#666;">${it.optionsText}</small>` : ''}${it.itemNote ? `<br><small style="color:red;">Note: ${it.itemNote}</small>` : ''}</span>
@@ -3610,14 +4149,14 @@
       // Render QRIS if Payment Method is QRIS
       const qrBox = document.getElementById('adminInvoiceQrBox');
       const downloadBtn = document.getElementById('adminDownloadQrisBtn');
-      
+
       if (order.paymentMethod === 'QRIS') {
         qrBox.style.display = 'block';
         downloadBtn.style.display = 'block';
-        
+
         const qrisPayload = qrisDynamic(order.total);
         const qrUrl = 'https://quickchart.io/qr?text=' + encodeURIComponent(qrisPayload) + '&size=520&margin=1';
-        
+
         document.getElementById('adminQrisImg').src = qrUrl;
         document.getElementById('adminQrisAmount').innerText = rupiah(order.total);
       } else {
@@ -3656,10 +4195,10 @@
 
     async function downloadAdminQris() {
       if (!activeInvoiceOrder || activeInvoiceOrder.paymentMethod !== 'QRIS') return;
-      
+
       const qrisPayload = qrisDynamic(activeInvoiceOrder.total);
       const qrUrl = 'https://quickchart.io/qr?text=' + encodeURIComponent(qrisPayload) + '&size=520&margin=1';
-      
+
       try {
         // Quietly log download to Sheets
         await fetch(API_URL, {
@@ -3670,7 +4209,7 @@
             transactionId: activeInvoiceOrder.transactionId
           })
         });
-        
+
         const res = await fetch(qrUrl);
         const blob = await res.blob();
         const a = document.createElement('a');
@@ -3716,11 +4255,11 @@
         const orderDateStr = o.date ? new Date(o.date).toLocaleString('id-ID', {
           day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
         }) : '-';
-        
+
         let statusClass = 'status-pending';
         let actionButtonsHtml = '';
         const currentStatus = String(o.status || 'Pending').toLowerCase();
-        
+
         if (currentStatus === 'pending') {
           statusClass = 'status-pending';
           actionButtonsHtml = `
@@ -3786,10 +4325,12 @@
       }).join('');
     }
 
+
+
     function filterOrders() {
       const q = document.getElementById('orderSearch').value.toLowerCase();
-      const filtered = orders.filter(o => 
-        o.invoiceNo.toLowerCase().includes(q) || 
+      const filtered = orders.filter(o =>
+        o.invoiceNo.toLowerCase().includes(q) ||
         o.customerName.toLowerCase().includes(q) ||
         o.customerPhone.toLowerCase().includes(q)
       );
@@ -3798,10 +4339,10 @@
 
     async function changeStatus(invoiceNo, newStatus) {
       if (!confirm(`Ubah status invoice ${invoiceNo} menjadi ${newStatus}?`)) return;
-      
+
       const card = document.getElementById(`order-card-${invoiceNo}`);
       if (card) card.style.opacity = '0.5';
-      
+
       try {
         await apiPost('updateorderstatus', { invoiceNo, status: newStatus });
         showToast(`Invoice ${invoiceNo} berhasil di-update ke ${newStatus}`);
@@ -3818,10 +4359,10 @@
       const filterSelect = document.getElementById('productCategoryFilter');
       const cats = [...new Set(products.map(p => p.category))].filter(Boolean);
       const currentSel = filterSelect.value;
-      
-      filterSelect.innerHTML = `<option value="Semua">Semua Kategori</option>` + 
+
+      filterSelect.innerHTML = `<option value="Semua">Semua Kategori</option>` +
         cats.map(c => `<option value="${c}">${c}</option>`).join('');
-        
+
       if (cats.includes(currentSel)) {
         filterSelect.value = currentSel;
       }
@@ -3849,13 +4390,13 @@
           stockClass = 'stock-low';
           stockText = `Stok Kritis: ${p.stock}`;
         }
-        
+
         const featuredHtml = p.featured ? `<span class="product-badge-featured">Featured</span>` : '';
         const statusHtml = String(p.status).toLowerCase() !== 'active' ? `<span class="product-badge-inactive">${p.status}</span>` : '';
-        
+
         const optionsList = productOptions.filter(o => o.productId === p.id && String(o.status).toLowerCase() !== 'inactive');
         const groups = [...new Set(optionsList.map(o => o.group))];
-        const variantsLabel = p.hasVariant || groups.length > 0 
+        const variantsLabel = p.hasVariant || groups.length > 0
           ? `<span style="font-size:11px; font-weight:700; color:var(--gold);"><i class="fa-solid fa-cube"></i> ${groups.join(', ')}</span>`
           : '<span style="font-size:11px; color:#8c7365;">Tanpa Varian</span>';
 
@@ -3895,25 +4436,27 @@
       }).join('');
     }
 
+
+
     function filterProducts() {
       const q = document.getElementById('productSearch').value.toLowerCase();
       const cat = document.getElementById('productCategoryFilter').value;
-      
+
       const filtered = products.filter(p => {
         const matchQuery = p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q);
         const matchCategory = cat === 'Semua' || p.category === cat;
         return matchQuery && matchCategory;
       });
-      
+
       renderProductsGrid(filtered);
     }
 
     async function deleteProduct(productId) {
       if (!confirm(`Apakah Anda yakin ingin menonaktifkan/menghapus produk ${productId}?`)) return;
-      
+
       const card = document.getElementById(`product-card-${productId}`);
       if (card) card.style.opacity = '0.5';
-      
+
       try {
         await apiPost('deleteproduct', { id: productId });
         showToast(`Produk ${productId} berhasil dihapus/dinonaktifkan`);
@@ -3932,7 +4475,7 @@
         alert("API URL tidak boleh kosong.");
         return;
       }
-      
+
       localStorage.setItem('djaco_admin_api_url', inputUrl);
       API_URL = inputUrl;
       showToast("Pengaturan berhasil disimpan!");
@@ -3948,7 +4491,7 @@
     function openAddProductModal() {
       currentEditProductId = null;
       document.getElementById('productModalTitle').innerText = "Tambah Produk Baru";
-      
+
       document.getElementById('prod-id').value = '';
       document.getElementById('prod-id').disabled = false;
       document.getElementById('prod-name').value = '';
@@ -3961,11 +4504,11 @@
       document.getElementById('prod-image').value = '';
       document.getElementById('prod-description').value = '';
       document.getElementById('prod-has-variant').checked = false;
-      
+
       localVariantGroups = [];
       renderVariantGroupsUI();
       toggleVariantBuilder(false);
-      
+
       document.getElementById('productModalOverlay').classList.add('show');
     }
 
@@ -3973,9 +4516,9 @@
       currentEditProductId = productId;
       const p = products.find(prod => prod.id === productId);
       if (!p) return;
-      
+
       document.getElementById('productModalTitle').innerText = `Edit Produk: ${p.name}`;
-      
+
       document.getElementById('prod-id').value = p.id;
       document.getElementById('prod-id').disabled = true;
       document.getElementById('prod-name').value = p.name;
@@ -3987,12 +4530,12 @@
       document.getElementById('prod-featured').checked = p.featured;
       document.getElementById('prod-image').value = p.image || '';
       document.getElementById('prod-description').value = p.description || '';
-      
+
       const hasVar = p.hasVariant || false;
       document.getElementById('prod-has-variant').checked = hasVar;
-      
+
       const optionsList = productOptions.filter(o => o.productId === p.id);
-      
+
       const grouped = {};
       optionsList.forEach(o => {
         if (!grouped[o.group]) grouped[o.group] = [];
@@ -4005,16 +4548,16 @@
           status: o.status || 'Active'
         });
       });
-      
+
       localVariantGroups = Object.entries(grouped).map(([groupName, opts], index) => ({
         id: 'vg-' + Date.now() + '-' + index,
         groupName: groupName,
-        options: opts.sort((a,b) => (a.sort||0) - (b.sort||0))
+        options: opts.sort((a, b) => (a.sort || 0) - (b.sort || 0))
       }));
-      
+
       renderVariantGroupsUI();
       toggleVariantBuilder(hasVar);
-      
+
       document.getElementById('productModalOverlay').classList.add('show');
     }
 
@@ -4046,7 +4589,7 @@
     function addVariantOptionRow(groupId) {
       const group = localVariantGroups.find(g => g.id === groupId);
       if (!group) return;
-      
+
       const newSort = group.options.length + 1;
       group.options.push({
         option: '',
@@ -4062,7 +4605,7 @@
     function removeVariantOptionRow(groupId, optIndex) {
       const group = localVariantGroups.find(g => g.id === groupId);
       if (!group) return;
-      
+
       group.options.splice(optIndex, 1);
       renderVariantGroupsUI();
     }
@@ -4075,7 +4618,7 @@
     function updateOptionField(groupId, optIndex, field, val) {
       const group = localVariantGroups.find(g => g.id === groupId);
       if (!group || !group.options[optIndex]) return;
-      
+
       if (field === 'priceAdd' || field === 'sort') {
         group.options[optIndex][field] = Number(val) || 0;
       } else if (field === 'default') {
@@ -4126,13 +4669,15 @@
       }).join('');
     }
 
+
+
     async function saveProductForm(e) {
       e.preventDefault();
-      
+
       const submitBtn = document.getElementById('saveProductFormBtn');
       submitBtn.innerText = "Menyimpan...";
       submitBtn.disabled = true;
-      
+
       const id = document.getElementById('prod-id').value.trim();
       const name = document.getElementById('prod-name').value.trim();
       const category = document.getElementById('prod-category').value.trim();
@@ -4190,8 +4735,8 @@
       const badge = document.getElementById('ingredientCountBadge');
       if (!tbody) return;
 
-      const filtered = ingredients.filter(i => 
-        (i.name || '').toLowerCase().includes(q) || 
+      const filtered = ingredients.filter(i =>
+        (i.name || '').toLowerCase().includes(q) ||
         (i.code || '').toLowerCase().includes(q)
       );
 
@@ -4316,7 +4861,7 @@
       const form = document.getElementById('restockForm');
       form.reset();
 
-      select.innerHTML = '<option value="">-- Pilih Bahan Baku --</option>' + ingredients.map(i => 
+      select.innerHTML = '<option value="">-- Pilih Bahan Baku --</option>' + ingredients.map(i =>
         `<option value="${i.id}">${esc(i.name)} (${esc(i.code)}) - ${esc(i.unit)}</option>`
       ).join('');
 
@@ -4434,6 +4979,8 @@
       }).join('');
     }
 
+
+
     function openRecipeModal(productId) {
       activeRecipeProductId = productId;
       const product = products.find(p => String(p.id) === String(productId));
@@ -4473,7 +5020,7 @@
         const unitCost = Number(currentIng?.costPerUnit || 0);
         const subtotal = unitCost * Number(item.quantity || 0);
 
-        const optionsHtml = ingredients.map(i => 
+        const optionsHtml = ingredients.map(i =>
           `<option value="${i.id}" ${i.id === item.ingredientId ? 'selected' : ''}>${esc(i.name)} (${rupiah(i.costPerUnit)}/${i.unit})</option>`
         ).join('');
 
@@ -4496,6 +5043,8 @@
         `;
       }).join('');
     }
+
+
 
     function addRecipeRow() {
       const firstIng = ingredients[0]?.id || 0;
@@ -4666,23 +5215,23 @@
       if (pollingIntervalId) {
         clearInterval(pollingIntervalId);
       }
-      
+
       // Fast poll (every 6 seconds) for new orders using lightweight endpoint
       pollingIntervalId = setInterval(async () => {
         try {
           const data = await apiFetch('checkneworders');
           const freshOrders = data.orders || [];
-          
+
           // Check if any fresh invoice is not known
           const hasNew = freshOrders.some(o => !knownOrderInvoices.includes(o.invoiceNo));
-          
+
           if (hasNew) {
             // Trigger alerts & sounds immediately
             checkNewOrders(freshOrders);
             // Refresh entire admin dashboard data (reports, items, stocks)
             await reloadData();
           }
-        } catch(e) {
+        } catch (e) {
           console.warn("Background fast notification polling error:", e);
         }
       }, 6000);
@@ -4694,6 +5243,20 @@
       reloadData();
       startOrderPolling();
     }
+
+    // Responsive POS resize listener
+    window.addEventListener('resize', () => {
+      if (activeTab === 'pos') {
+        const floatBar = document.getElementById('posFloatingCartBar');
+        const container = document.querySelector('.pos-container');
+        if (window.innerWidth > 992) {
+          if (floatBar) floatBar.style.display = 'none';
+          if (container) container.classList.remove('show-cart');
+        } else {
+          renderPosCart();
+        }
+      }
+    });
 
     // Page Load Initializer
     window.addEventListener('load', () => {
@@ -4728,4 +5291,5 @@
     });
   </script>
 </body>
+
 </html>
