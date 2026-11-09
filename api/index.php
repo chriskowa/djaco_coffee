@@ -299,15 +299,13 @@ switch ($action) {
         }, $rawOrders);
 
         // Reports / Summary stats
-        $today = date('Y-m-d');
-        $statsStmt = $pdo->prepare("
+        $statsStmt = $pdo->query("
             SELECT 
-                COALESCE(SUM(CASE WHEN DATE(created_at) = :today AND status != 'Cancelled' THEN total ELSE 0 END), 0) as todaySales,
-                COUNT(CASE WHEN DATE(created_at) = :today THEN 1 END) as todayOrders,
+                COALESCE(SUM(CASE WHEN DATE(created_at) = CURDATE() AND status != 'Cancelled' THEN total ELSE 0 END), 0) as todaySales,
+                COUNT(CASE WHEN DATE(created_at) = CURDATE() THEN 1 END) as todayOrders,
                 COUNT(CASE WHEN status = 'Pending' THEN 1 END) as pendingOrders
             FROM orders
         ");
-        $statsStmt->execute([':today' => $today]);
         $stats = $statsStmt->fetch();
 
         $activeProdCount = $pdo->query("SELECT COUNT(*) FROM products WHERE status = 'Active'")->fetchColumn();

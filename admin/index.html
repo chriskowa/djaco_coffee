@@ -2394,6 +2394,10 @@
         }
       } catch (err) {
         console.error(err);
+        if (err.message && (err.message.includes('Sesi berakhir') || err.message.includes('Akses ditolak'))) {
+          // Token tidak ada atau kedaluwarsa, layar login akan otomatis tampil
+          return;
+        }
         showToast("Gagal mengambil data dari Server API", true);
       }
     }

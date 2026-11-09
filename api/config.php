@@ -18,10 +18,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // -------------------------------------------------------------
 // Database Credentials
 // -------------------------------------------------------------
-// Sesuaikan dengan data database MySQL hosting / lokal Anda
-$isLocal = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1', 'localhost:8000', 'localhost:3000']);
+// Deteksi otomatis environment (Laravel Herd / Laragon / Localhost vs Production cPanel)
+$httpHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
+$cleanHost = explode(':', $httpHost)[0]; // hilangkan port jika ada
+
+$isLocal = in_array($cleanHost, ['localhost', '127.0.0.1', '::1'])
+    || str_ends_with($cleanHost, '.test')
+    || str_ends_with($cleanHost, '.local')
+    || str_contains($cleanHost, 'djaco.web.id.test');
 
 if ($isLocal) {
+    // Pengaturan Lokal (Laravel Herd / Laragon / XAMPP)
     define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
     define('DB_PORT', getenv('DB_PORT') ?: '3306');
     define('DB_NAME', getenv('DB_NAME') ?: 'djaco_db');
