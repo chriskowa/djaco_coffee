@@ -38,7 +38,12 @@ djaco.web.id/
 3. **Cek Konfigurasi Database:**
    * Buka [api/config.php](api/config.php).
    * Untuk lokal, default user `root` tanpa password sudah terpasang otomatis.
-4. **Jalankan Web Server Lokal:**
+4. **Login ke Dashboard Admin:**
+   * Akses URL: `http://localhost:8000/admin/`
+   * Masuk menggunakan kredensial default yang telah dienkripsi (Bcrypt):
+     * **Admin:** Username: `admin` | Password: `admin123` (Hak akses penuh kelola menu & pesanan)
+     * **Kasir:** Username: `kasir` | Password: `kasir123` (Hak akses POS & pantau pesanan)
+5. **Jalankan Web Server Lokal:**
    * Buka terminal di folder ini, lalu jalankan:
      ```bash
      php -S localhost:8000
@@ -89,3 +94,4 @@ Setiap Anda melakukan `git push origin main`, web di hosting cPanel akan otomati
      * `FTP_USERNAME`: Username FTP cPanel Anda.
      * `FTP_PASSWORD`: Password akun FTP Anda.
 3. Selesai! Deployment akan berjalan otomatis di tab **Actions** di GitHub.
+

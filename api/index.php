@@ -39,6 +39,74 @@ $action = strtolower(trim($action));
 switch ($action) {
 
     // ---------------------------------------------------------
+    // 0. AUTHENTICATION (Login, Logout, Check Auth)
+    // ---------------------------------------------------------
+    case 'login':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $username = trim($input['username'] ?? '');
+        $password = (string)($input['password'] ?? '');
+
+        if (empty($username) || empty($password)) {
+            jsonError('Username dan password wajib diisi');
+        }
+
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username LIMIT 1");
+        $stmt->execute([':username' => $username]);
+        $user = $stmt->fetch();
+
+        if (!$user || !password_verify($password, $user['password'])) {
+            // Delay untuk mencegah brute force attack
+            usleep(300000); // 300ms
+            jsonError('Username atau password salah', 401);
+        }
+
+        // Generate token kriptografi yang aman
+        $token = bin2hex(random_bytes(32));
+        $updateToken = $pdo->prepare("
+            UPDATE users 
+            SET token = :token, token_expired_at = DATE_ADD(NOW(), INTERVAL 7 DAY) 
+            WHERE id = :id
+        ");
+        $updateToken->execute([
+            ':token' => $token,
+            ':id'    => $user['id']
+        ]);
+
+        jsonSuccess([
+            'message' => 'Login berhasil',
+            'token'   => $token,
+            'user'    => [
+                'id'       => (int)$user['id'],
+                'username' => $user['username'],
+                'name'     => $user['name'],
+                'role'     => $user['role']
+            ]
+        ]);
+        break;
+
+    case 'logout':
+        $token = getBearerToken();
+        if (!empty($token)) {
+            $stmt = $pdo->prepare("UPDATE users SET token = NULL, token_expired_at = NULL WHERE token = :token");
+            $stmt->execute([':token' => $token]);
+        }
+        jsonSuccess(['message' => 'Logout berhasil']);
+        break;
+
+    case 'checkauth':
+        $currentUser = requireAuth($pdo);
+        jsonSuccess([
+            'authenticated' => true,
+            'user'          => [
+                'id'       => (int)$currentUser['id'],
+                'username' => $currentUser['username'],
+                'name'     => $currentUser['name'],
+                'role'     => $currentUser['role']
+            ]
+        ]);
+        break;
+
+    // ---------------------------------------------------------
     // 1. GET ALL DATA (Products + Options + Announcements)
     // ---------------------------------------------------------
     case 'all':
@@ -133,6 +201,7 @@ switch ($action) {
     // 3. ADMIN DATA (Products, Options, Orders, Reports)
     // ---------------------------------------------------------
     case 'admindata':
+        $currentUser = requireAuth($pdo);
         $limit = isset($_GET['limit']) ? max(1, min(200, (int)$_GET['limit'])) : 50;
 
         // Products
@@ -260,6 +329,7 @@ switch ($action) {
     // 4. CHECK NEW ORDERS (Lightweight polling for POS sound alert)
     // ---------------------------------------------------------
     case 'checkneworders':
+        $currentUser = requireAuth($pdo);
         $stmt = $pdo->query("
             SELECT 
                 invoice_no as invoiceNo, 
@@ -415,6 +485,7 @@ switch ($action) {
     // ---------------------------------------------------------
     case 'saveproduct':
         if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
 
         $id          = trim($input['id'] ?? '');
         $name        = trim($input['name'] ?? '');
@@ -538,6 +609,7 @@ switch ($action) {
     // ---------------------------------------------------------
     case 'updateorderstatus':
         if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo);
         $invoiceNo = trim($input['invoiceNo'] ?? '');
         $newStatus = trim($input['status'] ?? '');
 
@@ -556,6 +628,7 @@ switch ($action) {
     // ---------------------------------------------------------
     case 'deleteproduct':
         if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
         $id = trim($input['id'] ?? '');
         if (empty($id)) jsonError('ID produk wajib diisi');
 
@@ -582,3 +655,4 @@ switch ($action) {
         jsonError("Aksi '$action' tidak dikenali", 404);
         break;
 }
+

@@ -1413,12 +1413,67 @@
     <span id="toastMessage"></span>
   </div>
 
-  <div class="admin-container">
+  <!-- Login Screen Overlay -->
+  <div class="modal-overlay show" id="loginOverlay" style="z-index: 9999; background: linear-gradient(135deg, #1b0e07 0%, #3b1f12 100%);">
+    <div class="modal-box" style="width: 100%; max-width: 420px; border-radius: 28px; padding: 36px 30px; box-shadow: 0 25px 70px rgba(0,0,0,0.6); text-align: center; border: 1px solid rgba(197, 155, 98, 0.2);">
+      <div style="margin-bottom: 24px;">
+        <div style="font-family: 'Outfit', sans-serif; font-size: 34px; font-weight: 800; color: var(--coffee); display: inline-flex; align-items: center; gap: 8px;">
+          DjaC<span class="bean-logo" style="width: 18px; height: 26px;"></span>
+        </div>
+        <h2 style="font-size: 20px; font-weight: 800; margin-top: 8px; color: var(--dark);">Admin & POS Login</h2>
+        <p style="font-size: 13px; color: #795d48; margin-top: 4px;">Sistem manajemen pesanan & inventaris terproteksi</p>
+      </div>
+
+      <div id="loginAlert" style="display:none; padding: 12px 14px; border-radius: 12px; font-size: 13px; margin-bottom: 18px; font-weight: 600;"></div>
+
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)" style="text-align: left;">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--dark);">Username</label>
+          <div style="position: relative;">
+            <input type="text" id="loginUsername" required autocomplete="username" placeholder="Contoh: admin" style="width: 100%; padding: 13px 14px 13px 40px; border-radius: 14px; border: 1px solid var(--border); font-family: inherit; font-size: 14px; outline: none; background: #fffcf8;" />
+            <i class="fa-solid fa-user" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--gold);"></i>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 22px;">
+          <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--dark);">Password</label>
+          <div style="position: relative;">
+            <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="Masukkan password" style="width: 100%; padding: 13px 40px 13px 40px; border-radius: 14px; border: 1px solid var(--border); font-family: inherit; font-size: 14px; outline: none; background: #fffcf8;" />
+            <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--gold);"></i>
+            <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888; font-size: 15px;">
+              <i class="fa-solid fa-eye" id="passwordToggleIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="loginSubmitBtn" style="width: 100%; padding: 14px; background: var(--coffee); color: #fff; border: none; border-radius: 16px; font-weight: 800; font-size: 15px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(59,31,18,0.25);">
+          <span>Masuk Dashboard</span> <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </form>
+
+      <div style="margin-top: 22px; font-size: 11px; color: #999; border-top: 1px dashed #ead7ba; padding-top: 14px;">
+        Default akun: <b>admin</b> / <b>admin123</b> atau <b>kasir</b> / <b>kasir123</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-container" id="adminAppContainer" style="display:none;">
     
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebarMenu">
       <div class="sidebar-header">
         DjaC<span class="bean-logo"></span> Admin
+      </div>
+
+      <!-- User Profile Card -->
+      <div id="sidebarUserBox" style="padding: 10px 12px; background: rgba(255,255,255,0.07); border-radius: 14px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="width: 34px; height: 34px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; color: var(--coffee-dark); font-weight: 800;">
+          <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <div style="overflow: hidden; flex: 1;">
+          <div id="currentUserName" style="font-size: 13px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; color: #fff;">Admin</div>
+          <span id="currentUserRole" style="font-size: 10px; background: rgba(197,155,98,0.3); color: var(--latte); padding: 1px 6px; border-radius: 4px; text-transform: uppercase; font-weight: 800;">ADMIN</span>
+        </div>
       </div>
       
       <nav class="sidebar-nav">
@@ -1437,6 +1492,9 @@
         </a>
         <a href="#settings" class="nav-item" id="nav-settings" onclick="switchTab('settings')">
           <i class="fa-solid fa-sliders"></i> Pengaturan
+        </a>
+        <a href="javascript:void(0)" class="nav-item" onclick="logout()" style="color: #f87171; margin-top: auto;">
+          <i class="fa-solid fa-right-from-bracket"></i> Keluar (Logout)
         </a>
       </nav>
       
@@ -1732,12 +1790,16 @@
         </div>
 
         <div class="panel settings-card">
-          <div class="panel-title"><i class="fa-solid fa-shield-halved"></i> Keamanan Login (.htaccess)</div>
+          <div class="panel-title"><i class="fa-solid fa-shield-halved"></i> Keamanan Login (Database & Bearer Token)</div>
           <p style="font-size: 13px; line-height: 1.6; color: var(--dark);">
-            Kredensial login <b>(admin, dadang, rina)</b> telah dikonfigurasi di berkas <code>admin/.htpasswd</code>.
+            Sistem autentikasi kini menggunakan database MySQL dengan enkripsi <b>Bcrypt</b> dan <b>Bearer Token 256-bit</b> yang aman.
             <br><br>
-            <span style="color: var(--warning); font-weight: 700;">Catatan Server Live:</span> 
-            Saat dihosting online, pastikan baris <code>AuthUserFile</code> di berkas <code>admin/.htaccess</code> merujuk ke path hosting Linux yang benar (misalnya: <code>/home/ruangdid/djaco.web.id/admin/.htpasswd</code>).
+            Akun default yang tersedia di database:
+            <br>• Username: <code>admin</code> (Password: <code>admin123</code> - Hak akses penuh)
+            <br>• Username: <code>kasir</code> (Password: <code>kasir123</code> - Hak akses POS & Pesanan)
+            <br><br>
+            <span style="color: var(--success); font-weight: 700;"><i class="fa-solid fa-circle-check"></i> Proteksi API Aktif:</span>
+            Setiap endpoint perubahan data produk, order, dan rekap keuangan di-validasi secara ketat oleh server API.
           </p>
         </div>
       </section>
@@ -2123,21 +2185,179 @@
       document.getElementById('sidebarMenu').classList.toggle('show');
     }
 
-    // API calls helper
+    // ---------------- AUTHENTICATION & SESSION MANAGEMENT ----------------
+    function getAuthToken() {
+      return localStorage.getItem('djaco_admin_token') || '';
+    }
+
+    function getAuthUser() {
+      try {
+        return JSON.parse(localStorage.getItem('djaco_admin_user') || 'null');
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function setAuth(token, user) {
+      localStorage.setItem('djaco_admin_token', token);
+      localStorage.setItem('djaco_admin_user', JSON.stringify(user));
+      updateUserUI(user);
+    }
+
+    function clearAuth() {
+      localStorage.removeItem('djaco_admin_token');
+      localStorage.removeItem('djaco_admin_user');
+      updateUserUI(null);
+    }
+
+    function updateUserUI(user = null) {
+      const u = user || getAuthUser();
+      const nameEl = document.getElementById('currentUserName');
+      const roleEl = document.getElementById('currentUserRole');
+      if (nameEl && roleEl) {
+        if (u) {
+          nameEl.innerText = u.name || u.username;
+          roleEl.innerText = (u.role || 'ADMIN').toUpperCase();
+        } else {
+          nameEl.innerText = 'Tamu';
+          roleEl.innerText = 'OFFLINE';
+        }
+      }
+    }
+
+    function showLoginScreen(show) {
+      const loginOverlay = document.getElementById('loginOverlay');
+      const adminContainer = document.getElementById('adminAppContainer');
+      const menuToggleBtn = document.getElementById('menuToggleBtn');
+
+      if (show) {
+        loginOverlay.classList.add('show');
+        loginOverlay.style.display = 'flex';
+        adminContainer.style.display = 'none';
+        if (menuToggleBtn) menuToggleBtn.style.display = 'none';
+      } else {
+        loginOverlay.classList.remove('show');
+        loginOverlay.style.display = 'none';
+        adminContainer.style.display = 'flex';
+        if (menuToggleBtn) menuToggleBtn.style.display = 'flex';
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const pass = document.getElementById('loginPassword');
+      const icon = document.getElementById('passwordToggleIcon');
+      if (pass.type === 'password') {
+        pass.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        pass.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    }
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const usernameInput = document.getElementById('loginUsername');
+      const passwordInput = document.getElementById('loginPassword');
+      const submitBtn = document.getElementById('loginSubmitBtn');
+      const alertBox = document.getElementById('loginAlert');
+
+      alertBox.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memverifikasi...';
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'login',
+            username: usernameInput.value.trim(),
+            password: passwordInput.value
+          })
+        });
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.message || 'Login gagal, periksa username & password');
+        }
+
+        setAuth(data.token, data.user);
+        passwordInput.value = '';
+        showLoginScreen(false);
+        showToast(`Selamat datang, ${data.user.name}!`);
+        startApp();
+      } catch (err) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#faebe8';
+        alertBox.style.color = '#ad3d2b';
+        alertBox.innerText = err.message || 'Gagal terhubung ke server API';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Masuk Dashboard</span> <i class="fa-solid fa-arrow-right"></i>';
+      }
+    }
+
+    async function logout() {
+      if (!confirm('Apakah Anda yakin ingin keluar dari dashboard DjaCo?')) return;
+      try {
+        await apiPost('logout');
+      } catch (e) {
+        console.warn('Logout API error:', e);
+      }
+      clearAuth();
+      if (pollingIntervalId) clearInterval(pollingIntervalId);
+      showLoginScreen(true);
+      showToast('Anda telah berhasil keluar');
+    }
+
+    function handleUnauthorized() {
+      clearAuth();
+      if (pollingIntervalId) clearInterval(pollingIntervalId);
+      showLoginScreen(true);
+      showToast('Sesi login Anda telah berakhir. Silakan login kembali.', true);
+    }
+
+    // API calls helper with Bearer Token Authorization
     async function apiFetch(action, params = {}) {
       const urlParams = new URLSearchParams({ action, _t: Date.now(), ...params });
-      const response = await fetch(`${API_URL}?${urlParams.toString()}`, { cache: 'no-store' });
+      const token = getAuthToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const response = await fetch(`${API_URL}?${urlParams.toString()}`, { 
+        headers,
+        cache: 'no-store' 
+      });
+
+      if (response.status === 401) {
+        handleUnauthorized();
+        throw new Error('Sesi berakhir, silakan login kembali.');
+      }
+
       const data = await response.json();
       if (!data.success) throw new Error(data.message || 'API error');
       return data;
     }
 
     async function apiPost(action, body = {}) {
+      const token = getAuthToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
+        headers,
         body: JSON.stringify({ action, ...body })
       });
+
+      if (response.status === 401 && action !== 'login') {
+        handleUnauthorized();
+        throw new Error('Sesi berakhir, silakan login kembali.');
+      }
+
       const data = await response.json();
       if (!data.success) throw new Error(data.message || 'API error');
       return data;
@@ -3591,12 +3811,25 @@
       }, 6000);
     }
 
-    // Page Load Initializer
-    window.addEventListener('load', () => {
+    function startApp() {
       switchTab('dashboard');
       loadHeldOrders();
       reloadData();
       startOrderPolling();
+    }
+
+    // Page Load Initializer
+    window.addEventListener('load', () => {
+      const token = getAuthToken();
+      const user = getAuthUser();
+
+      if (!token || !user) {
+        showLoginScreen(true);
+      } else {
+        updateUserUI(user);
+        showLoginScreen(false);
+        startApp();
+      }
 
       // Register Service Worker for Chrome Mobile push notifications support
       if ('serviceWorker' in navigator) {

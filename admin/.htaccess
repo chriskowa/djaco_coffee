@@ -1,6 +1,3 @@
-# BEGIN DJACO ADMIN PROTECTION
-AuthType Basic
-AuthName "DJACO Admin Panel - Silakan Login"
-AuthUserFile "/home/ruangdid/djaco.web.id/admin/.htpasswd"
-Require valid-user
-# END DJACO ADMIN PROTECTION
+# DJACO Admin Protection
+# Autentikasi kini ditangani secara aman via Database MySQL & Bearer Token di API
+Options -Indexes

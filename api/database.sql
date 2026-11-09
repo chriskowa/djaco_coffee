@@ -12,6 +12,29 @@ DROP TABLE IF EXISTS `product_options`;
 DROP TABLE IF EXISTS `orders`;
 DROP TABLE IF EXISTS `products`;
 DROP TABLE IF EXISTS `announcements`;
+DROP TABLE IF EXISTS `users`;
+
+-- --------------------------------------------------------
+-- Table structure for users (Admin & Kasir)
+-- --------------------------------------------------------
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `role` varchar(20) NOT NULL DEFAULT 'admin',
+  `token` varchar(64) DEFAULT NULL,
+  `token_expired_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_username` (`username`),
+  KEY `idx_token` (`token`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `users` (`username`, `password`, `name`, `role`) VALUES
+('admin', '$2y$10$7S8IJEwqbrevVtjVrlVp3.oQ.NhlqXRXSphwTw2p41LeHqlsRZp32', 'Administrator DjaCo', 'admin'),
+('kasir', '$2y$10$3bm/cLHye7w2mIXXjw.3WujsWccSNC6NZ4yIh3nOb5fFGWHV6.19e', 'Kasir DjaCo', 'kasir');
 
 CREATE TABLE `products` (
   `id` varchar(50) NOT NULL,

@@ -81,3 +81,58 @@ function jsonError($message = 'Terjadi kesalahan', $code = 400) {
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
+
+/**
+ * Get Bearer Token from HTTP Request Headers / Query / Post
+ */
+function getBearerToken() {
+    $header = '';
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        $header = $_SERVER['HTTP_AUTHORIZATION'];
+    } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $header = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    } elseif (function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        $header = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+    }
+
+    if (!empty($header) && preg_match('/Bearer\s(\S+)/i', $header, $matches)) {
+        return $matches[1];
+    }
+
+    // Fallback: check query or post param
+    return $_GET['token'] ?? $_POST['token'] ?? '';
+}
+
+/**
+ * Require valid authenticated user
+ * @param PDO $pdo
+ * @param string|null $requiredRole
+ * @return array Authenticated user data
+ */
+function requireAuth($pdo, $requiredRole = null) {
+    $token = getBearerToken();
+    if (empty($token)) {
+        jsonError('Akses ditolak: Token autentikasi tidak ditemukan. Silakan login terlebih dahulu.', 401);
+    }
+
+    $stmt = $pdo->prepare("
+        SELECT id, username, name, role, token_expired_at 
+        FROM users 
+        WHERE token = :token AND token_expired_at > NOW()
+        LIMIT 1
+    ");
+    $stmt->execute([':token' => $token]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        jsonError('Sesi login telah berakhir atau tidak valid. Silakan login kembali.', 401);
+    }
+
+    if ($requiredRole !== null && strtolower($user['role']) !== strtolower($requiredRole) && strtolower($user['role']) !== 'admin') {
+        jsonError('Akses ditolak: Anda tidak memiliki izin untuk fitur ini.', 403);
+    }
+
+    return $user;
+}
+
