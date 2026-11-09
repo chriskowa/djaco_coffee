@@ -959,12 +959,21 @@
       align-items: center;
     }
 
-    /* POS Kasir Tab Layout */
+    /* ========================================================
+       POS KASIR (POINT OF SALE) SYSTEM - MODERN RESPONSIVE
+       ======================================================== */
     .pos-container {
       display: grid;
-      grid-template-columns: 3fr 2fr;
-      gap: 24px;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      gap: 20px;
       align-items: start;
+    }
+
+    .pos-products-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
     }
 
     /* POS Mobile / Tablet Navigation Toggle */
@@ -999,7 +1008,513 @@
       text-align: center;
     }
 
-    /* POS Floating Bottom Cart Bar */
+    /* Category Filter Pills */
+    .category-pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      width: 100%;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+    }
+
+    .category-pills::-webkit-scrollbar {
+      display: none;
+    }
+
+    .category-pill {
+      flex-shrink: 0;
+      white-space: nowrap;
+      border: 1px solid var(--border);
+      background: var(--light);
+      color: #8c7365;
+      padding: 8px 16px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .category-pill:hover {
+      border-color: var(--gold);
+      color: var(--coffee);
+    }
+
+    .category-pill.active {
+      background-color: var(--coffee);
+      color: var(--cream);
+      border-color: var(--coffee);
+      box-shadow: 0 4px 10px rgba(59, 31, 18, 0.15);
+    }
+
+    /* POS Products Catalog Grid */
+    .pos-products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 14px;
+    }
+
+    .pos-product-card {
+      background-color: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, border-color 0.18s ease;
+      box-shadow: 0 2px 8px rgba(59, 31, 18, 0.03);
+      user-select: none;
+    }
+
+    .pos-product-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(59, 31, 18, 0.08);
+      border-color: var(--gold);
+    }
+
+    .pos-product-card:active {
+      transform: scale(0.98);
+    }
+
+    .pos-product-image {
+      width: 100%;
+      height: 120px;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--cream-dark);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .pos-card-badge-variant {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(43, 20, 8, 0.88);
+      color: var(--gold);
+      backdrop-filter: blur(4px);
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 7px;
+      border-radius: 6px;
+      border: 1px solid rgba(197, 155, 98, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pos-card-badge-stock {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 7px;
+      border-radius: 6px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    }
+
+    .stock-ok {
+      background: rgba(30, 86, 49, 0.88);
+      color: #fff;
+    }
+
+    .stock-warn {
+      background: rgba(184, 115, 23, 0.9);
+      color: #fff;
+    }
+
+    .stock-danger {
+      background: rgba(184, 51, 42, 0.9);
+      color: #fff;
+    }
+
+    .pos-card-badge-incart {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: var(--coffee);
+      color: var(--cream);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 99px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--gold);
+      animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .pos-product-details {
+      padding: 10px 12px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex: 1;
+      gap: 8px;
+    }
+
+    .pos-product-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--coffee-dark);
+      line-height: 1.35;
+      min-height: 35px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .pos-product-bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+    }
+
+    .pos-product-price {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--coffee);
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .pos-card-add-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--cream);
+      color: var(--coffee);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      transition: all 0.15s ease;
+    }
+
+    .pos-product-card:hover .pos-card-add-btn {
+      background: var(--coffee);
+      color: var(--cream);
+      border-color: var(--coffee);
+    }
+
+    /* POS Cashier Cart Panel */
+    .pos-cart-panel {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(59, 31, 18, 0.05);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 16px;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--latte) transparent;
+      min-width: 0;
+    }
+
+    .pos-cart-panel::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .pos-cart-panel::-webkit-scrollbar-thumb {
+      background: var(--latte);
+      border-radius: 10px;
+    }
+
+    .pos-cart-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--coffee);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pos-cart-count-badge {
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--cream);
+      color: var(--coffee-dark);
+      padding: 2px 8px;
+      border-radius: 99px;
+      margin-left: 6px;
+      border: 1px solid var(--border);
+    }
+
+    /* Cart Items Container */
+    .pos-cart-items-wrapper {
+      min-height: 140px;
+      max-height: 320px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      padding-right: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gold) transparent;
+    }
+
+    .pos-cart-items-wrapper::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .pos-cart-items-wrapper::-webkit-scrollbar-thumb {
+      background: var(--gold);
+      border-radius: 10px;
+    }
+
+    .pos-cart-empty {
+      text-align: center;
+      padding: 35px 12px;
+      color: #8c7365;
+    }
+
+    .pos-cart-empty-icon {
+      font-size: 38px;
+      opacity: 0.25;
+      margin-bottom: 10px;
+      color: var(--coffee);
+    }
+
+    .pos-cart-empty-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--coffee-dark);
+      margin-bottom: 4px;
+    }
+
+    .pos-cart-empty-desc {
+      font-size: 11px;
+      color: #a08c80;
+      line-height: 1.4;
+    }
+
+    /* Cart Item Row */
+    .pos-cart-item {
+      background: var(--bg);
+      border: 1px solid rgba(59, 31, 18, 0.08);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .pos-cart-item.item-unchecked {
+      opacity: 0.55;
+      background: #f7f7f7;
+    }
+
+    .pos-cart-checkbox {
+      width: 17px;
+      height: 17px;
+      margin-top: 3px;
+      cursor: pointer;
+      accent-color: var(--coffee);
+      flex-shrink: 0;
+    }
+
+    .pos-cart-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .pos-cart-item-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--coffee-dark);
+      margin-bottom: 3px;
+      word-break: break-word;
+      line-height: 1.3;
+    }
+
+    .pos-cart-item-options {
+      font-size: 11px;
+      color: #8c7365;
+      line-height: 1.3;
+      margin-bottom: 2px;
+    }
+
+    .pos-cart-item-note {
+      font-size: 10px;
+      color: var(--danger);
+      font-weight: 600;
+      background: rgba(184, 51, 42, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 3px;
+    }
+
+    .pos-cart-item-unit-price {
+      font-size: 11px;
+      color: #9c8578;
+      margin-top: 3px;
+    }
+
+    .pos-cart-item-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .pos-cart-item-subtotal {
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--coffee);
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .qty-counter {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2px;
+    }
+
+    .qty-counter button {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: none;
+      background-color: var(--cream);
+      color: var(--coffee);
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: background 0.15s;
+    }
+
+    .qty-counter button:hover {
+      background-color: var(--gold);
+      color: #fff;
+    }
+
+    .qty-counter .qty-num {
+      font-size: 12px;
+      font-weight: 800;
+      min-width: 18px;
+      text-align: center;
+      color: var(--coffee-dark);
+    }
+
+    .pos-cart-delete-btn {
+      background: transparent;
+      border: none;
+      color: #b0a095;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 2px;
+      transition: color 0.15s;
+    }
+
+    .pos-cart-delete-btn:hover {
+      color: var(--danger);
+    }
+
+    /* Checkout Totals */
+    .pos-totals-wrapper {
+      background-color: var(--bg);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(59, 31, 18, 0.05);
+    }
+
+    .pos-total-row {
+      display: flex;
+      justify-content: space-between;
+      color: #6d5b51;
+    }
+
+    .pos-total-row.grand-total {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--coffee);
+      border-top: 1px dashed var(--border);
+      padding-top: 8px;
+      margin-top: 4px;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Options Chips inside Modal */
+    .opt-chip-grid {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .opt-chip {
+      padding: 7px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background-color: var(--light);
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--coffee-dark);
+      transition: all 0.15s ease;
+    }
+
+    .opt-chip:hover {
+      border-color: var(--gold);
+    }
+
+    .opt-chip.active {
+      background-color: var(--coffee);
+      color: var(--cream);
+      border-color: var(--coffee);
+      box-shadow: 0 2px 6px rgba(59, 31, 18, 0.2);
+    }
+
+    /* Change Calculator in POS */
+    .pos-change-calculator {
+      margin-top: 8px;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Floating Cart Bar (Mobile) */
     .pos-floating-cart-bar {
       position: fixed;
       bottom: 20px;
@@ -1115,16 +1630,43 @@
       display: none;
     }
 
-    @media (min-width: 993px) {
-      .pos-products-column {
-        display: block !important;
+    /* Mobile settings button */
+    .menu-toggle {
+      display: none;
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 1000;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--coffee-dark);
+      color: var(--cream);
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ========================================================
+       RESPONSIVE BREAKPOINTS (DESKTOP, TABLET & MOBILE)
+       ======================================================== */
+    @media (max-width: 1024px) {
+      .pos-container {
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 16px;
       }
-      .pos-cart-panel {
-        display: flex !important;
+      .pos-products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+      }
+      .pos-product-image {
+        height: 110px;
       }
     }
 
-    @media (max-width: 992px) {
+    @media (max-width: 860px) {
       .pos-container {
         grid-template-columns: 1fr;
         gap: 16px;
@@ -1133,8 +1675,8 @@
       .pos-mobile-nav {
         display: flex !important;
         position: sticky;
-        top: 0;
-        z-index: 50;
+        top: 60px;
+        z-index: 80;
         background: var(--bg);
         padding: 8px 0;
         box-shadow: 0 4px 12px rgba(59, 31, 18, 0.04);
@@ -1152,6 +1694,7 @@
         position: static !important;
         height: auto !important;
         max-height: none !important;
+        overflow-y: visible !important;
         width: 100% !important;
         box-shadow: none !important;
         padding: 18px !important;
@@ -1186,10 +1729,6 @@
     }
 
     @media (max-width: 768px) {
-      .pos-mobile-nav {
-        top: 56px !important;
-      }
-
       .orders-controls {
         flex-direction: column !important;
         align-items: stretch !important;
@@ -1199,46 +1738,13 @@
         width: 100% !important;
       }
 
-      #posProductsGrid {
+      .pos-products-grid {
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
         gap: 10px !important;
       }
 
-      .pos-product-card {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 8px !important;
-        padding: 10px !important;
-        border-radius: 14px !important;
-      }
-
       .pos-product-image {
-        width: 100% !important;
-        height: 100px !important;
-        border-radius: 10px !important;
-      }
-
-      .pos-product-name {
-        font-size: 13px !important;
-        line-height: 1.3 !important;
-        display: -webkit-box !important;
-        -webkit-line-clamp: 2 !important;
-        -webkit-box-orient: vertical !important;
-        overflow: hidden !important;
-      }
-
-      .pos-product-stock-tag {
-        font-size: 10px !important;
-      }
-
-      .pos-product-price {
-        font-size: 13px !important;
-      }
-
-      .qty-counter button {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 16px !important;
+        height: 105px !important;
       }
 
       .modal-box {
@@ -1252,28 +1758,58 @@
       .modal-head {
         padding: 16px 20px !important;
       }
+
+      aside.sidebar {
+        transform: translateX(-100%);
+      }
+
+      aside.sidebar.show {
+        transform: translateX(0);
+      }
+
+      main.main-content {
+        margin-left: 0;
+        padding: 16px;
+        padding-top: 68px;
+      }
+
+      .menu-toggle {
+        display: flex;
+      }
     }
 
     @media (max-width: 480px) {
-      #posProductsGrid {
+      .pos-products-grid {
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 8px !important;
       }
 
       .pos-product-card {
-        padding: 8px !important;
+        border-radius: 14px !important;
       }
 
       .pos-product-image {
-        height: 85px !important;
+        height: 95px !important;
+      }
+
+      .pos-product-details {
+        padding: 8px 10px 10px 10px !important;
+        gap: 6px !important;
       }
 
       .pos-product-name {
         font-size: 12px !important;
+        min-height: 32px !important;
       }
 
       .pos-product-price {
-        font-size: 12px !important;
+        font-size: 13px !important;
+      }
+
+      .pos-card-add-btn {
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 11px !important;
       }
 
       /* Product Catalog (Tab: Produk) Mobile optimizations */
@@ -1364,294 +1900,6 @@
 
       .variant-group-header button {
         width: 100% !important;
-      }
-    }
-
-    .pos-products-column {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    #posProductsGrid {
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 14px;
-    }
-
-    .pos-cart-panel {
-      background: var(--light);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 24px;
-      box-shadow: 0 8px 24px rgba(59, 31, 18, 0.04);
-      display: flex;
-      flex-direction: column;
-      align-self: start;
-      position: sticky;
-      top: 24px;
-      max-height: calc(100vh - 140px);
-    }
-
-    .pos-cart-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--coffee);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 12px;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .pos-cart-items-wrapper {
-      flex: 1;
-      overflow-y: auto;
-      margin-bottom: 16px;
-      padding-right: 4px;
-      max-height: 280px;
-    }
-
-    .pos-cart-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(59, 31, 18, 0.06);
-    }
-
-    .pos-cart-item-info h4 {
-      font-size: 14px;
-      color: var(--coffee-dark);
-      margin-bottom: 4px;
-    }
-
-    .pos-cart-item-info small {
-      font-size: 11px;
-      color: #8c7365;
-    }
-
-    .pos-cart-item-actions {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 6px;
-    }
-
-    .pos-cart-item-price {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--coffee);
-    }
-
-    .qty-counter {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .qty-counter button {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      border: 1px solid var(--border);
-      background-color: var(--cream);
-      color: var(--coffee);
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-    }
-
-    .qty-counter span {
-      font-size: 13px;
-      font-weight: 700;
-      min-width: 14px;
-      text-align: center;
-    }
-
-    .pos-totals-wrapper {
-      background-color: var(--bg);
-      border-radius: 16px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      font-size: 13px;
-      margin-bottom: 16px;
-    }
-
-    .pos-total-row {
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .pos-total-row.grand-total {
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--coffee);
-      border-top: 1px dashed var(--border);
-      padding-top: 8px;
-      margin-top: 4px;
-    }
-
-    .category-pills {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      white-space: nowrap;
-      width: 100%;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 6px;
-      scrollbar-width: none;
-    }
-
-    .category-pills::-webkit-scrollbar {
-      display: none;
-    }
-
-    .category-pill {
-      flex-shrink: 0;
-      white-space: nowrap;
-      border: 1px solid var(--border);
-      background: var(--light);
-      color: #8c7365;
-      padding: 8px 14px;
-      border-radius: 99px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .category-pill.active {
-      background-color: var(--coffee);
-      color: var(--cream);
-      border-color: var(--coffee);
-    }
-
-    .pos-product-card {
-      background-color: var(--light);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 12px;
-      display: flex;
-      gap: 12px;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-
-    .pos-product-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(59, 31, 18, 0.05);
-    }
-
-    .pos-product-image {
-      width: 72px;
-      height: 72px;
-      border-radius: 10px;
-      background-size: cover;
-      background-position: center;
-      background-color: var(--cream-dark);
-      flex-shrink: 0;
-    }
-
-    .pos-product-details {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      flex: 1;
-    }
-
-    .pos-product-name {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--coffee-dark);
-    }
-
-    .pos-product-stock-tag {
-      font-size: 10px;
-      color: #826b5e;
-    }
-
-    .pos-product-price {
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--coffee);
-    }
-
-    /* Option Selector Chip for customer orders */
-    .opt-chip-grid {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .opt-chip {
-      padding: 6px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background-color: var(--light);
-      font-size: 12px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .opt-chip.active {
-      background-color: var(--coffee);
-      color: var(--cream);
-      border-color: var(--coffee);
-    }
-
-    /* Change Calculator in POS */
-    .pos-change-calculator {
-      margin-top: 10px;
-      border-top: 1px solid var(--border);
-      padding-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    /* Mobile settings */
-    .menu-toggle {
-      display: none;
-      position: fixed;
-      top: 16px;
-      left: 16px;
-      z-index: 1000;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background-color: var(--coffee-dark);
-      color: var(--cream);
-      align-items: center;
-      justify-content: center;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    }
-
-    @media (max-width: 768px) {
-      aside.sidebar {
-        transform: translateX(-100%);
-      }
-
-      aside.sidebar.show {
-        transform: translateX(0);
-      }
-
-      main.main-content {
-        margin-left: 0;
-        padding: 20px;
-        padding-top: 72px;
-      }
-
-      .menu-toggle {
-        display: flex;
       }
     }
 
@@ -2022,7 +2270,7 @@
               <!-- Dynamically populated category filters -->
             </div>
 
-            <div class="products-grid" id="posProductsGrid">
+            <div class="pos-products-grid" id="posProductsGrid">
               <!-- Dynamically populated product items -->
             </div>
           </div>
@@ -2039,7 +2287,7 @@
             </div>
 
             <div class="pos-cart-title">
-              <span>Keranjang Belanja</span>
+              <span><i class="fa-solid fa-basket-shopping"></i> Keranjang Kasir <span id="posCartCountBadge" class="pos-cart-count-badge">0 item</span></span>
               <button class="btn btn-outline btn-sm" onclick="clearPosCart()"><i class="fa-solid fa-trash-can"></i>
                 Reset</button>
             </div>
@@ -2549,12 +2797,12 @@
 
           <div style="display: flex; align-items: center; gap: 14px;">
             <div class="qty-counter">
-              <button onclick="changePosModalQty(-1)" style="width:30px; height:30px; font-size:16px;">−</button>
+              <button type="button" onclick="changePosModalQty(-1)" style="width:30px; height:30px; font-size:16px;">−</button>
               <span id="posModalQty" style="font-size:16px; min-width:20px;">1</span>
-              <button onclick="changePosModalQty(1)" style="width:30px; height:30px; font-size:16px;">+</button>
+              <button type="button" onclick="changePosModalQty(1)" style="width:30px; height:30px; font-size:16px;">+</button>
             </div>
 
-            <button class="btn btn-primary" onclick="addPosModalItemToCart()">Tambah</button>
+            <button type="button" class="btn btn-primary" onclick="addPosModalItemToCart()">Tambah</button>
           </div>
         </div>
       </div>
@@ -3075,6 +3323,15 @@
       };
       document.getElementById('pageTitle').innerText = titles[tabId] || 'Admin Panel';
 
+      // Sync window URL hash without scrolling
+      if (window.location.hash !== '#' + tabId) {
+        if (history.replaceState) {
+          history.replaceState(null, '', '#' + tabId);
+        } else {
+          window.location.hash = '#' + tabId;
+        }
+      }
+
       if (window.innerWidth <= 768) {
         document.getElementById('sidebarMenu').classList.remove('show');
       }
@@ -3303,6 +3560,7 @@
 
         if (activeTab === 'pos') {
           renderPosMenu();
+          renderPosCart();
         } else if (activeTab === 'ingredients') {
           renderIngredientsGrid();
         } else if (activeTab === 'expenses') {
@@ -3504,22 +3762,32 @@
     // ---------------- POS TAB SYSTEM ----------------
     function renderPosMenu() {
       const grid = document.getElementById('posProductsGrid');
-      const q = document.getElementById('posSearch').value.toLowerCase();
+      const searchInput = document.getElementById('posSearch');
+      const q = (searchInput ? searchInput.value : '').toLowerCase().trim();
+
+      // Count items currently in posCart per product
+      const cartCounts = {};
+      posCart.forEach(item => {
+        const pid = String(item.productId);
+        cartCounts[pid] = (cartCounts[pid] || 0) + (Number(item.qty) || 0);
+      });
 
       // Filter menu items
       const activeProducts = products.filter(p => {
         const isAct = String(p.status || 'Active').toLowerCase() === 'active';
-        const matchQuery = p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q);
+        const matchQuery = !q || p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q);
         const matchCategory = posSelectedCategory === 'Semua' || p.category === posSelectedCategory;
         return isAct && matchQuery && matchCategory;
       });
 
-      // Render categories
+      // Render category filter pills
       const categories = ['Semua', ...new Set(products.map(p => p.category))].filter(Boolean);
       const pillsWrapper = document.getElementById('posCategoryPills');
-      pillsWrapper.innerHTML = categories.map(c => `
-        <button class="category-pill ${posSelectedCategory === c ? 'active' : ''}" onclick="selectPosCategory('${c}')">${c}</button>
-      `).join('');
+      if (pillsWrapper) {
+        pillsWrapper.innerHTML = categories.map(c => `
+          <button type="button" class="category-pill ${posSelectedCategory === c ? 'active' : ''}" onclick="selectPosCategory('${c}')">${c}</button>
+        `).join('');
+      }
 
       const selectWrapper = document.getElementById('posCategorySelect');
       if (selectWrapper) {
@@ -3528,43 +3796,55 @@
         `).join('');
       }
 
+      if (!grid) return;
+
       if (activeProducts.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:30px; color:#8c7365;">Menu tidak ditemukan.</div>`;
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 48px 16px; color: #8c7365;">
+            <i class="fa-solid fa-mug-hot" style="font-size: 36px; opacity: 0.3; margin-bottom: 12px; display: block;"></i>
+            <div style="font-weight: 700; font-size: 14px;">Menu Tidak Ditemukan</div>
+            <div style="font-size: 12px; color: #a49185; margin-top: 4px;">Coba gunakan kata kunci pencarian lain atau pilih kategori Semua.</div>
+          </div>
+        `;
         return;
       }
 
       grid.innerHTML = activeProducts.map(p => {
-        const hasOpt = productOptions.some(o => o.productId === p.id && String(o.status).toLowerCase() !== 'inactive');
+        const pIdStr = String(p.id);
+        const inCartQty = cartCounts[pIdStr] || 0;
+        const hasOpt = productOptions.some(o => String(o.productId) === pIdStr && String(o.status).toLowerCase() !== 'inactive');
         const imgStyle = p.image ? `background-image: url('${p.image}');` : `background-image: linear-gradient(135deg, #efe0c8, #d9b98c);`;
 
-        let stockText = `Stok: ${p.stock}`;
+        const stockNum = Number(p.stock) || 0;
+        let stockBadge = `<span class="pos-card-badge-stock stock-ok">Stok: ${stockNum}</span>`;
         let disabledAttr = '';
-        if (p.stock <= 0) {
-          stockText = '<span style="color:var(--danger); font-weight:bold;">Habis</span>';
-          disabledAttr = 'style="opacity:0.6; pointer-events:none;"';
-        } else if (p.stock <= 5) {
-          stockText = `<span style="color:var(--warning); font-weight:bold;">Kritis: ${p.stock}</span>`;
+        if (stockNum <= 0) {
+          stockBadge = `<span class="pos-card-badge-stock stock-danger">Habis</span>`;
+          disabledAttr = 'style="opacity: 0.55; cursor: not-allowed;"';
+        } else if (stockNum <= 5) {
+          stockBadge = `<span class="pos-card-badge-stock stock-warn">Sisa: ${stockNum}</span>`;
         }
 
         return `
           <div class="pos-product-card" onclick="clickPosProduct('${p.id}')" ${disabledAttr}>
-            <div class="pos-product-image" style="${imgStyle}"></div>
+            <div class="pos-product-image" style="${imgStyle}">
+              ${stockBadge}
+              ${hasOpt ? `<span class="pos-card-badge-variant"><i class="fa-solid fa-layer-group"></i> Varian</span>` : ''}
+              ${inCartQty > 0 ? `<span class="pos-card-badge-incart"><i class="fa-solid fa-check"></i> ${inCartQty}x</span>` : ''}
+            </div>
             <div class="pos-product-details">
-              <div>
-                <div class="pos-product-name">${p.name}</div>
-                <div class="pos-product-stock-tag">${stockText}</div>
-              </div>
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="pos-product-price">${rupiah(p.price)}</span>
-                ${hasOpt ? `<span class="badge-stock stock-ok" style="font-size:9px; padding:2px 6px;">Varian</span>` : ''}
+              <div class="pos-product-name" title="${p.name}">${p.name}</div>
+              <div class="pos-product-bottom-row">
+                <div class="pos-product-price">${rupiah(p.price)}</div>
+                <button type="button" class="pos-card-add-btn" title="Tambah ke keranjang">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
               </div>
             </div>
           </div>
         `;
       }).join('');
     }
-
-
 
     function selectPosCategory(cat) {
       posSelectedCategory = cat;
@@ -3580,10 +3860,10 @@
     }
 
     function clickPosProduct(productId) {
-      const p = products.find(prod => prod.id === productId);
-      if (!p || p.stock <= 0) return;
+      const p = products.find(prod => String(prod.id) === String(productId));
+      if (!p || Number(p.stock) <= 0) return;
 
-      const optionsList = productOptions.filter(o => o.productId === p.id && String(o.status).toLowerCase() !== 'inactive');
+      const optionsList = productOptions.filter(o => String(o.productId) === String(p.id) && String(o.status).toLowerCase() !== 'inactive');
 
       if (optionsList.length > 0) {
         // Has variants, open selector modal
@@ -3596,13 +3876,14 @@
 
     // Direct add for products with no options
     function addPosDirectToCart(product) {
-      const cartQty = posCart.filter(item => item.productId === product.id).reduce((s, i) => s + i.qty, 0);
-      if (cartQty >= product.stock) {
-        showToast("Stok tidak mencukupi!", true);
+      const pIdStr = String(product.id);
+      const cartQty = posCart.filter(item => String(item.productId) === pIdStr).reduce((s, i) => s + (Number(i.qty) || 0), 0);
+      if (cartQty >= Number(product.stock)) {
+        showToast("Stok produk tidak mencukupi!", true);
         return;
       }
 
-      const existingIndex = posCart.findIndex(item => item.productId === product.id);
+      const existingIndex = posCart.findIndex(item => String(item.productId) === pIdStr && (!item.options || item.options.length === 0));
       if (existingIndex > -1) {
         posCart[existingIndex].qty += 1;
         posCart[existingIndex].subtotal = posCart[existingIndex].qty * posCart[existingIndex].unitPrice;
@@ -3612,17 +3893,18 @@
           productId: product.id,
           name: product.name,
           qty: 1,
-          unitPrice: product.price,
+          unitPrice: Number(product.price),
           options: [],
           optionsText: '',
           itemNote: '',
-          subtotal: product.price,
+          subtotal: Number(product.price),
           checked: true
         });
       }
 
-      showToast(`${product.name} dimasukkan keranjang`);
+      showToast(`+1 ${product.name} dimasukkan keranjang`);
       renderPosCart();
+      renderPosMenu();
     }
 
     // Modal POS Options selection
@@ -3659,13 +3941,17 @@
 
     function renderPosModalOptions(groupedOptions) {
       const container = document.getElementById('posOptionList');
+      window._currentPosModalGroups = groupedOptions;
 
       container.innerHTML = Object.entries(groupedOptions).map(([groupName, opts]) => {
-        const chipsHtml = opts.map(o => {
+        const chipsHtml = opts.map((o, idx) => {
           const isActive = posModalSelections[groupName]?.option === o.option;
           return `
-            <button class="opt-chip ${isActive ? 'active' : ''}" onclick="selectPosModalOption('${groupName}', '${o.option}')">
-              ${o.option} ${o.priceAdd ? `(+${rupiah(o.priceAdd)})` : ''}
+            <button type="button" class="opt-chip ${isActive ? 'active' : ''}" 
+              data-group="${encodeURIComponent(groupName)}" 
+              data-idx="${idx}" 
+              onclick="handlePosOptionClick(this)">
+              ${o.option} ${o.priceAdd ? `(+ ${rupiah(o.priceAdd)})` : ''}
             </button>
           `;
         }).join('');
@@ -3679,29 +3965,20 @@
       }).join('');
     }
 
-
-
-    function selectPosModalOption(groupName, optionName) {
-      const opts = productOptions.filter(o => o.productId === posModalProduct.id && o.group === groupName);
-      const selected = opts.find(o => o.option === optionName);
-      if (selected) {
-        posModalSelections[groupName] = selected;
-
-        // Re-group and re-render
-        const activeOptions = productOptions.filter(o => o.productId === posModalProduct.id && String(o.status).toLowerCase() !== 'inactive');
-        const groups = {};
-        activeOptions.forEach(o => {
-          if (!groups[o.group]) groups[o.group] = [];
-          groups[o.group].push(o);
-        });
-        renderPosModalOptions(groups);
+    function handlePosOptionClick(btn) {
+      const groupName = decodeURIComponent(btn.getAttribute('data-group'));
+      const idx = parseInt(btn.getAttribute('data-idx'), 10);
+      const opts = window._currentPosModalGroups ? window._currentPosModalGroups[groupName] : null;
+      if (opts && opts[idx]) {
+        posModalSelections[groupName] = opts[idx];
+        renderPosModalOptions(window._currentPosModalGroups);
         updatePosModalPrice();
       }
     }
 
     function updatePosModalPrice() {
-      const basePrice = posModalProduct.price;
-      const extraPrice = Object.values(posModalSelections).reduce((s, o) => s + (o.priceAdd || 0), 0);
+      const basePrice = Number(posModalProduct.price || 0);
+      const extraPrice = Object.values(posModalSelections).reduce((s, o) => s + Number(o.priceAdd || 0), 0);
       const unitPrice = basePrice + extraPrice;
 
       document.getElementById('posModalQty').innerText = posModalQty;
@@ -3709,23 +3986,24 @@
     }
 
     function changePosModalQty(change) {
-      const cartQty = posCart.filter(item => item.productId === posModalProduct.id).reduce((s, i) => s + i.qty, 0);
-      const maxAvailable = posModalProduct.stock - cartQty;
+      const pIdStr = String(posModalProduct.id);
+      const cartQty = posCart.filter(item => String(item.productId) === pIdStr).reduce((s, i) => s + (Number(i.qty) || 0), 0);
+      const maxAvailable = Number(posModalProduct.stock) - cartQty;
 
       posModalQty = Math.max(1, Math.min(maxAvailable, posModalQty + change));
       updatePosModalPrice();
     }
 
     function addPosModalItemToCart() {
-      const basePrice = posModalProduct.price;
-      const extraPrice = Object.values(posModalSelections).reduce((s, o) => s + (o.priceAdd || 0), 0);
+      const basePrice = Number(posModalProduct.price || 0);
+      const extraPrice = Object.values(posModalSelections).reduce((s, o) => s + Number(o.priceAdd || 0), 0);
       const unitPrice = basePrice + extraPrice;
-      const note = document.getElementById('posItemNote').value.trim();
+      const note = (document.getElementById('posItemNote').value || '').trim();
 
       const optionsPayload = Object.entries(posModalSelections).map(([g, o]) => ({
         group: g,
         option: o.option,
-        priceAdd: o.priceAdd
+        priceAdd: Number(o.priceAdd || 0)
       }));
 
       const optionsText = optionsPayload.map(o => `${o.group}: ${o.option}${o.priceAdd ? ` (+${rupiah(o.priceAdd)})` : ''}`).join(', ');
@@ -3743,9 +4021,10 @@
         checked: true
       });
 
-      showToast(`Dimasukkan ke keranjang`);
+      showToast(`+${posModalQty} ${posModalProduct.name} dimasukkan keranjang`);
       closePosProductModal();
       renderPosCart();
+      renderPosMenu();
     }
 
     function togglePosCartItemSelection(uid) {
@@ -3760,15 +4039,24 @@
     function renderPosCart() {
       const wrapper = document.getElementById('posCartItemsWrapper');
       const floatBar = document.getElementById('posFloatingCartBar');
+      const countBadge = document.getElementById('posCartCountBadge');
       const container = document.querySelector('.pos-container');
       const isCartView = container && container.classList.contains('show-cart');
 
+      const totalItemsCount = posCart.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+      if (countBadge) {
+        countBadge.innerText = `${totalItemsCount} item`;
+      }
+
       if (posCart.length === 0) {
         if (wrapper) {
-          wrapper.innerHTML = `<div style="text-align:center; padding:40px 10px; color:#8c7365; font-size:13px;">
-            <i class="fa-solid fa-basket-shopping" style="font-size:36px; opacity:0.3; margin-bottom:12px; display:block;"></i>
-            Keranjang belanja kosong.<br><small style="color:#aaa;">Pilih menu untuk menambahkan pesanan.</small>
-          </div>`;
+          wrapper.innerHTML = `
+            <div class="pos-cart-empty">
+              <div class="pos-cart-empty-icon"><i class="fa-solid fa-basket-shopping"></i></div>
+              <div class="pos-cart-empty-title">Keranjang Kasir Kosong</div>
+              <div class="pos-cart-empty-desc">Pilih menu dari katalog untuk menambahkan item ke keranjang belanja.</div>
+            </div>
+          `;
         }
         document.getElementById('pos-subtotal').innerText = 'Rp0';
         document.getElementById('pos-grandtotal').innerText = 'Rp0';
@@ -3789,30 +4077,39 @@
         return;
       }
 
-      wrapper.innerHTML = posCart.map(item => `
-        <div class="pos-cart-item" style="display:flex; align-items:center; gap:8px;">
-          <input type="checkbox" ${item.checked !== false ? 'checked' : ''} onchange="togglePosCartItemSelection('${item.uid}')" style="width:18px; height:18px; cursor:pointer; accent-color:var(--coffee); flex-shrink:0;">
-          <div class="pos-cart-item-info" style="flex:1; min-width:0;">
-            <h4 style="font-size:13px; font-weight:700; color:var(--coffee-dark); margin:0 0 2px 0; word-break:break-word;">${item.name}</h4>
-            ${item.optionsText ? `<small style="font-size:11px; color:#8c7365; display:block;">${item.optionsText}</small>` : ''}
-            ${item.itemNote ? `<small style="font-size:11px; color:var(--danger); font-weight:600; display:block;">Catatan: ${item.itemNote}</small>` : ''}
-            <span class="pos-cart-item-price" style="font-size:12px; font-weight:700; color:var(--coffee);">${rupiah(item.unitPrice)}</span>
-          </div>
-          
-          <div class="pos-cart-item-actions" style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0;">
-            <span style="font-weight:700; font-size:13px; color:var(--coffee);">${rupiah(item.subtotal)}</span>
-            <div class="qty-counter">
-              <button type="button" onclick="changePosCartQty('${item.uid}', -1)" title="Kurang">−</button>
-              <span style="font-weight:700; font-size:13px; min-width:20px; text-align:center;">${item.qty}</span>
-              <button type="button" onclick="changePosCartQty('${item.uid}', 1)" title="Tambah">+</button>
+      if (wrapper) {
+        wrapper.innerHTML = posCart.map(item => `
+          <div class="pos-cart-item ${item.checked === false ? 'item-unchecked' : ''}">
+            <input type="checkbox" ${item.checked !== false ? 'checked' : ''} 
+              onchange="togglePosCartItemSelection('${item.uid}')" 
+              class="pos-cart-checkbox" title="Centang untuk menyertakan dalam pembayaran">
+            
+            <div class="pos-cart-item-info">
+              <div class="pos-cart-item-name">${item.name}</div>
+              ${item.optionsText ? `<div class="pos-cart-item-options">${item.optionsText}</div>` : ''}
+              ${item.itemNote ? `<div class="pos-cart-item-note"><i class="fa-solid fa-pen-to-square"></i> ${item.itemNote}</div>` : ''}
+              <div class="pos-cart-item-unit-price">${rupiah(item.unitPrice)} / porsi</div>
+            </div>
+            
+            <div class="pos-cart-item-actions">
+              <div class="pos-cart-item-subtotal">${rupiah(item.subtotal)}</div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <div class="qty-counter">
+                  <button type="button" onclick="changePosCartQty('${item.uid}', -1)" title="Kurang">−</button>
+                  <span class="qty-num">${item.qty}</span>
+                  <button type="button" onclick="changePosCartQty('${item.uid}', 1)" title="Tambah">+</button>
+                </div>
+                <button type="button" class="pos-cart-delete-btn" onclick="removePosCartItem('${item.uid}')" title="Hapus Item">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
+        `).join('');
+      }
 
       const checkedItems = posCart.filter(i => i.checked !== false);
-      const subtotal = checkedItems.reduce((s, i) => s + i.subtotal, 0);
-      const totalQty = posCart.reduce((s, i) => s + i.qty, 0);
+      const subtotal = checkedItems.reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
 
       document.getElementById('pos-subtotal').innerText = rupiah(subtotal);
       document.getElementById('pos-grandtotal').innerText = rupiah(subtotal);
@@ -3822,8 +4119,8 @@
       // Update Mobile POS Cart Badge in top tab
       const mBadge = document.getElementById('posMobileCartBadge');
       if (mBadge) {
-        if (totalQty > 0) {
-          mBadge.innerText = totalQty;
+        if (totalItemsCount > 0) {
+          mBadge.innerText = totalItemsCount;
           mBadge.style.display = 'inline-block';
         } else {
           mBadge.style.display = 'none';
@@ -3834,11 +4131,11 @@
       if (floatBar) {
         const floatCount = document.getElementById('posFloatingCartCount');
         const floatTotal = document.getElementById('posFloatingCartTotal');
-        if (floatCount) floatCount.innerText = totalQty;
+        if (floatCount) floatCount.innerText = totalItemsCount;
         if (floatTotal) floatTotal.innerText = rupiah(subtotal);
 
-        // Show floating bar only on mobile/tablet (<= 992px) when in menu catalog view
-        if (window.innerWidth <= 992 && !isCartView && activeTab === 'pos') {
+        // Show floating bar only on mobile/tablet (<= 860px) when in menu catalog view
+        if (window.innerWidth <= 860 && !isCartView && activeTab === 'pos') {
           floatBar.style.display = 'flex';
           // Trigger bump animation
           floatBar.classList.remove('cart-bump');
@@ -3847,6 +4144,17 @@
         } else {
           floatBar.style.display = 'none';
         }
+      }
+    }
+
+    function removePosCartItem(uid) {
+      const index = posCart.findIndex(i => i.uid === uid);
+      if (index !== -1) {
+        const item = posCart[index];
+        posCart.splice(index, 1);
+        showToast(`${item.name} dihapus dari keranjang`);
+        renderPosCart();
+        renderPosMenu();
       }
     }
 
@@ -3882,7 +4190,7 @@
           btnCart.classList.add('btn-outline');
         }
         // Show floating bar if on mobile and cart has items
-        if (floatBar && posCart.length > 0 && window.innerWidth <= 992 && activeTab === 'pos') {
+        if (floatBar && posCart.length > 0 && window.innerWidth <= 860 && activeTab === 'pos') {
           floatBar.style.display = 'flex';
         }
       }
@@ -3893,28 +4201,43 @@
       if (index === -1) return;
 
       const item = posCart[index];
-      const p = products.find(prod => prod.id === item.productId);
-
-      // Calculate other items using same ID
-      const otherQty = posCart.filter(i => i.productId === item.productId && i.uid !== uid).reduce((s, i) => s + i.qty, 0);
-      const maxAvailable = p.stock - otherQty;
-
-      item.qty = Math.max(0, Math.min(maxAvailable, item.qty + change));
-      if (item.qty <= 0) {
+      const p = products.find(prod => String(prod.id) === String(item.productId));
+      if (!p) {
         posCart.splice(index, 1);
+        renderPosCart();
+        renderPosMenu();
+        return;
+      }
+
+      const otherQty = posCart.filter(i => String(i.productId) === String(item.productId) && i.uid !== uid).reduce((s, i) => s + (Number(i.qty) || 0), 0);
+      const maxAvailable = Number(p.stock) - otherQty;
+
+      const newQty = item.qty + change;
+      if (newQty <= 0) {
+        posCart.splice(index, 1);
+        showToast(`${item.name} dihapus dari keranjang`);
+      } else if (newQty > maxAvailable) {
+        showToast(`Stok maksimal tercapai (${p.stock})`, true);
+        return;
       } else {
+        item.qty = newQty;
         item.subtotal = item.qty * item.unitPrice;
       }
 
       renderPosCart();
+      renderPosMenu();
     }
 
     function clearPosCart() {
+      if (posCart.length === 0) return;
+      if (!confirm("Kosongkan semua item di keranjang kasir?")) return;
       posCart = [];
       document.getElementById('posCustomerName').value = '';
       document.getElementById('posCustomerPhone').value = '';
       document.getElementById('posOrderNotes').value = '';
       renderPosCart();
+      renderPosMenu();
+      showToast("Keranjang kasir telah dikosongkan");
     }
 
     function togglePosPayment(method) {
@@ -3929,7 +4252,7 @@
 
     function calculatePosChange() {
       const checkedItems = posCart.filter(i => i.checked !== false);
-      const subtotal = checkedItems.reduce((s, i) => s + i.subtotal, 0);
+      const subtotal = checkedItems.reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
       const cashVal = Number(document.getElementById('posCashReceived').value || 0);
       const changeDue = Math.max(0, cashVal - subtotal);
 
@@ -3944,7 +4267,7 @@
         return;
       }
 
-      const total = checkedItems.reduce((s, i) => s + i.subtotal, 0);
+      const total = checkedItems.reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
       const method = document.getElementById('posPaymentMethod').value;
       const cashVal = Number(document.getElementById('posCashReceived').value || 0);
 
@@ -3999,6 +4322,7 @@
         posCart.forEach(i => i.checked = true);
 
         renderPosCart();
+        renderPosMenu();
         togglePosMobileView('menu');
         await reloadData();
       } catch (err) {
@@ -4063,6 +4387,7 @@
       document.getElementById('posCustomerPhone').value = '';
       document.getElementById('posOrderNotes').value = '';
       renderPosCart();
+      renderPosMenu();
       showToast("Transaksi sementara disimpan!");
     }
 
@@ -4095,7 +4420,8 @@
       saveHeldOrders();
 
       renderPosCart();
-      if (window.innerWidth <= 992) {
+      renderPosMenu();
+      if (window.innerWidth <= 860) {
         togglePosMobileView('cart');
       }
       showToast("Transaksi dibuka kembali!");
@@ -5460,18 +5786,33 @@
     }
 
     function startApp() {
-      switchTab('dashboard');
       loadHeldOrders();
+
+      // Read URL hash on load (e.g. #pos, #products)
+      const hash = (window.location.hash || '').replace('#', '').trim();
+      const validTabs = ['dashboard', 'pos', 'orders', 'products', 'ingredients', 'expenses', 'settings'];
+      const initialTab = validTabs.includes(hash) ? hash : 'dashboard';
+      switchTab(initialTab);
+
       reloadData();
       startOrderPolling();
     }
+
+    // Responsive URL Hash Change routing
+    window.addEventListener('hashchange', () => {
+      const hash = (window.location.hash || '').replace('#', '').trim();
+      const validTabs = ['dashboard', 'pos', 'orders', 'products', 'ingredients', 'expenses', 'settings'];
+      if (validTabs.includes(hash) && activeTab !== hash) {
+        switchTab(hash);
+      }
+    });
 
     // Responsive POS resize listener
     window.addEventListener('resize', () => {
       if (activeTab === 'pos') {
         const floatBar = document.getElementById('posFloatingCartBar');
         const container = document.querySelector('.pos-container');
-        if (window.innerWidth > 992) {
+        if (window.innerWidth > 860) {
           if (floatBar) floatBar.style.display = 'none';
           if (container) container.classList.remove('show-cart');
         } else {
