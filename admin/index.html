@@ -2240,6 +2240,25 @@
             Setiap endpoint perubahan data produk, order, dan rekap keuangan di-validasi secara ketat oleh server API.
           </p>
         </div>
+
+        <!-- Danger Zone: Reset Transaksi -->
+        <div class="panel settings-card" style="border: 1px solid rgba(173, 61, 43, 0.4); background: #fffcfb;">
+          <div class="panel-title" style="color: var(--danger);">
+            <i class="fa-solid fa-triangle-exclamation"></i> Zona Bahaya: Reset Database Transaksi
+          </div>
+          <p style="font-size: 13px; line-height: 1.6; color: #795d48; margin-bottom: 16px;">
+            Fitur ini digunakan untuk <b>membersihkan seluruh data transaksi dan order uji coba</b> agar database bersih (clean) saat mulai operasional nyata. Data master produk, varian, bahan baku, resep HPP, dan akun kasir/admin <b>TIDAK</b> akan terhapus.
+          </p>
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: #faebe8; padding: 14px 18px; border-radius: 14px; border: 1px dashed rgba(173,61,43,0.35);">
+            <div>
+              <div style="font-size: 13px; font-weight: 800; color: var(--danger);">Bersihkan Riwayat Transaksi Uji Coba</div>
+              <div style="font-size: 11px; color: #8c4235; margin-top: 2px;">Menghapus semua pesanan, invoice kasir, dan mereset nomor urut transaksi.</div>
+            </div>
+            <button type="button" class="btn btn-danger" onclick="openResetDatabaseModal()">
+              <i class="fa-solid fa-trash-can"></i> Bersihkan Transaksi
+            </button>
+          </div>
+        </div>
       </section>
 
       <!-- TAB: INGREDIENTS & RECIPES (HPP CALCULATOR) -->
@@ -2429,9 +2448,21 @@
                     required>
                 </div>
                 <div class="form-group">
-                  <label for="prod-cogs">HPP / COGS (Rp)</label>
-                  <input type="number" id="prod-cogs" class="form-control" placeholder="Contoh: 7000" min="0">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+                    <label for="prod-cogs" style="margin-bottom:0; font-size:12px; font-weight:700;">HPP / COGS (Rp)</label>
+                    <button type="button" class="btn btn-outline btn-sm" id="btnProductModalRecipe" onclick="openRecipeFromProductModal()" style="font-size:10px; padding:2px 8px; border-radius:6px; border-color:var(--gold); color:var(--coffee-dark);" title="Buka komposisi resep bahan baku">
+                      <i class="fa-solid fa-scale-balanced"></i> <span id="lblProductModalRecipe">Resep BOM</span>
+                    </button>
+                  </div>
+                  <div style="display:flex; gap:6px;">
+                    <input type="number" id="prod-cogs" class="form-control" placeholder="Contoh: 7000" min="0" style="flex:1;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="syncCogsFromRecipeModal()" title="Hitung ulang otomatis dari harga bahan baku saat ini" style="font-size:11px; padding:0 8px; white-space:nowrap;">
+                      <i class="fa-solid fa-rotate"></i> Hitung
+                    </button>
+                  </div>
                 </div>
+              </div>
+              <div id="prodRecipeHintBox" style="font-size:11px; margin-bottom:12px; padding:6px 10px; border-radius:8px; background:#fdfaf6; border:1px solid #ead7ba; color:#795d48;">
               </div>
 
               <div class="form-grid" style="gap: 10px; margin-bottom: 0;">
@@ -2799,6 +2830,50 @@
               class="fa-solid fa-download"></i> Download QRIS</button>
           <a class="btn btn-success" id="adminWaLink" target="_blank" style="text-decoration: none;"><i
               class="fa-brands fa-whatsapp"></i> Kirim Struk via WhatsApp</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RESET DATABASE TRANSACTIONS -->
+  <div class="modal-overlay" id="resetDatabaseModalOverlay">
+    <div class="modal-box" style="max-width: 480px; border: 2px solid var(--danger);">
+      <div class="modal-head" style="background: var(--danger); color: #fff;">
+        <h2 style="color: #fff; font-size: 18px;"><i class="fa-solid fa-triangle-exclamation"></i> Konfirmasi Reset Transaksi</h2>
+        <button class="modal-close" onclick="closeResetDatabaseModal()" style="color: #fff;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div style="padding: 12px 14px; border-radius: 12px; background: #faebe8; color: var(--danger); font-size: 13px; margin-bottom: 16px; line-height: 1.5; font-weight: 600;">
+          <i class="fa-solid fa-circle-exclamation"></i> <b>PERHATIAN:</b> Tindakan ini akan menghapus permanen seluruh riwayat pesanan/invoice hasil uji coba. Data produk, bahan baku, resep HPP, dan akun kasir/admin tetap aman.
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; font-size: 13px;">
+          <label style="display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--dark);">
+            <input type="checkbox" id="resetOrdersCheck" checked disabled style="width: 18px; height: 18px; accent-color: var(--danger);">
+            Hapus seluruh data order & item invoice kasir (Wajib)
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; color: var(--dark); cursor: pointer;">
+            <input type="checkbox" id="resetStockCheck" style="width: 18px; height: 18px; accent-color: var(--coffee);">
+            Reset stok semua produk aktif ke 50 pcs
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; color: var(--dark); cursor: pointer;">
+            <input type="checkbox" id="resetExpensesCheck" style="width: 18px; height: 18px; accent-color: var(--danger);">
+            Hapus juga riwayat beban & pengeluaran operasional (Expenses) uji coba
+          </label>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--dark); display: block; margin-bottom: 6px;">
+            Ketik kata <span style="color: var(--danger); font-family: monospace; font-size: 14px; font-weight: 800;">RESET</span> untuk konfirmasi:
+          </label>
+          <input type="text" id="resetConfirmText" class="form-control" placeholder="RESET" autocomplete="off" style="border: 2px solid var(--danger); font-weight: 800; letter-spacing: 2px; text-transform: uppercase;">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-outline" onclick="closeResetDatabaseModal()">Batal</button>
+          <button type="button" class="btn btn-danger" id="btnExecuteReset" onclick="executeResetDatabase()">
+            <i class="fa-solid fa-trash-can"></i> Ya, Bersihkan Database
+          </button>
         </div>
       </div>
     </div>
@@ -4403,6 +4478,13 @@
         const imageStyle = p.image ? `background-image: url('${p.image}');` : `background-image: linear-gradient(135deg, #efe0c8, #d9b98c); display:flex; align-items:center; justify-content:center;`;
         const fallbackContent = p.image ? '' : `<i class="fa-solid fa-mug-hot" style="font-size:42px; color:rgba(59,31,18,0.25);"></i>`;
 
+        // Calculate Recipe BOM and Margin
+        const prodRecipes = recipes.filter(r => String(r.productId) === String(p.id));
+        const recipeCogs = prodRecipes.reduce((s, r) => s + (Number(r.subtotalCost) || (Number(r.quantity) * Number(r.costPerUnit) || 0)), 0);
+        const effectiveCogs = recipeCogs > 0 ? recipeCogs : Number(p.cogs || 0);
+        const grossProfit = Number(p.price || 0) - effectiveCogs;
+        const marginPct = Number(p.price || 0) > 0 ? Math.round((grossProfit / Number(p.price)) * 100) : 0;
+
         return `
           <div class="product-card" id="product-card-${p.id}">
             <div class="product-image-container" style="${imageStyle}">
@@ -4421,12 +4503,32 @@
                 ${variantsLabel}
               </div>
               
-              <div class="product-details-row">
-                <div class="product-card-price">${rupiah(p.price)}</div>
-                <div style="font-size: 11px; color: #826b5e;">COGS: ${p.cogs ? rupiah(p.cogs) : 'Rp0'}</div>
+              <div class="product-details-row" style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(59,31,18,0.12);">
+                <div>
+                  <span style="font-size: 10px; color: #8c7365; font-weight: 700; text-transform: uppercase;">Harga Jual</span>
+                  <div class="product-card-price">${rupiah(p.price)}</div>
+                </div>
+                <div style="text-align: right;">
+                  <span style="font-size: 10px; color: #8c7365; font-weight: 700; text-transform: uppercase;">HPP / COGS</span>
+                  <div style="font-size: 13px; font-weight: 800; color: ${effectiveCogs > 0 ? 'var(--coffee)' : '#b57a26'};">
+                    ${effectiveCogs > 0 ? rupiah(effectiveCogs) : '<span style="font-size:11px; color:#aaa;">Belum diset</span>'}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recipe Connection & Margin Badge -->
+              <div style="margin: 8px 0; padding: 6px 10px; border-radius: 8px; background: ${prodRecipes.length > 0 ? '#f0f6ee' : '#faf2e6'}; display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+                ${prodRecipes.length > 0
+                  ? `<span style="color: var(--success); font-weight: 700;"><i class="fa-solid fa-link"></i> ${prodRecipes.length} Bahan (Margin ${marginPct}%)</span>`
+                  : `<span style="color: var(--warning); font-weight: 600;"><i class="fa-solid fa-link-slash"></i> Resep Kosong</span>`
+                }
+                <button class="btn btn-outline btn-sm" onclick="openRecipeModal('${p.id}')" style="padding: 2px 8px; font-size: 10px; border-radius: 6px; background: #fff; border-color: ${prodRecipes.length > 0 ? 'var(--border)' : 'var(--warning)'}; color: var(--coffee-dark);" title="Buka kalkulator resep bahan & HPP">
+                  <i class="fa-solid fa-calculator"></i> ${prodRecipes.length > 0 ? 'Hitung Resep' : 'Hubungkan'}
+                </button>
               </div>
               
               <div class="product-card-actions">
+                <button class="btn btn-outline btn-sm" onclick="openRecipeModal('${p.id}')" title="Atur racikan resep & hitung HPP otomatis" style="border-color: var(--gold); color: var(--coffee);"><i class="fa-solid fa-scale-balanced"></i> Resep BOM</button>
                 <button class="btn btn-outline btn-sm" onclick="openEditProductModal('${p.id}')"><i class="fa-regular fa-pen-to-square"></i> Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')"><i class="fa-regular fa-trash-can"></i> Hapus</button>
               </div>
@@ -4505,6 +4607,18 @@
       document.getElementById('prod-description').value = '';
       document.getElementById('prod-has-variant').checked = false;
 
+      // Reset Recipe Status in Add Modal
+      const hintBox = document.getElementById('prodRecipeHintBox');
+      const btnRecipe = document.getElementById('btnProductModalRecipe');
+      if (btnRecipe) btnRecipe.style.display = 'none';
+      if (hintBox) {
+        hintBox.innerHTML = `
+          <div style="color:#8c7365;">
+            <i class="fa-solid fa-circle-info"></i> Masukkan HPP perkiraan manual di atas, atau simpan produk ini terlebih dahulu untuk kemudian menghubungkan resep bahan baku secara otomatis.
+          </div>
+        `;
+      }
+
       localVariantGroups = [];
       renderVariantGroupsUI();
       toggleVariantBuilder(false);
@@ -4530,6 +4644,35 @@
       document.getElementById('prod-featured').checked = p.featured;
       document.getElementById('prod-image').value = p.image || '';
       document.getElementById('prod-description').value = p.description || '';
+
+      // Check Recipe connection for this product
+      const prodRecipes = recipes.filter(r => String(r.productId) === String(p.id));
+      const recipeCogs = prodRecipes.reduce((s, r) => s + (Number(r.subtotalCost) || (Number(r.quantity) * Number(r.costPerUnit) || 0)), 0);
+      const hintBox = document.getElementById('prodRecipeHintBox');
+      const btnRecipe = document.getElementById('btnProductModalRecipe');
+      const lblRecipe = document.getElementById('lblProductModalRecipe');
+
+      if (btnRecipe) btnRecipe.style.display = 'inline-flex';
+      if (lblRecipe) lblRecipe.innerText = prodRecipes.length > 0 ? `Resep (${prodRecipes.length} Bahan)` : 'Atur Resep BOM';
+
+      if (hintBox) {
+        if (prodRecipes.length > 0) {
+          const ingNames = prodRecipes.map(r => r.ingredientName).join(', ');
+          hintBox.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="color:var(--success); font-weight:700;"><i class="fa-solid fa-link"></i> Tersambung Resep (${prodRecipes.length} bahan: ${ingNames})</span>
+              <span style="font-weight:800; color:var(--coffee);">HPP: ${rupiah(recipeCogs)}</span>
+            </div>
+            <div style="font-size:10px; color:#8c7365; margin-top:2px;">Klik tombol "Hitung" untuk menyalin nilai HPP resep ke formulir.</div>
+          `;
+        } else {
+          hintBox.innerHTML = `
+            <div style="color:#b57a26;">
+              <i class="fa-solid fa-circle-info"></i> Belum ada komposisi resep bahan baku. Klik <b>"Atur Resep BOM"</b> di samping untuk menghubungkan biji kopi, susu, cup, dll.
+            </div>
+          `;
+        }
+      }
 
       const hasVar = p.hasVariant || false;
       document.getElementById('prod-has-variant').checked = hasVar;
@@ -4563,6 +4706,30 @@
 
     function closeProductModal() {
       document.getElementById('productModalOverlay').classList.remove('show');
+    }
+
+    function openRecipeFromProductModal() {
+      if (!currentEditProductId) {
+        showToast("Simpan produk terlebih dahulu sebelum mengatur resep bahan.", true);
+        return;
+      }
+      closeProductModal();
+      openRecipeModal(currentEditProductId);
+    }
+
+    function syncCogsFromRecipeModal() {
+      if (!currentEditProductId) {
+        showToast("Simpan produk terlebih dahulu untuk menghubungkan ke resep bahan.", true);
+        return;
+      }
+      const prodRecipes = recipes.filter(r => String(r.productId) === String(currentEditProductId));
+      if (prodRecipes.length === 0) {
+        showToast("Belum ada resep bahan untuk produk ini. Buka Resep BOM untuk menambahkan racikan.", true);
+        return;
+      }
+      const recipeCogs = prodRecipes.reduce((s, r) => s + (Number(r.subtotalCost) || (Number(r.quantity) * Number(r.costPerUnit) || 0)), 0);
+      document.getElementById('prod-cogs').value = Math.round(recipeCogs);
+      showToast(`HPP disinkronkan dari resep: ${rupiah(recipeCogs)}`);
     }
 
     function toggleVariantBuilder(show) {
@@ -5235,6 +5402,61 @@
           console.warn("Background fast notification polling error:", e);
         }
       }, 6000);
+    }
+
+    // ---------------- RESET DATABASE TRANSACTIONS ----------------
+    function openResetDatabaseModal() {
+      document.getElementById('resetConfirmText').value = '';
+      document.getElementById('resetStockCheck').checked = false;
+      document.getElementById('resetExpensesCheck').checked = false;
+      document.getElementById('resetDatabaseModalOverlay').classList.add('show');
+    }
+
+    function closeResetDatabaseModal() {
+      document.getElementById('resetDatabaseModalOverlay').classList.remove('show');
+    }
+
+    async function executeResetDatabase() {
+      const confirmVal = document.getElementById('resetConfirmText').value.trim();
+      if (confirmVal !== 'RESET') {
+        alert('Ketik kata "RESET" (huruf kapital) untuk mengonfirmasi pembersihan database transaksi!');
+        return;
+      }
+
+      const resetStock = document.getElementById('resetStockCheck').checked;
+      const resetExpenses = document.getElementById('resetExpensesCheck').checked;
+      const btn = document.getElementById('btnExecuteReset');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Membersihkan...';
+
+      try {
+        const payload = {
+          confirm: 'RESET',
+          resetStock: resetStock,
+          defaultStock: 50,
+          resetExpenses: resetExpenses
+        };
+        const res = await apiPost('resettransactions', payload);
+        showToast(res.message || 'Database transaksi berhasil dibersihkan!');
+
+        // Clear local storage POS and held orders
+        posCart = [];
+        heldOrders = [];
+        localStorage.removeItem(HELD_ORDERS_KEY);
+        renderPosCart();
+        renderHeldOrders();
+
+        closeResetDatabaseModal();
+        await reloadData();
+        switchTab('dashboard');
+      } catch (err) {
+        console.error(err);
+        alert(err.message || 'Gagal mereset database transaksi.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> Ya, Bersihkan Database';
+      }
     }
 
     function startApp() {

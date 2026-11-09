@@ -144,8 +144,8 @@ CREATE TABLE `order_items` (
 -- Seed data: products
 INSERT INTO `products` (`id`, `name`, `category`, `price`, `cogs`, `stock`, `status`, `image`, `description`, `featured`, `has_variant`) VALUES
 ('1', 'Tubruk', 'Coffee Based', 8000, 0, 98, 'Active', '', 'Kopi tradisional khas Indonesia yang diseduh langsung dengan ampasnya.', 0, 0),
-('2', 'Americano', 'Coffee Based', 15000, 0, 87, 'Active', '', 'Kopi hitam klasik yang dibuat dari espresso berkualitas dan air.', 1, 1),
-('3', 'Kopi Susu Gula Aren', 'Coffee Based', 18000, 0, 66, 'Active', '', 'Es kopi susu kekinian yang manis dan gurih dari gula aren murni.', 1, 1),
+('2', 'Americano', 'Coffee Based', 15000, 2910, 87, 'Active', '', 'Kopi hitam klasik yang dibuat dari espresso berkualitas dan air.', 1, 1),
+('3', 'Kopi Susu Gula Aren', 'Coffee Based', 18000, 5945, 66, 'Active', '', 'Es kopi susu kekinian yang manis dan gurih dari gula aren murni.', 1, 1),
 ('4', 'Special Secret Vanilla Americano', 'Coffee Based', 18000, 0, 97, 'Active', '', 'Es kopi hitam spesial dengan sentuhan sirup vanilla rahasia DjaCo.', 1, 1),
 ('5', 'Espresso', 'Coffee Based', 12000, 0, 100, 'Active', '', 'Ekstrak kopi pekat murni dengan aroma kuat dan rasa intens.', 1, 0),
 ('6', 'V60 (Ice / Hot)', 'Coffee Based', 25000, 0, 100, 'Active', '', 'Kopi seduh manual menggunakan metode V60 dengan biji kopi pilihan.', 1, 1),
@@ -158,7 +158,7 @@ INSERT INTO `products` (`id`, `name`, `category`, `price`, `cogs`, `stock`, `sta
 ('13', 'Iced Lychee Tea', 'Refreshing Tea', 15000, 0, 100, 'Active', '', 'Es teh manis dengan rasa buah leci segar yang aromatik.', 1, 1),
 ('14', 'Iced Lemon Tea', 'Refreshing Tea', 13000, 0, 100, 'Active', '', 'Teh es segar dengan perasan jeruk lemon asli yang melegakan dahaga.', 1, 1),
 ('15', 'Matcha Gula Aren', 'Non-Coffee', 23000, 0, 100, 'Active', '', 'Kombinasi matcha autentik yang berpadu seru dengan manisnya gula aren.', 1, 1),
-('16', 'Matcha Latte', 'Non-Coffee', 22000, 0, 99, 'Active', '', 'Minuman teh hijau Jepang (matcha) murni berpadu dengan susu creamy.', 1, 1),
+('16', 'Matcha Latte', 'Non-Coffee', 22000, 6450, 99, 'Active', '', 'Minuman teh hijau Jepang (matcha) murni berpadu dengan susu creamy.', 1, 1),
 ('17', 'Chocolate Gula Aren', 'Non-Coffee', 23000, 0, 100, 'Active', '', 'Paduan unik cokelat premium dengan manis khas gula aren.', 0, 1),
 ('18', 'Signature Chocolate', 'Non-Coffee', 22000, 0, 54, 'Active', '', 'Minuman cokelat pekat khas DjaCo yang creamy dan lezat.', 0, 1),
 ('19', 'Spesial Ayam Geprek', 'Main Course (Makanan Berat)', 18000, 0, 100, 'Active', '', 'Ayam goreng tepung krispi yang digeprek dengan sambal bawang pedas mantap disajikan bersama nasi hangat.', 0, 0),
@@ -415,5 +415,17 @@ CREATE TABLE `expenses` (
   KEY `idx_category` (`category`),
   KEY `idx_expense_date` (`expense_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Auto-sync initial product COGS from recipe BOM
+UPDATE `products` p 
+SET p.cogs = (
+    SELECT COALESCE(SUM(pr.quantity * i.cost_per_unit), 0) 
+    FROM `product_recipes` pr 
+    JOIN `ingredients` i ON pr.ingredient_id = i.id 
+    WHERE pr.product_id = p.id
+) 
+WHERE EXISTS (
+    SELECT 1 FROM `product_recipes` pr WHERE pr.product_id = p.id
+);
 
 SET FOREIGN_KEY_CHECKS = 1;

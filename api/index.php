@@ -622,6 +622,21 @@ switch ($action) {
             $checkStmt->execute([$id]);
             $exists = (bool)$checkStmt->fetchColumn();
 
+            // If product has recipes and cogs was not explicitly entered, auto-calculate from recipe BOM
+            if ($cogs <= 0 && $exists) {
+                $calcStmt = $pdo->prepare("
+                    SELECT COALESCE(SUM(pr.quantity * i.cost_per_unit), 0)
+                    FROM product_recipes pr
+                    JOIN ingredients i ON pr.ingredient_id = i.id
+                    WHERE pr.product_id = ?
+                ");
+                $calcStmt->execute([$id]);
+                $recipeCogs = (float)$calcStmt->fetchColumn();
+                if ($recipeCogs > 0) {
+                    $cogs = $recipeCogs;
+                }
+            }
+
             if ($exists) {
                 $updateStmt = $pdo->prepare("
                     UPDATE products SET 
@@ -1062,6 +1077,56 @@ switch ($action) {
         $stmt = $pdo->prepare("DELETE FROM expenses WHERE id = ?");
         $stmt->execute([$id]);
         jsonSuccess(['message' => 'Pengeluaran berhasil dihapus']);
+        break;
+
+    case 'resettransactions':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+
+        $confirm = trim($input['confirm'] ?? '');
+        if ($confirm !== 'RESET') {
+            jsonError('Ketik "RESET" dengan huruf kapital untuk mengonfirmasi pembersihan transaksi.', 400);
+        }
+
+        $resetStock = !empty($input['resetStock']);
+        $defaultStock = isset($input['defaultStock']) ? max(0, (int)$input['defaultStock']) : 50;
+        $resetExpenses = !empty($input['resetExpenses']);
+
+        try {
+            // 1. Delete all order items & orders
+            $pdo->exec("DELETE FROM order_items");
+            $pdo->exec("DELETE FROM orders");
+
+            // Reset auto-increment safely
+            try {
+                $pdo->exec("ALTER TABLE order_items AUTO_INCREMENT = 1");
+                $pdo->exec("ALTER TABLE orders AUTO_INCREMENT = 1");
+            } catch (Exception $e) {
+                // Ignore if host restricts ALTER TABLE
+            }
+
+            // 2. Optional: reset product stock
+            if ($resetStock) {
+                $stmt = $pdo->prepare("UPDATE products SET stock = ? WHERE status != 'Inactive'");
+                $stmt->execute([$defaultStock]);
+            }
+
+            // 3. Optional: reset expenses
+            if ($resetExpenses) {
+                $pdo->exec("DELETE FROM expenses");
+                try {
+                    $pdo->exec("ALTER TABLE expenses AUTO_INCREMENT = 1");
+                } catch (Exception $e) {}
+            }
+
+            jsonSuccess([
+                'message'       => 'Seluruh data riwayat transaksi berhasil dibersihkan! Database siap digunakan untuk operasional baru.',
+                'resetStock'    => $resetStock,
+                'resetExpenses' => $resetExpenses
+            ]);
+        } catch (Exception $e) {
+            jsonError('Gagal mereset transaksi: ' . $e->getMessage(), 500);
+        }
         break;
 
     default:
