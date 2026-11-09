@@ -7,6 +7,10 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- --------------------------------------------------------
 -- Table structure for products
 -- --------------------------------------------------------
+DROP TABLE IF EXISTS `product_recipes`;
+DROP TABLE IF EXISTS `ingredient_purchases`;
+DROP TABLE IF EXISTS `ingredients`;
+DROP TABLE IF EXISTS `expenses`;
 DROP TABLE IF EXISTS `order_items`;
 DROP TABLE IF EXISTS `product_options`;
 DROP TABLE IF EXISTS `orders`;
@@ -316,5 +320,100 @@ INSERT INTO `product_options` (`product_id`, `group_name`, `option_name`, `price
 INSERT INTO `announcements` (`title`, `message`, `button_text`, `link`, `sort_order`, `status`) VALUES
 ('Promo Hari Ini', 'Pesan menu favorit DjaCo langsung dari web.', 'Rute ke DjaCo', 'https://maps.app.goo.gl/9bNzKf8WoiN2Kkf57', 1, 'Active'),
 ('Info Jam Operasional', 'DjaCo siap melayani pesanan harian. Cek menu favorit dan stok terbaru di halaman ini.', 'WhatsApp DjaCo', 'https://wa.me/6282244400532', 2, 'Active');
+
+-- --------------------------------------------------------
+-- Table structure for ingredients (Master Bahan Baku)
+-- --------------------------------------------------------
+CREATE TABLE `ingredients` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(30) NOT NULL UNIQUE,
+  `name` varchar(100) NOT NULL,
+  `unit` varchar(20) NOT NULL DEFAULT 'gram',
+  `cost_per_unit` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `current_stock` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `min_stock` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `ingredients` (`id`, `code`, `name`, `unit`, `cost_per_unit`, `current_stock`, `min_stock`) VALUES
+(1, 'RAW-BEANS', 'Biji Kopi House Blend (Arabica/Robusta)', 'gram', 120.00, 5000.00, 500.00),
+(2, 'RAW-MILK', 'Fresh Milk / UHT (Susu Sapi)', 'ml', 18.00, 20000.00, 2000.00),
+(3, 'RAW-AREN', 'Gula Aren Cair Murni', 'ml', 35.00, 5000.00, 500.00),
+(4, 'RAW-VANILLA', 'Sirup Vanilla Premium', 'ml', 110.00, 1000.00, 200.00),
+(5, 'RAW-MATCHA', 'Bubuk Matcha Pure', 'gram', 150.00, 2000.00, 200.00),
+(6, 'RAW-CHOCO', 'Bubuk Chocolate Signature', 'gram', 125.00, 3000.00, 300.00),
+(7, 'RAW-TEA', 'Daun Teh Premium Earl Grey / Jasmine', 'gram', 80.00, 1000.00, 100.00),
+(8, 'PKG-CUP14', 'Cup Dingin 14oz + Tutup Seal/Lid', 'pcs', 650.00, 500.00, 100.00),
+(9, 'PKG-CUP16', 'Cup Dingin 16oz + Tutup Seal/Lid', 'pcs', 750.00, 500.00, 100.00),
+(10, 'PKG-BOTOL', 'Botol Kaca/Plastik 250ml', 'pcs', 2500.00, 100.00, 20.00),
+(11, 'PKG-STRAW', 'Sedotan Kertas / Plastik Ramah Lingkungan', 'pcs', 100.00, 1000.00, 200.00);
+
+-- --------------------------------------------------------
+-- Table structure for product_recipes (Resep & Komposisi BOM)
+-- --------------------------------------------------------
+CREATE TABLE `product_recipes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` varchar(50) NOT NULL,
+  `ingredient_id` int(11) NOT NULL,
+  `quantity` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_product_id` (`product_id`),
+  KEY `idx_ingredient_id` (`ingredient_id`),
+  CONSTRAINT `fk_recipe_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_recipe_ingredient` FOREIGN KEY (`ingredient_id`) REFERENCES `ingredients` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `product_recipes` (`product_id`, `ingredient_id`, `quantity`) VALUES
+('3', 1, 18.00),
+('3', 2, 120.00),
+('3', 3, 25.00),
+('3', 8, 1.00),
+('3', 11, 1.00),
+('2', 1, 18.00),
+('2', 8, 1.00),
+('2', 11, 1.00),
+('16', 5, 20.00),
+('16', 2, 150.00),
+('16', 8, 1.00),
+('16', 11, 1.00);
+
+-- --------------------------------------------------------
+-- Table structure for ingredient_purchases (Histori Pembelian)
+-- --------------------------------------------------------
+CREATE TABLE `ingredient_purchases` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `purchase_no` varchar(50) NOT NULL,
+  `ingredient_id` int(11) NOT NULL,
+  `quantity` decimal(12,2) NOT NULL,
+  `total_cost` decimal(12,2) NOT NULL,
+  `unit_cost` decimal(12,2) NOT NULL,
+  `supplier` varchar(100) DEFAULT NULL,
+  `purchased_at` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_ingredient_id` (`ingredient_id`),
+  CONSTRAINT `fk_purchase_ingredient` FOREIGN KEY (`ingredient_id`) REFERENCES `ingredients` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for expenses (Beban Operasional: Gaji, Servis, dll)
+-- --------------------------------------------------------
+CREATE TABLE `expenses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `expense_no` varchar(50) NOT NULL UNIQUE,
+  `category` varchar(50) NOT NULL,
+  `title` varchar(150) NOT NULL,
+  `amount` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `notes` text DEFAULT NULL,
+  `expense_date` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_category` (`category`),
+  KEY `idx_expense_date` (`expense_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

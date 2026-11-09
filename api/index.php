@@ -298,27 +298,121 @@ switch ($action) {
             ];
         }, $rawOrders);
 
+        // Ingredients
+        $ingStmt = $pdo->query("
+            SELECT 
+                id, code, name, unit, 
+                CAST(cost_per_unit AS DECIMAL(12,2)) as cost_per_unit, 
+                CAST(current_stock AS DECIMAL(12,2)) as current_stock, 
+                CAST(min_stock AS DECIMAL(12,2)) as min_stock 
+            FROM ingredients 
+            ORDER BY name ASC
+        ");
+        $rawIngredients = $ingStmt->fetchAll();
+        $ingredients = array_map(function($i) {
+            return [
+                'id'          => (int)$i['id'],
+                'code'        => (string)$i['code'],
+                'name'        => (string)$i['name'],
+                'unit'        => (string)$i['unit'],
+                'costPerUnit' => (float)$i['cost_per_unit'],
+                'stock'       => (float)$i['current_stock'],
+                'minStock'    => (float)$i['min_stock']
+            ];
+        }, $rawIngredients);
+
+        // Expenses
+        $expStmt = $pdo->query("
+            SELECT 
+                id, expense_no as expenseNo, category, title, 
+                CAST(amount AS DECIMAL(12,2)) as amount, notes, 
+                expense_date as expenseDate, created_at as createdAt 
+            FROM expenses 
+            ORDER BY expense_date DESC, id DESC 
+            LIMIT 50
+        ");
+        $rawExpenses = $expStmt->fetchAll();
+        $expenses = array_map(function($e) {
+            return [
+                'id'          => (int)$e['id'],
+                'expenseNo'   => (string)$e['expenseNo'],
+                'category'    => (string)$e['category'],
+                'title'       => (string)$e['title'],
+                'amount'      => (float)$e['amount'],
+                'notes'       => (string)($e['notes'] ?? ''),
+                'expenseDate' => (string)$e['expenseDate'],
+                'createdAt'   => (string)$e['createdAt']
+            ];
+        }, $rawExpenses);
+
+        // Product Recipes
+        $recStmt = $pdo->query("
+            SELECT 
+                pr.id, pr.product_id as productId, pr.ingredient_id as ingredientId, 
+                i.name as ingredientName, i.unit, 
+                CAST(i.cost_per_unit AS DECIMAL(12,2)) as costPerUnit, 
+                CAST(pr.quantity AS DECIMAL(10,2)) as quantity, 
+                CAST(pr.quantity * i.cost_per_unit AS DECIMAL(12,2)) as subtotalCost 
+            FROM product_recipes pr 
+            JOIN ingredients i ON pr.ingredient_id = i.id 
+            ORDER BY pr.product_id, i.name
+        ");
+        $recipes = $recStmt->fetchAll();
+
         // Reports / Summary stats
         $statsStmt = $pdo->query("
             SELECT 
                 COALESCE(SUM(CASE WHEN DATE(created_at) = CURDATE() AND status != 'Cancelled' THEN total ELSE 0 END), 0) as todaySales,
                 COUNT(CASE WHEN DATE(created_at) = CURDATE() THEN 1 END) as todayOrders,
-                COUNT(CASE WHEN status = 'Pending' THEN 1 END) as pendingOrders
+                COUNT(CASE WHEN status = 'Pending' THEN 1 END) as pendingOrders,
+                COALESCE(SUM(CASE WHEN YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE()) AND status != 'Cancelled' THEN total ELSE 0 END), 0) as monthSales
             FROM orders
         ");
         $stats = $statsStmt->fetch();
 
-        $activeProdCount = $pdo->query("SELECT COUNT(*) FROM products WHERE status = 'Active'")->fetchColumn();
+        // Month expenses
+        $monthExp = (float)$pdo->query("
+            SELECT COALESCE(SUM(amount), 0) 
+            FROM expenses 
+            WHERE YEAR(expense_date) = YEAR(CURDATE()) AND MONTH(expense_date) = MONTH(CURDATE())
+        ")->fetchColumn();
+
+        // Month estimated COGS of sold items
+        $monthCogs = (float)$pdo->query("
+            SELECT COALESCE(SUM(oi.qty * COALESCE(p.cogs, 0)), 0)
+            FROM order_items oi
+            JOIN orders o ON oi.order_id = o.id
+            LEFT JOIN products p ON oi.product_id = p.id
+            WHERE YEAR(o.created_at) = YEAR(CURDATE()) AND MONTH(o.created_at) = MONTH(CURDATE()) AND o.status != 'Cancelled'
+        ")->fetchColumn();
+
+        $activeProdCount = (int)$pdo->query("SELECT COUNT(*) FROM products WHERE status = 'Active'")->fetchColumn();
+        $totalIngCount   = (int)$pdo->query("SELECT COUNT(*) FROM ingredients")->fetchColumn();
+        $lowStockCount   = (int)$pdo->query("SELECT COUNT(*) FROM ingredients WHERE current_stock <= min_stock")->fetchColumn();
+
+        $mSales = (float)$stats['monthSales'];
+        $mGross = $mSales - $monthCogs;
+        $mNet = $mGross - $monthExp;
 
         jsonSuccess([
-            'products' => $products,
-            'options'  => $options,
-            'orders'   => $orders,
-            'reports'  => [
-                'todaySales'    => (float)$stats['todaySales'],
-                'todayOrders'   => (int)$stats['todayOrders'],
-                'pendingOrders' => (int)$stats['pendingOrders'],
-                'totalProducts' => (int)$activeProdCount
+            'products'    => $products,
+            'options'     => $options,
+            'orders'      => $orders,
+            'ingredients' => $ingredients,
+            'expenses'    => $expenses,
+            'recipes'     => $recipes,
+            'reports'     => [
+                'todaySales'          => (float)$stats['todaySales'],
+                'todayOrders'         => (int)$stats['todayOrders'],
+                'pendingOrders'       => (int)$stats['pendingOrders'],
+                'totalProducts'       => $activeProdCount,
+                'totalIngredients'    => $totalIngCount,
+                'lowStockIngredients' => $lowStockCount,
+                'monthSales'          => $mSales,
+                'monthCogs'           => $monthCogs,
+                'monthGrossProfit'    => $mGross,
+                'monthExpenses'       => $monthExp,
+                'monthNetProfit'      => $mNet
             ]
         ]);
         break;
@@ -450,6 +544,18 @@ switch ($action) {
 
                 if (!empty($pId)) {
                     $stockStmt->execute([
+                        ':qty'        => $qty,
+                        ':product_id' => $pId
+                    ]);
+
+                    // Potong stok bahan baku otomatis jika produk memiliki resep
+                    $recipeDeductStmt = $pdo->prepare("
+                        UPDATE ingredients i
+                        JOIN product_recipes pr ON i.id = pr.ingredient_id
+                        SET i.current_stock = GREATEST(0, i.current_stock - (pr.quantity * :qty))
+                        WHERE pr.product_id = :product_id
+                    ");
+                    $recipeDeductStmt->execute([
                         ':qty'        => $qty,
                         ':product_id' => $pId
                     ]);
@@ -647,6 +753,315 @@ switch ($action) {
             $stmt->execute([$invoiceNo]);
         }
         jsonSuccess(['message' => 'QRIS download tercatat']);
+        break;
+
+    // ---------------------------------------------------------
+    // 10. INGREDIENTS (MASTER BAHAN BAKU)
+    // ---------------------------------------------------------
+    case 'getingredients':
+        $currentUser = requireAuth($pdo);
+        $stmt = $pdo->query("SELECT * FROM ingredients ORDER BY name ASC");
+        jsonSuccess(['ingredients' => $stmt->fetchAll()]);
+        break;
+
+    case 'saveingredient':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+
+        $id          = (int)($input['id'] ?? 0);
+        $code        = trim($input['code'] ?? '');
+        $name        = trim($input['name'] ?? '');
+        $unit        = trim($input['unit'] ?? 'gram');
+        $costPerUnit = (float)($input['costPerUnit'] ?? 0);
+        $stock       = (float)($input['stock'] ?? 0);
+        $minStock    = (float)($input['minStock'] ?? 0);
+
+        if (empty($code) || empty($name)) jsonError('Kode dan nama bahan wajib diisi');
+
+        if ($id > 0) {
+            $stmt = $pdo->prepare("
+                UPDATE ingredients 
+                SET code = ?, name = ?, unit = ?, cost_per_unit = ?, current_stock = ?, min_stock = ?
+                WHERE id = ?
+            ");
+            $stmt->execute([$code, $name, $unit, $costPerUnit, $stock, $minStock, $id]);
+        } else {
+            $stmt = $pdo->prepare("
+                INSERT INTO ingredients (code, name, unit, cost_per_unit, current_stock, min_stock)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([$code, $name, $unit, $costPerUnit, $stock, $minStock]);
+            $id = (int)$pdo->lastInsertId();
+        }
+
+        // Recalculate HPP otomatis untuk semua produk yang memakai bahan ini
+        $pdo->prepare("
+            UPDATE products p
+            SET p.cogs = COALESCE((
+                SELECT SUM(pr.quantity * i.cost_per_unit)
+                FROM product_recipes pr
+                JOIN ingredients i ON pr.ingredient_id = i.id
+                WHERE pr.product_id = p.id
+            ), p.cogs)
+            WHERE p.id IN (SELECT product_id FROM product_recipes WHERE ingredient_id = ?)
+        ")->execute([$id]);
+
+        jsonSuccess(['message' => 'Bahan baku berhasil disimpan dan HPP produk terkait telah diperbarui', 'id' => $id]);
+        break;
+
+    case 'deleteingredient':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+        $id = (int)($input['id'] ?? 0);
+        if ($id <= 0) jsonError('ID bahan wajib diisi');
+
+        $stmt = $pdo->prepare("DELETE FROM ingredients WHERE id = ?");
+        $stmt->execute([$id]);
+        jsonSuccess(['message' => 'Bahan baku berhasil dihapus']);
+        break;
+
+    // ---------------------------------------------------------
+    // 11. RESTOCK BAHAN BAKU (DENGAN MOVING AVERAGE COST)
+    // ---------------------------------------------------------
+    case 'restockingredient':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo);
+
+        $ingredientId  = (int)($input['ingredientId'] ?? 0);
+        $quantity      = (float)($input['quantity'] ?? 0);
+        $totalCost     = (float)($input['totalCost'] ?? 0);
+        $supplier      = trim($input['supplier'] ?? 'Supplier');
+        $purchasedAt   = trim($input['purchasedAt'] ?? date('Y-m-d'));
+        $recordExpense = !empty($input['recordExpense']);
+
+        if ($ingredientId <= 0 || $quantity <= 0 || $totalCost <= 0) {
+            jsonError('Data pembelian tidak lengkap (ingredientId, quantity, totalCost wajib valid)');
+        }
+
+        try {
+            $pdo->beginTransaction();
+
+            // Ambil data bahan saat ini
+            $stmt = $pdo->prepare("SELECT * FROM ingredients WHERE id = ?");
+            $stmt->execute([$ingredientId]);
+            $ing = $stmt->fetch();
+            if (!$ing) jsonError('Bahan baku tidak ditemukan');
+
+            $oldStock = (float)$ing['current_stock'];
+            $oldCost  = (float)$ing['cost_per_unit'];
+
+            // Rumus Moving Average Cost
+            $newStock = $oldStock + $quantity;
+            $newCostPerUnit = $newStock > 0 
+                ? (($oldStock * $oldCost) + $totalCost) / $newStock 
+                : ($totalCost / $quantity);
+
+            // Update stok dan harga rata-rata bahan
+            $updIng = $pdo->prepare("
+                UPDATE ingredients 
+                SET current_stock = :new_stock, cost_per_unit = :new_cost 
+                WHERE id = :id
+            ");
+            $updIng->execute([
+                ':new_stock' => $newStock,
+                ':new_cost'  => $newCostPerUnit,
+                ':id'        => $ingredientId
+            ]);
+
+            // Catat ke riwayat pembelian
+            $purchaseNo = 'PO-' . date('Ymd-His') . '-' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
+            $insPurchase = $pdo->prepare("
+                INSERT INTO ingredient_purchases (
+                    purchase_no, ingredient_id, quantity, total_cost, unit_cost, supplier, purchased_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            ");
+            $insPurchase->execute([
+                $purchaseNo, $ingredientId, $quantity, $totalCost, ($totalCost / $quantity), $supplier, $purchasedAt
+            ]);
+
+            // Jika dicatat ke tabel pengeluaran operasional
+            if ($recordExpense) {
+                $expNo = 'EXP-' . date('Ymd-His') . '-' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
+                $insExp = $pdo->prepare("
+                    INSERT INTO expenses (expense_no, category, title, amount, notes, expense_date)
+                    VALUES (?, 'Bahan Baku', ?, ?, ?, ?)
+                ");
+                $insExp->execute([
+                    $expNo,
+                    "Beli " . $ing['name'] . " ($quantity " . $ing['unit'] . ")",
+                    $totalCost,
+                    "Pembelian $purchaseNo dari $supplier",
+                    $purchasedAt
+                ]);
+            }
+
+            // Recalculate HPP untuk semua produk yang menggunakan bahan ini
+            $pdo->prepare("
+                UPDATE products p
+                SET p.cogs = COALESCE((
+                    SELECT SUM(pr.quantity * i.cost_per_unit)
+                    FROM product_recipes pr
+                    JOIN ingredients i ON pr.ingredient_id = i.id
+                    WHERE pr.product_id = p.id
+                ), p.cogs)
+                WHERE p.id IN (SELECT product_id FROM product_recipes WHERE ingredient_id = ?)
+            ")->execute([$ingredientId]);
+
+            $pdo->commit();
+
+            jsonSuccess([
+                'message'        => 'Restock berhasil dicatat dan HPP produk terkait telah disinkronkan',
+                'newStock'       => $newStock,
+                'newCostPerUnit' => $newCostPerUnit
+            ]);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            jsonError('Gagal memproses restock: ' . $e->getMessage(), 500);
+        }
+        break;
+
+    // ---------------------------------------------------------
+    // 12. RECIPES & HPP CALCULATOR (BOM)
+    // ---------------------------------------------------------
+    case 'getrecipes':
+        $currentUser = requireAuth($pdo);
+        $productId = trim($_GET['productId'] ?? '');
+        $sql = "
+            SELECT 
+                pr.id, pr.product_id as productId, pr.ingredient_id as ingredientId, 
+                i.name as ingredientName, i.unit, 
+                CAST(i.cost_per_unit AS DECIMAL(12,2)) as costPerUnit, 
+                CAST(pr.quantity AS DECIMAL(10,2)) as quantity, 
+                CAST(pr.quantity * i.cost_per_unit AS DECIMAL(12,2)) as subtotalCost 
+            FROM product_recipes pr 
+            JOIN ingredients i ON pr.ingredient_id = i.id 
+        ";
+        if (!empty($productId)) {
+            $stmt = $pdo->prepare($sql . " WHERE pr.product_id = ? ORDER BY i.name");
+            $stmt->execute([$productId]);
+        } else {
+            $stmt = $pdo->query($sql . " ORDER BY pr.product_id, i.name");
+        }
+        jsonSuccess(['recipes' => $stmt->fetchAll()]);
+        break;
+
+    case 'saverecipe':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+
+        $productId = trim($input['productId'] ?? '');
+        $items     = $input['items'] ?? [];
+
+        if (empty($productId)) jsonError('productId wajib diisi');
+
+        try {
+            $pdo->beginTransaction();
+
+            $pdo->prepare("DELETE FROM product_recipes WHERE product_id = ?")->execute([$productId]);
+
+            if (is_array($items) && !empty($items)) {
+                $ins = $pdo->prepare("INSERT INTO product_recipes (product_id, ingredient_id, quantity) VALUES (?, ?, ?)");
+                foreach ($items as $item) {
+                    $ingId = (int)($item['ingredientId'] ?? 0);
+                    $qty = (float)($item['quantity'] ?? 0);
+                    if ($ingId > 0 && $qty > 0) {
+                        $ins->execute([$productId, $ingId, $qty]);
+                    }
+                }
+            }
+
+            // Hitung total HPP otomatis
+            $calcStmt = $pdo->prepare("
+                SELECT COALESCE(SUM(pr.quantity * i.cost_per_unit), 0)
+                FROM product_recipes pr
+                JOIN ingredients i ON pr.ingredient_id = i.id
+                WHERE pr.product_id = ?
+            ");
+            $calcStmt->execute([$productId]);
+            $cogs = (float)$calcStmt->fetchColumn();
+
+            // Update cogs di tabel products
+            $upd = $pdo->prepare("UPDATE products SET cogs = ? WHERE id = ?");
+            $upd->execute([$cogs, $productId]);
+
+            $pdo->commit();
+            jsonSuccess([
+                'message'   => 'Resep berhasil disimpan dan HPP produk otomatis diperbarui',
+                'productId' => $productId,
+                'cogs'      => $cogs
+            ]);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            jsonError('Gagal menyimpan resep: ' . $e->getMessage(), 500);
+        }
+        break;
+
+    // ---------------------------------------------------------
+    // 13. EXPENSES (PENGELUARAN OPERASIONAL: GAJI, SERVIS, DLL)
+    // ---------------------------------------------------------
+    case 'getexpenses':
+        $currentUser = requireAuth($pdo);
+        $limit = isset($_GET['limit']) ? max(1, min(200, (int)$_GET['limit'])) : 100;
+        $category = trim($_GET['category'] ?? '');
+
+        $sql = "SELECT * FROM expenses ";
+        $params = [];
+        if (!empty($category) && $category !== 'Semua') {
+            $sql .= " WHERE category = :cat ";
+            $params[':cat'] = $category;
+        }
+        $sql .= " ORDER BY expense_date DESC, id DESC LIMIT :lim";
+
+        $stmt = $pdo->prepare($sql);
+        foreach ($params as $k => $v) $stmt->bindValue($k, $v);
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        jsonSuccess(['expenses' => $stmt->fetchAll()]);
+        break;
+
+    case 'saveexpense':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo);
+
+        $id          = (int)($input['id'] ?? 0);
+        $category    = trim($input['category'] ?? 'Operasional');
+        $title       = trim($input['title'] ?? '');
+        $amount      = (float)($input['amount'] ?? 0);
+        $notes       = trim($input['notes'] ?? '');
+        $expenseDate = trim($input['expenseDate'] ?? date('Y-m-d'));
+
+        if (empty($title) || $amount <= 0) jsonError('Judul dan nominal pengeluaran wajib valid');
+
+        if ($id > 0) {
+            $stmt = $pdo->prepare("
+                UPDATE expenses 
+                SET category = ?, title = ?, amount = ?, notes = ?, expense_date = ?
+                WHERE id = ?
+            ");
+            $stmt->execute([$category, $title, $amount, $notes, $expenseDate, $id]);
+        } else {
+            $expNo = 'EXP-' . date('Ymd-His') . '-' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
+            $stmt = $pdo->prepare("
+                INSERT INTO expenses (expense_no, category, title, amount, notes, expense_date)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([$expNo, $category, $title, $amount, $notes, $expenseDate]);
+            $id = (int)$pdo->lastInsertId();
+        }
+
+        jsonSuccess(['message' => 'Pengeluaran berhasil dicatat', 'id' => $id]);
+        break;
+
+    case 'deleteexpense':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+        $id = (int)($input['id'] ?? 0);
+        if ($id <= 0) jsonError('ID pengeluaran wajib diisi');
+
+        $stmt = $pdo->prepare("DELETE FROM expenses WHERE id = ?");
+        $stmt->execute([$id]);
+        jsonSuccess(['message' => 'Pengeluaran berhasil dihapus']);
         break;
 
     default:

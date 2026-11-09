@@ -1490,6 +1490,12 @@
         <a href="#products" class="nav-item" id="nav-products" onclick="switchTab('products')">
           <i class="fa-solid fa-mug-hot"></i> Produk
         </a>
+        <a href="#ingredients" class="nav-item" id="nav-ingredients" onclick="switchTab('ingredients')">
+          <i class="fa-solid fa-boxes-stacked"></i> Bahan & HPP
+        </a>
+        <a href="#expenses" class="nav-item" id="nav-expenses" onclick="switchTab('expenses')">
+          <i class="fa-solid fa-receipt"></i> Biaya & Beban
+        </a>
         <a href="#settings" class="nav-item" id="nav-settings" onclick="switchTab('settings')">
           <i class="fa-solid fa-sliders"></i> Pengaturan
         </a>
@@ -1804,6 +1810,132 @@
         </div>
       </section>
 
+      <!-- TAB: INGREDIENTS & RECIPES (HPP CALCULATOR) -->
+      <section class="tab-section" id="section-ingredients">
+        <!-- Sub Header & Action Buttons -->
+        <div class="orders-controls" style="align-items: center; justify-content: space-between; flex-wrap: wrap;">
+          <div class="search-box">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="ingredientSearch" placeholder="Cari bahan baku..." oninput="filterIngredients()">
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="openAddIngredientModal()">
+              <i class="fa-solid fa-plus"></i> Tambah Bahan
+            </button>
+            <button class="btn btn-outline" onclick="openRestockModal()" style="border-color: var(--coffee); color: var(--coffee); font-weight:700;">
+              <i class="fa-solid fa-truck-ramp-box"></i> Restock Pembelian
+            </button>
+          </div>
+        </div>
+
+        <!-- Master Ingredients Table -->
+        <div class="panel" style="margin-bottom: 24px;">
+          <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span><i class="fa-solid fa-boxes-stacked"></i> Master Bahan Baku & Harga Satuan</span>
+            <span class="badge" id="ingredientCountBadge" style="background:var(--coffee); color:#fff; font-size:12px; padding:4px 10px;">0 Bahan</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="data-table" style="width:100%; border-collapse: collapse;" id="ingredientsTable">
+              <thead>
+                <tr style="background: #f6ebd9; text-align: left;">
+                  <th style="padding:12px 14px;">Kode</th>
+                  <th style="padding:12px 14px;">Nama Bahan</th>
+                  <th style="padding:12px 14px;">Satuan</th>
+                  <th style="padding:12px 14px;">Harga/Unit (HPP)</th>
+                  <th style="padding:12px 14px;">Sisa Stok</th>
+                  <th style="padding:12px 14px;">Status Stok</th>
+                  <th style="padding:12px 14px; text-align:right;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="ingredientsTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Menu Recipe & Automatic HPP Calculator Section -->
+        <div class="panel">
+          <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <i class="fa-solid fa-calculator"></i> Kalkulator Resep & HPP Menu Otomatis (BOM)
+              <div style="font-size:12px; font-weight:normal; color:#795d48; margin-top:4px;">
+                Tentukan komposisi takaran bahan per cup / porsi. HPP menu otomatis terhitung saat harga bahan baku berubah!
+              </div>
+            </div>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="data-table" style="width:100%; border-collapse: collapse;" id="recipesTable">
+              <thead>
+                <tr style="background: #f6ebd9; text-align: left;">
+                  <th style="padding:12px 14px;">Produk Menu</th>
+                  <th style="padding:12px 14px;">Kategori</th>
+                  <th style="padding:12px 14px;">Harga Jual</th>
+                  <th style="padding:12px 14px;">HPP Otomatis (BOM)</th>
+                  <th style="padding:12px 14px;">Laba Kotor (Margin)</th>
+                  <th style="padding:12px 14px;">Jumlah Bahan</th>
+                  <th style="padding:12px 14px; text-align:right;">Atur Resep</th>
+                </tr>
+              </thead>
+              <tbody id="recipesTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: EXPENSES & OPERATIONAL COSTS -->
+      <section class="tab-section" id="section-expenses">
+        <!-- Sub Header & Action Buttons -->
+        <div class="orders-controls" style="align-items: center; justify-content: space-between; flex-wrap: wrap;">
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div class="search-box">
+              <i class="fa-solid fa-search"></i>
+              <input type="text" id="expenseSearch" placeholder="Cari pengeluaran..." oninput="filterExpenses()">
+            </div>
+            <select class="form-control" id="expenseCategoryFilter" style="width: 190px; padding: 10px;" onchange="filterExpenses()">
+              <option value="Semua">Semua Kategori</option>
+              <option value="Gaji & Upah">Gaji & Upah</option>
+              <option value="Servis & Maintenance">Servis & Maintenance</option>
+              <option value="Bahan Baku">Bahan Baku</option>
+              <option value="Utilitas & Listrik">Utilitas & Listrik</option>
+              <option value="Sewa & Tempat">Sewa & Tempat</option>
+              <option value="Operasional Lainnya">Operasional Lainnya</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="openAddExpenseModal()">
+            <i class="fa-solid fa-plus"></i> Catat Pengeluaran
+          </button>
+        </div>
+
+        <!-- Expense Table -->
+        <div class="panel">
+          <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span><i class="fa-solid fa-receipt"></i> Riwayat Beban & Pengeluaran Operasional</span>
+            <span class="badge" id="totalExpenseAmountBadge" style="background:var(--danger); color:#fff; font-size:13px; padding:6px 12px; font-weight:700;">Total: Rp0</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="data-table" style="width:100%; border-collapse: collapse;" id="expensesTable">
+              <thead>
+                <tr style="background: #f6ebd9; text-align: left;">
+                  <th style="padding:12px 14px;">No Bukti</th>
+                  <th style="padding:12px 14px;">Tanggal</th>
+                  <th style="padding:12px 14px;">Kategori</th>
+                  <th style="padding:12px 14px;">Keterangan Pengeluaran</th>
+                  <th style="padding:12px 14px;">Nominal (Rp)</th>
+                  <th style="padding:12px 14px;">Catatan</th>
+                  <th style="padding:12px 14px; text-align:right;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="expensesTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -1953,6 +2085,232 @@
     </div>
   </div>
 
+  <!-- MODAL: ADD / EDIT INGREDIENT -->
+  <div class="modal-overlay" id="ingredientModalOverlay">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-head">
+        <h2 id="ingredientModalTitle">Tambah Bahan Baku</h2>
+        <button class="modal-close" onclick="closeIngredientModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="ingredientForm" onsubmit="saveIngredientForm(event)">
+          <input type="hidden" id="ing-id" value="0">
+          
+          <div class="form-group">
+            <label for="ing-code">Kode Bahan (Unik)*</label>
+            <input type="text" id="ing-code" class="form-control" placeholder="Contoh: RAW-BEANS, RAW-MILK" required>
+          </div>
+
+          <div class="form-group">
+            <label for="ing-name">Nama Bahan Baku*</label>
+            <input type="text" id="ing-name" class="form-control" placeholder="Contoh: Biji Kopi House Blend" required>
+          </div>
+
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0;">
+            <div class="form-group">
+              <label for="ing-unit">Satuan Ukur*</label>
+              <select id="ing-unit" class="form-control" required>
+                <option value="gram">gram (gr)</option>
+                <option value="ml">mililiter (ml)</option>
+                <option value="pcs">pieces (pcs)</option>
+                <option value="kg">kilogram (kg)</option>
+                <option value="liter">liter (L)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ing-cost">Harga Beli / Satuan (Rp)*</label>
+              <input type="number" id="ing-cost" step="0.01" class="form-control" placeholder="Contoh: 120" min="0" required>
+            </div>
+          </div>
+
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0;">
+            <div class="form-group">
+              <label for="ing-stock">Stok Awal</label>
+              <input type="number" id="ing-stock" step="0.01" class="form-control" placeholder="0" min="0" required>
+            </div>
+            <div class="form-group">
+              <label for="ing-min-stock">Batas Minimum Stok</label>
+              <input type="number" id="ing-min-stock" step="0.01" class="form-control" placeholder="100" min="0">
+            </div>
+          </div>
+
+          <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" onclick="closeIngredientModal()">Batal</button>
+            <button type="submit" class="btn btn-primary" id="saveIngredientBtn">Simpan Bahan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RESTOCK / PEMBELIAN BAHAN BAKU -->
+  <div class="modal-overlay" id="restockModalOverlay">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-head">
+        <h2>Catat Pembelian / Restock Bahan Baku</h2>
+        <button class="modal-close" onclick="closeRestockModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="restockForm" onsubmit="saveRestockForm(event)">
+          <div class="form-group">
+            <label for="restock-ing-id">Pilih Bahan Baku*</label>
+            <select id="restock-ing-id" class="form-control" required onchange="onRestockIngredientChange()">
+              <!-- Options populated dynamically -->
+            </select>
+          </div>
+
+          <div id="restock-current-info" style="background:#fffcf8; border:1px solid #ead7ba; border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:13px; color:#6d5442;">
+            Stok saat ini: <b id="restock-current-stock">-</b> | Harga per unit lama: <b id="restock-current-cost">-</b>
+          </div>
+
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0;">
+            <div class="form-group">
+              <label for="restock-qty">Jumlah Dibeli*</label>
+              <input type="number" id="restock-qty" step="0.01" class="form-control" placeholder="Contoh: 1000" min="0.01" required oninput="calcRestockUnitCost()">
+            </div>
+            <div class="form-group">
+              <label for="restock-total-cost">Total Biaya Beli (Rp)*</label>
+              <input type="number" id="restock-total-cost" class="form-control" placeholder="Contoh: 180000" min="1" required oninput="calcRestockUnitCost()">
+            </div>
+          </div>
+
+          <div id="restock-preview" style="background:#eaf1e8; border:1px solid #c3dbc0; border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:12px; color:#2e4b24; display:none;">
+            Harga beli baru: <b id="restock-new-unit-cost">Rp0</b> / satuan<br>
+            Estimasi Moving Average Cost baru: <b id="restock-avg-cost">Rp0</b> / satuan (HPP menu terkait otomatis ter-update!)
+          </div>
+
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0;">
+            <div class="form-group">
+              <label for="restock-supplier">Nama Toko / Supplier</label>
+              <input type="text" id="restock-supplier" class="form-control" placeholder="Contoh: Toko Kopi Jaya">
+            </div>
+            <div class="form-group">
+              <label for="restock-date">Tanggal Beli*</label>
+              <input type="date" id="restock-date" class="form-control" required>
+            </div>
+          </div>
+
+          <div style="margin: 16px 0;">
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; cursor:pointer;">
+              <input type="checkbox" id="restock-record-expense" checked style="width:18px; height:18px; accent-color:var(--coffee);">
+              <span>Catat otomatis ke laporan Pengeluaran Kas (Bahan Baku)</span>
+            </label>
+          </div>
+
+          <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" onclick="closeRestockModal()">Batal</button>
+            <button type="submit" class="btn btn-primary" id="saveRestockBtn">Simpan Pembelian</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RECIPE & LIVE HPP CALCULATOR (BOM) -->
+  <div class="modal-overlay" id="recipeModalOverlay">
+    <div class="modal-box" style="max-width: 650px;">
+      <div class="modal-head">
+        <div>
+          <h2 id="recipeModalTitle">Atur Resep & Komposisi Menu</h2>
+          <div style="font-size:12px; color:#795d48; margin-top:4px;" id="recipeModalSubtitle">-</div>
+        </div>
+        <button class="modal-close" onclick="closeRecipeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span style="font-size:14px; font-weight:700; color:var(--dark);">Daftar Takaran Bahan Racikan</span>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addRecipeRow()">
+              <i class="fa-solid fa-plus"></i> Tambah Bahan
+            </button>
+          </div>
+
+          <div id="recipeItemsContainer" style="display:flex; flex-direction:column; gap:8px;">
+            <!-- Dynamically populated ingredient rows -->
+          </div>
+        </div>
+
+        <!-- Live Real-Time HPP & Margin Summary Box -->
+        <div style="background:#fffcf8; border:2px dashed #ead7ba; border-radius:18px; padding:16px; margin:20px 0;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; text-align:center;">
+            <div>
+              <div style="font-size:11px; color:#795d48; font-weight:700; text-transform:uppercase;">Harga Jual</div>
+              <div id="recipe-summary-price" style="font-size:18px; font-weight:800; color:var(--dark); margin-top:4px;">Rp0</div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--danger); font-weight:700; text-transform:uppercase;">HPP Otomatis (BOM)</div>
+              <div id="recipe-summary-cogs" style="font-size:18px; font-weight:800; color:var(--danger); margin-top:4px;">Rp0</div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--success); font-weight:700; text-transform:uppercase;">Gross Profit (Margin)</div>
+              <div id="recipe-summary-margin" style="font-size:18px; font-weight:800; color:var(--success); margin-top:4px;">Rp0 (0%)</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="btn btn-outline" onclick="closeRecipeModal()">Batal</button>
+          <button type="button" class="btn btn-primary" id="saveRecipeBtn" onclick="submitRecipeForm()">
+            <i class="fa-solid fa-save"></i> Simpan Resep & Update HPP
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT EXPENSE -->
+  <div class="modal-overlay" id="expenseModalOverlay">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-head">
+        <h2 id="expenseModalTitle">Catat Beban / Pengeluaran</h2>
+        <button class="modal-close" onclick="closeExpenseModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="expenseForm" onsubmit="saveExpenseForm(event)">
+          <input type="hidden" id="exp-id" value="0">
+
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0;">
+            <div class="form-group">
+              <label for="exp-category">Kategori Pengeluaran*</label>
+              <select id="exp-category" class="form-control" required>
+                <option value="Gaji & Upah">Gaji & Upah</option>
+                <option value="Servis & Maintenance">Servis & Maintenance</option>
+                <option value="Bahan Baku">Bahan Baku</option>
+                <option value="Utilitas & Listrik">Utilitas & Listrik</option>
+                <option value="Sewa & Tempat">Sewa & Tempat</option>
+                <option value="Operasional Lainnya">Operasional Lainnya</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="exp-date">Tanggal Pengeluaran*</label>
+              <input type="date" id="exp-date" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="exp-title">Keterangan / Nama Pengeluaran*</label>
+            <input type="text" id="exp-title" class="form-control" placeholder="Contoh: Gaji Barista Dadang, Servis Mesin Espresso" required>
+          </div>
+
+          <div class="form-group">
+            <label for="exp-amount">Jumlah Nominal (Rp)*</label>
+            <input type="number" id="exp-amount" class="form-control" placeholder="Contoh: 250000" min="1" required>
+          </div>
+
+          <div class="form-group">
+            <label for="exp-notes">Catatan Tambahan (Opsional)</label>
+            <textarea id="exp-notes" class="form-control" rows="2" placeholder="Contoh: Penggantian seal gasket grouphead"></textarea>
+          </div>
+
+          <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" onclick="closeExpenseModal()">Batal</button>
+            <button type="submit" class="btn btn-primary" id="saveExpenseBtn">Simpan Pengeluaran</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: INVOICE / RECEIPT VIEWER (FOR PRINT & QRIS) -->
   <div class="modal-overlay" id="invoiceModalOverlay">
     <div class="modal-box" style="width: min(480px, 100%);">
@@ -1995,6 +2353,11 @@
     let products = [];
     let productOptions = [];
     let orders = [];
+    let ingredients = [];
+    let expenses = [];
+    let recipes = [];
+    let activeRecipeProductId = null;
+    let localRecipeItems = [];
     let reports = null;
     let activeTab = 'dashboard';
     let knownOrderInvoices = [];
@@ -2165,6 +2528,8 @@
         'pos': 'POS Kasir / Point of Sale',
         'orders': 'Kelola Pesanan',
         'products': 'Kelola Database Produk',
+        'ingredients': 'Master Bahan Baku & Kalkulator HPP',
+        'expenses': 'Beban & Pengeluaran Operasional',
         'settings': 'Pengaturan Dashboard'
       };
       document.getElementById('pageTitle').innerText = titles[tabId] || 'Admin Panel';
@@ -2178,6 +2543,10 @@
       } else if (tabId === 'pos') {
         renderPosMenu();
         renderPosCart();
+      } else if (tabId === 'ingredients') {
+        renderIngredientsGrid();
+      } else if (tabId === 'expenses') {
+        renderExpensesList();
       }
     }
 
@@ -2372,6 +2741,9 @@
         const data = await apiFetch('admindata', { limit: 50 });
         products = data.products || [];
         productOptions = data.options || [];
+        ingredients = data.ingredients || [];
+        expenses = data.expenses || [];
+        recipes = data.recipes || [];
         reports = data.reports;
         orders = data.orders || [];
         
@@ -2384,6 +2756,10 @@
         
         if (activeTab === 'pos') {
           renderPosMenu();
+        } else if (activeTab === 'ingredients') {
+          renderIngredientsGrid();
+        } else if (activeTab === 'expenses') {
+          renderExpensesList();
         }
         
         listeningDot.style.opacity = '1';
@@ -2444,22 +2820,41 @@
     function renderDashboardOverview() {
       if (!reports) return;
 
-      document.getElementById('stat-revenue').innerText = rupiah(reports.totalRevenue);
-      document.getElementById('stat-profit').innerText = rupiah(reports.totalProfit);
-      document.getElementById('stat-orders').innerText = reports.totalOrders;
+      const revenue = reports.monthSales !== undefined ? Number(reports.monthSales) : Number(reports.totalRevenue || 0);
+      const profit = reports.monthNetProfit !== undefined ? Number(reports.monthNetProfit) : Number(reports.totalProfit || 0);
+      const ordersCount = reports.todayOrders !== undefined ? Number(reports.todayOrders) : Number(reports.totalOrders || 0);
+
+      document.getElementById('stat-revenue').innerText = rupiah(revenue);
+      document.getElementById('stat-profit').innerText = rupiah(profit);
+      document.getElementById('stat-orders').innerText = ordersCount;
       
-      const avg = reports.totalOrders > 0 ? (reports.totalRevenue / reports.totalOrders) : 0;
+      const avg = ordersCount > 0 ? (revenue / ordersCount) : 0;
       document.getElementById('stat-avg').innerText = rupiah(avg);
 
-      // Render low stock list
+      // Render low stock list for ingredients or products
       const lowStockList = document.getElementById('low-stock-list');
-      if (reports.lowStock && reports.lowStock.length > 0) {
-        lowStockList.innerHTML = reports.lowStock.map(p => `
-          <li style="display:flex; justify-content:space-between; align-items:center; background-color: var(--danger-bg); padding: 8px 12px; border-radius: 8px; border-left: 3px solid var(--danger);">
-            <span><b>${p.name}</b> (ID: ${p.id})</span>
-            <span class="badge-stock stock-empty">Sisa Stok: ${p.stock}</span>
-          </li>
-        `).join('');
+      const lowIngredients = ingredients.filter(i => Number(i.stock) <= Number(i.minStock));
+      const lowProducts = products.filter(p => Number(p.stock) <= 10);
+
+      if (lowIngredients.length > 0 || lowProducts.length > 0) {
+        let html = '';
+        lowIngredients.forEach(i => {
+          html += `
+            <li style="display:flex; justify-content:space-between; align-items:center; background-color: #fef3c7; padding: 8px 12px; border-radius: 8px; border-left: 3px solid #b45309; margin-bottom:4px;">
+              <span><i class="fa-solid fa-boxes-stacked"></i> <b>${esc(i.name)}</b> (Bahan Baku)</span>
+              <span class="badge-stock" style="background:#b45309; color:#fff; padding:2px 8px; border-radius:99px; font-size:11px;">Sisa: ${i.stock} ${i.unit}</span>
+            </li>
+          `;
+        });
+        lowProducts.forEach(p => {
+          html += `
+            <li style="display:flex; justify-content:space-between; align-items:center; background-color: var(--danger-bg); padding: 8px 12px; border-radius: 8px; border-left: 3px solid var(--danger); margin-bottom:4px;">
+              <span><i class="fa-solid fa-mug-hot"></i> <b>${esc(p.name)}</b></span>
+              <span class="badge-stock stock-empty">Sisa Stok: ${p.stock}</span>
+            </li>
+          `;
+        });
+        lowStockList.innerHTML = html;
       } else {
         lowStockList.innerHTML = `<li style="color: var(--success); font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Semua stok aman.</li>`;
       }
@@ -3785,6 +4180,484 @@
       } finally {
         submitBtn.innerText = "Simpan Produk";
         submitBtn.disabled = false;
+      }
+    }
+
+    // ---------------- INGREDIENTS & HPP CALCULATOR LOGIC ----------------
+    function renderIngredientsGrid() {
+      const q = (document.getElementById('ingredientSearch')?.value || '').toLowerCase();
+      const tbody = document.getElementById('ingredientsTableBody');
+      const badge = document.getElementById('ingredientCountBadge');
+      if (!tbody) return;
+
+      const filtered = ingredients.filter(i => 
+        (i.name || '').toLowerCase().includes(q) || 
+        (i.code || '').toLowerCase().includes(q)
+      );
+
+      if (badge) badge.innerText = `${filtered.length} Bahan`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:#888;">Belum ada bahan baku atau tidak ditemukan.</td></tr>`;
+      } else {
+        tbody.innerHTML = filtered.map(i => {
+          const stock = Number(i.stock || 0);
+          const minStock = Number(i.minStock || 0);
+          let statusBadge = '<span class="status-badge status-completed" style="font-size:11px;">Aman</span>';
+          if (stock <= 0) {
+            statusBadge = '<span class="status-badge status-cancelled" style="font-size:11px;">Habis</span>';
+          } else if (stock <= minStock) {
+            statusBadge = '<span class="status-badge" style="background:#fef3c7; color:#b45309; font-size:11px;">Menipis</span>';
+          }
+
+          return `
+            <tr style="border-bottom:1px solid #ead7ba;">
+              <td style="padding:12px 14px;"><code>${esc(i.code)}</code></td>
+              <td style="padding:12px 14px; font-weight:700; color:var(--dark);">${esc(i.name)}</td>
+              <td style="padding:12px 14px;">${esc(i.unit)}</td>
+              <td style="padding:12px 14px; font-weight:800; color:var(--coffee);">${rupiah(i.costPerUnit)} / ${esc(i.unit)}</td>
+              <td style="padding:12px 14px; font-weight:700;">${stock.toLocaleString('id-ID')} ${esc(i.unit)}</td>
+              <td style="padding:12px 14px;">${statusBadge}</td>
+              <td style="padding:12px 14px; text-align:right;">
+                <div style="display:inline-flex; gap:6px;">
+                  <button class="btn btn-outline btn-sm" onclick="openRestockModal(${i.id})" title="Restock Beli Bahan"><i class="fa-solid fa-cart-plus"></i> Beli</button>
+                  <button class="btn btn-outline btn-sm" onclick="openAddIngredientModal(${i.id})" title="Edit"><i class="fa-solid fa-pencil"></i></button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteIngredient(${i.id})" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      renderRecipesTable();
+    }
+
+    function filterIngredients() {
+      renderIngredientsGrid();
+    }
+
+    function openAddIngredientModal(id = null) {
+      const modal = document.getElementById('ingredientModalOverlay');
+      const form = document.getElementById('ingredientForm');
+      const title = document.getElementById('ingredientModalTitle');
+      form.reset();
+
+      if (id) {
+        const item = ingredients.find(i => i.id === id);
+        if (!item) return;
+        title.innerText = 'Edit Bahan Baku';
+        document.getElementById('ing-id').value = item.id;
+        document.getElementById('ing-code').value = item.code;
+        document.getElementById('ing-name').value = item.name;
+        document.getElementById('ing-unit').value = item.unit;
+        document.getElementById('ing-cost').value = item.costPerUnit;
+        document.getElementById('ing-stock').value = item.stock;
+        document.getElementById('ing-min-stock').value = item.minStock;
+      } else {
+        title.innerText = 'Tambah Bahan Baku Baru';
+        document.getElementById('ing-id').value = '0';
+        document.getElementById('ing-code').value = 'RAW-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+      }
+
+      modal.classList.add('show');
+    }
+
+    function closeIngredientModal() {
+      document.getElementById('ingredientModalOverlay').classList.remove('show');
+    }
+
+    async function saveIngredientForm(event) {
+      event.preventDefault();
+      const btn = document.getElementById('saveIngredientBtn');
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+
+      const payload = {
+        id: Number(document.getElementById('ing-id').value),
+        code: document.getElementById('ing-code').value.trim(),
+        name: document.getElementById('ing-name').value.trim(),
+        unit: document.getElementById('ing-unit').value,
+        costPerUnit: Number(document.getElementById('ing-cost').value),
+        stock: Number(document.getElementById('ing-stock').value),
+        minStock: Number(document.getElementById('ing-min-stock').value || 0)
+      };
+
+      try {
+        await apiPost('saveingredient', payload);
+        showToast('Bahan baku berhasil disimpan');
+        closeIngredientModal();
+        await reloadData();
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || 'Gagal menyimpan bahan baku', true);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Simpan Bahan';
+      }
+    }
+
+    async function deleteIngredient(id) {
+      if (!confirm('Apakah Anda yakin ingin menghapus bahan baku ini? Resep yang menggunakannya akan ikut terhapus.')) return;
+      try {
+        await apiPost('deleteingredient', { id });
+        showToast('Bahan baku berhasil dihapus');
+        await reloadData();
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || 'Gagal menghapus bahan', true);
+      }
+    }
+
+    // ---------------- RESTOCK & MOVING AVERAGE LOGIC ----------------
+    function openRestockModal(ingredientId = null) {
+      const modal = document.getElementById('restockModalOverlay');
+      const select = document.getElementById('restock-ing-id');
+      const form = document.getElementById('restockForm');
+      form.reset();
+
+      select.innerHTML = '<option value="">-- Pilih Bahan Baku --</option>' + ingredients.map(i => 
+        `<option value="${i.id}">${esc(i.name)} (${esc(i.code)}) - ${esc(i.unit)}</option>`
+      ).join('');
+
+      document.getElementById('restock-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('restock-preview').style.display = 'none';
+
+      if (ingredientId) {
+        select.value = ingredientId;
+      } else if (ingredients.length > 0) {
+        select.value = ingredients[0].id;
+      }
+
+      onRestockIngredientChange();
+      modal.classList.add('show');
+    }
+
+    function closeRestockModal() {
+      document.getElementById('restockModalOverlay').classList.remove('show');
+    }
+
+    function onRestockIngredientChange() {
+      const select = document.getElementById('restock-ing-id');
+      const id = Number(select.value);
+      const ing = ingredients.find(i => i.id === id);
+
+      if (ing) {
+        document.getElementById('restock-current-stock').innerText = `${Number(ing.stock).toLocaleString('id-ID')} ${ing.unit}`;
+        document.getElementById('restock-current-cost').innerText = `${rupiah(ing.costPerUnit)} / ${ing.unit}`;
+      } else {
+        document.getElementById('restock-current-stock').innerText = '-';
+        document.getElementById('restock-current-cost').innerText = '-';
+      }
+      calcRestockUnitCost();
+    }
+
+    function calcRestockUnitCost() {
+      const select = document.getElementById('restock-ing-id');
+      const ing = ingredients.find(i => i.id === Number(select.value));
+      const qty = Number(document.getElementById('restock-qty').value || 0);
+      const totalCost = Number(document.getElementById('restock-total-cost').value || 0);
+      const preview = document.getElementById('restock-preview');
+
+      if (!ing || qty <= 0 || totalCost <= 0) {
+        preview.style.display = 'none';
+        return;
+      }
+
+      const unitCost = totalCost / qty;
+      const oldStock = Number(ing.stock || 0);
+      const oldCost = Number(ing.costPerUnit || 0);
+      const newStock = oldStock + qty;
+      const movingAvg = newStock > 0 ? ((oldStock * oldCost) + totalCost) / newStock : unitCost;
+
+      document.getElementById('restock-new-unit-cost').innerText = rupiah(unitCost);
+      document.getElementById('restock-avg-cost').innerText = rupiah(movingAvg);
+      preview.style.display = 'block';
+    }
+
+    async function saveRestockForm(event) {
+      event.preventDefault();
+      const btn = document.getElementById('saveRestockBtn');
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+
+      const payload = {
+        ingredientId: Number(document.getElementById('restock-ing-id').value),
+        quantity: Number(document.getElementById('restock-qty').value),
+        totalCost: Number(document.getElementById('restock-total-cost').value),
+        supplier: document.getElementById('restock-supplier').value.trim() || 'Supplier',
+        purchasedAt: document.getElementById('restock-date').value,
+        recordExpense: document.getElementById('restock-record-expense').checked
+      };
+
+      try {
+        await apiPost('restockingredient', payload);
+        showToast('Restock berhasil dicatat dan HPP produk telah diperbarui!');
+        closeRestockModal();
+        await reloadData();
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || 'Gagal mencatat restock', true);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Simpan Pembelian';
+      }
+    }
+
+    // ---------------- RECIPES (BOM) & LIVE HPP CALCULATOR ----------------
+    function renderRecipesTable() {
+      const tbody = document.getElementById('recipesTableBody');
+      if (!tbody) return;
+
+      tbody.innerHTML = products.map(p => {
+        const prodRecipes = recipes.filter(r => String(r.productId) === String(p.id));
+        const cogs = Number(p.cogs || 0);
+        const price = Number(p.price || 0);
+        const margin = price - cogs;
+        const marginPct = price > 0 ? Math.round((margin / price) * 100) : 0;
+
+        return `
+          <tr style="border-bottom:1px solid #ead7ba;">
+            <td style="padding:12px 14px; font-weight:700; color:var(--dark);">${esc(p.name)}</td>
+            <td style="padding:12px 14px;"><span class="badge" style="background:#efe0c8; color:#6b4329; font-size:11px;">${esc(p.category)}</span></td>
+            <td style="padding:12px 14px; font-weight:700;">${rupiah(price)}</td>
+            <td style="padding:12px 14px; font-weight:800; color:var(--danger);">${rupiah(cogs)}</td>
+            <td style="padding:12px 14px; font-weight:800; color:var(--success);">${rupiah(margin)} <small style="color:#6d5442;">(${marginPct}%)</small></td>
+            <td style="padding:12px 14px;">${prodRecipes.length} bahan racikan</td>
+            <td style="padding:12px 14px; text-align:right;">
+              <button class="btn btn-outline btn-sm" onclick="openRecipeModal('${esc(p.id)}')" style="border-color:var(--coffee); font-weight:700;">
+                <i class="fa-solid fa-utensils"></i> Atur Resep
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openRecipeModal(productId) {
+      activeRecipeProductId = productId;
+      const product = products.find(p => String(p.id) === String(productId));
+      if (!product) return;
+
+      document.getElementById('recipeModalTitle').innerText = `Atur Resep: ${product.name}`;
+      document.getElementById('recipeModalSubtitle').innerText = `Kategori: ${product.category} | Harga Jual: ${rupiah(product.price)}`;
+      document.getElementById('recipe-summary-price').innerText = rupiah(product.price);
+
+      // Load existing recipe rows
+      const existing = recipes.filter(r => String(r.productId) === String(productId));
+      localRecipeItems = existing.map(r => ({
+        ingredientId: Number(r.ingredientId),
+        quantity: Number(r.quantity)
+      }));
+
+      if (localRecipeItems.length === 0) {
+        localRecipeItems.push({ ingredientId: ingredients[0]?.id || 0, quantity: 1 });
+      }
+
+      renderRecipeRowsUI();
+      updateRecipeLiveHPP();
+
+      document.getElementById('recipeModalOverlay').classList.add('show');
+    }
+
+    function closeRecipeModal() {
+      document.getElementById('recipeModalOverlay').classList.remove('show');
+    }
+
+    function renderRecipeRowsUI() {
+      const container = document.getElementById('recipeItemsContainer');
+      if (!container) return;
+
+      container.innerHTML = localRecipeItems.map((item, idx) => {
+        const currentIng = ingredients.find(i => i.id === item.ingredientId);
+        const unitCost = Number(currentIng?.costPerUnit || 0);
+        const subtotal = unitCost * Number(item.quantity || 0);
+
+        const optionsHtml = ingredients.map(i => 
+          `<option value="${i.id}" ${i.id === item.ingredientId ? 'selected' : ''}>${esc(i.name)} (${rupiah(i.costPerUnit)}/${i.unit})</option>`
+        ).join('');
+
+        return `
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:8px; align-items:center; background:#fffcf8; border:1px solid #ead7ba; border-radius:12px; padding:8px 12px;">
+            <select class="form-control" style="padding:8px;" onchange="onRecipeItemIngChange(${idx}, this.value)">
+              ${optionsHtml}
+            </select>
+            <div style="display:flex; align-items:center; gap:4px;">
+              <input type="number" step="0.01" min="0.01" class="form-control" style="padding:8px;" value="${item.quantity}" placeholder="Takaran" oninput="onRecipeItemQtyChange(${idx}, this.value)">
+              <span style="font-size:12px; color:#795d48; font-weight:700;">${esc(currentIng?.unit || '')}</span>
+            </div>
+            <div style="text-align:right; font-weight:700; color:var(--coffee); font-size:13px;">
+              ${rupiah(subtotal)}
+            </div>
+            <button type="button" class="btn btn-danger btn-sm" style="padding:6px 10px;" onclick="removeRecipeRow(${idx})">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function addRecipeRow() {
+      const firstIng = ingredients[0]?.id || 0;
+      localRecipeItems.push({ ingredientId: firstIng, quantity: 1 });
+      renderRecipeRowsUI();
+      updateRecipeLiveHPP();
+    }
+
+    function removeRecipeRow(idx) {
+      localRecipeItems.splice(idx, 1);
+      renderRecipeRowsUI();
+      updateRecipeLiveHPP();
+    }
+
+    function onRecipeItemIngChange(idx, newIngId) {
+      localRecipeItems[idx].ingredientId = Number(newIngId);
+      renderRecipeRowsUI();
+      updateRecipeLiveHPP();
+    }
+
+    function onRecipeItemQtyChange(idx, newQty) {
+      localRecipeItems[idx].quantity = Number(newQty || 0);
+      renderRecipeRowsUI();
+      updateRecipeLiveHPP();
+    }
+
+    function updateRecipeLiveHPP() {
+      const product = products.find(p => String(p.id) === String(activeRecipeProductId));
+      const price = Number(product?.price || 0);
+
+      let totalCogs = 0;
+      localRecipeItems.forEach(item => {
+        const ing = ingredients.find(i => i.id === item.ingredientId);
+        if (ing) {
+          totalCogs += Number(ing.costPerUnit || 0) * Number(item.quantity || 0);
+        }
+      });
+
+      const margin = price - totalCogs;
+      const marginPct = price > 0 ? Math.round((margin / price) * 100) : 0;
+
+      document.getElementById('recipe-summary-cogs').innerText = rupiah(totalCogs);
+      document.getElementById('recipe-summary-margin').innerText = `${rupiah(margin)} (${marginPct}%)`;
+    }
+
+    async function submitRecipeForm() {
+      const btn = document.getElementById('saveRecipeBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+
+      try {
+        const payload = {
+          productId: activeRecipeProductId,
+          items: localRecipeItems.filter(i => i.ingredientId > 0 && i.quantity > 0)
+        };
+        await apiPost('saverecipe', payload);
+        showToast('Resep menu berhasil disimpan dan HPP otomatis diperbarui!');
+        closeRecipeModal();
+        await reloadData();
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || 'Gagal menyimpan resep', true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Resep & Update HPP';
+      }
+    }
+
+    // ---------------- EXPENSES (BEBAN OPERASIONAL: GAJI, SERVIS, DLL) ----------------
+    function renderExpensesList() {
+      const q = (document.getElementById('expenseSearch')?.value || '').toLowerCase();
+      const cat = document.getElementById('expenseCategoryFilter')?.value || 'Semua';
+      const tbody = document.getElementById('expensesTableBody');
+      const badge = document.getElementById('totalExpenseAmountBadge');
+      if (!tbody) return;
+
+      const filtered = expenses.filter(e => {
+        const matchQ = (e.title || '').toLowerCase().includes(q) || (e.expenseNo || '').toLowerCase().includes(q) || (e.notes || '').toLowerCase().includes(q);
+        const matchCat = cat === 'Semua' || e.category === cat;
+        return matchQ && matchCat;
+      });
+
+      const totalAmount = filtered.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+      if (badge) badge.innerText = `Total: ${rupiah(totalAmount)}`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:#888;">Belum ada catatan pengeluaran.</td></tr>`;
+      } else {
+        tbody.innerHTML = filtered.map(e => `
+          <tr style="border-bottom:1px solid #ead7ba;">
+            <td style="padding:12px 14px;"><code>${esc(e.expenseNo)}</code></td>
+            <td style="padding:12px 14px;">${esc(e.expenseDate)}</td>
+            <td style="padding:12px 14px;"><span class="badge" style="background:#efe0c8; color:#6b4329; font-size:11px;">${esc(e.category)}</span></td>
+            <td style="padding:12px 14px; font-weight:700; color:var(--dark);">${esc(e.title)}</td>
+            <td style="padding:12px 14px; font-weight:800; color:var(--danger);">${rupiah(e.amount)}</td>
+            <td style="padding:12px 14px; font-size:12px; color:#795d48;">${esc(e.notes || '-')}</td>
+            <td style="padding:12px 14px; text-align:right;">
+              <button class="btn btn-danger btn-sm" onclick="deleteExpense(${e.id})" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function filterExpenses() {
+      renderExpensesList();
+    }
+
+    function openAddExpenseModal(id = null) {
+      const modal = document.getElementById('expenseModalOverlay');
+      const form = document.getElementById('expenseForm');
+      form.reset();
+
+      document.getElementById('exp-id').value = '0';
+      document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('expenseModalTitle').innerText = 'Catat Beban / Pengeluaran';
+
+      modal.classList.add('show');
+    }
+
+    function closeExpenseModal() {
+      document.getElementById('expenseModalOverlay').classList.remove('show');
+    }
+
+    async function saveExpenseForm(event) {
+      event.preventDefault();
+      const btn = document.getElementById('saveExpenseBtn');
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+
+      const payload = {
+        id: Number(document.getElementById('exp-id').value),
+        category: document.getElementById('exp-category').value,
+        title: document.getElementById('exp-title').value.trim(),
+        amount: Number(document.getElementById('exp-amount').value),
+        notes: document.getElementById('exp-notes').value.trim(),
+        expenseDate: document.getElementById('exp-date').value
+      };
+
+      try {
+        await apiPost('saveexpense', payload);
+        showToast('Pengeluaran berhasil dicatat!');
+        closeExpenseModal();
+        await reloadData();
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || 'Gagal menyimpan pengeluaran', true);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Simpan Pengeluaran';
+      }
+    }
+
+    async function deleteExpense(id) {
+      if (!confirm('Apakah Anda yakin ingin menghapus catatan pengeluaran ini?')) return;
+      try {
+        await apiPost('deleteexpense', { id });
+        showToast('Pengeluaran berhasil dihapus');
+        await reloadData();
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || 'Gagal menghapus pengeluaran', true);
       }
     }
 

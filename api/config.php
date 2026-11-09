@@ -3,26 +3,29 @@
  * DjaCo Coffee - Database & API Configuration
  */
 
-// Allow CORS & set JSON response
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-header('Content-Type: application/json; charset=utf-8');
+// Allow CORS & set JSON response (only if not CLI)
+if (php_sapi_name() !== 'cli') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    header('Content-Type: application/json; charset=utf-8');
 
-// Handle preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
+    // Handle preflight OPTIONS request
+    if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+        http_response_code(204);
+        exit;
+    }
 }
 
 // -------------------------------------------------------------
 // Database Credentials
 // -------------------------------------------------------------
-// Deteksi otomatis environment (Laravel Herd / Laragon / Localhost vs Production cPanel)
+// Deteksi otomatis environment (CLI / Laravel Herd / Laragon / Localhost vs Production cPanel)
 $httpHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
 $cleanHost = explode(':', $httpHost)[0]; // hilangkan port jika ada
 
-$isLocal = in_array($cleanHost, ['localhost', '127.0.0.1', '::1'])
+$isLocal = (php_sapi_name() === 'cli')
+    || in_array($cleanHost, ['localhost', '127.0.0.1', '::1'])
     || str_ends_with($cleanHost, '.test')
     || str_ends_with($cleanHost, '.local')
     || str_contains($cleanHost, 'djaco.web.id.test');
