@@ -19,7 +19,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}        # Host IP DomaiNesia (misal: 36.50.77.81)
           username: ${{ secrets.SSH_USER }}    # Username cPanel DomaiNesia (misal: ruangdid)
           key: ${{ secrets.SSH_PRIVATE_KEY }}  # Private key dari GitHub Secrets
-          port: ${{ secrets.SSH_PORT || 64000 }} # Port SSH DomaiNesia (default: 64000)
+          port: 64000                          # Port SSH DomaiNesia (64000)
           script: |
             # 1. Deteksi direktori target di hosting DomaiNesia
             TARGET_DIR="/home/ruangdid/djaco.web.id"
