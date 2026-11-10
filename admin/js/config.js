@@ -203,9 +203,7 @@
         }
       }
 
-      if (window.innerWidth <= 768) {
-        document.getElementById('sidebarMenu').classList.remove('show');
-      }
+      closeSidebar();
 
       // Hide Floating Cart Bar when leaving POS
       const floatBar = document.getElementById('posFloatingCartBar');
@@ -229,6 +227,31 @@
       }
     }
 
+    function closeSidebar() {
+      const sidebar = document.getElementById('sidebarMenu');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (sidebar) sidebar.classList.remove('show');
+      if (backdrop) backdrop.classList.remove('show');
+    }
+
     function toggleSidebar() {
-      document.getElementById('sidebarMenu').classList.toggle('show');
+      if (window.innerWidth <= 768) {
+        // Mobile Drawer Toggle
+        const sidebar = document.getElementById('sidebarMenu');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        if (!sidebar) return;
+        const isShowing = sidebar.classList.toggle('show');
+        if (backdrop) {
+          if (isShowing) {
+            backdrop.classList.add('show');
+          } else {
+            backdrop.classList.remove('show');
+          }
+        }
+      } else {
+        // Desktop Mini / Full Sidebar Toggle
+        document.body.classList.toggle('sidebar-collapsed');
+        const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+        localStorage.setItem('djaco_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+      }
     }

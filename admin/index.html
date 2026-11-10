@@ -25,11 +25,6 @@
 
 <body>
 
-  <!-- Mobile Toggle Button -->
-  <button class="menu-toggle" id="menuToggleBtn" onclick="toggleSidebar()">
-    <i class="fa-solid fa-bars"></i>
-  </button>
-
   <!-- Toast Notification element -->
   <div class="toast" id="adminToast">
     <i class="fa-solid fa-bell"></i>
@@ -97,17 +92,25 @@
 
   <div class="admin-container" id="adminAppContainer" style="display:none;">
 
+    <!-- Sidebar Mobile Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebarMenu">
       <div class="sidebar-header">
-        DjaC<span class="bean-logo"></span> Admin
+        <div class="sidebar-brand">
+          <span class="brand-text">DjaC</span><span class="bean-logo"></span><span class="brand-text">&nbsp;Admin</span>
+        </div>
+        <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" onclick="closeSidebar()" aria-label="Tutup Menu" title="Tutup Menu">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
 
       <!-- User Profile Card -->
       <div id="sidebarUserBox"
         style="padding: 10px 12px; background: rgba(255,255,255,0.07); border-radius: 14px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.1);">
         <div
-          style="width: 34px; height: 34px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; color: var(--coffee-dark); font-weight: 800;">
+          style="width: 34px; height: 34px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; color: var(--coffee-dark); font-weight: 800; flex-shrink: 0;">
           <i class="fa-solid fa-user-shield"></i>
         </div>
         <div style="overflow: hidden; flex: 1;">
@@ -120,33 +123,33 @@
       </div>
 
       <nav class="sidebar-nav">
-        <a href="#dashboard" class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
-          <i class="fa-solid fa-chart-line"></i> Dashboard
+        <a href="#dashboard" class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')" data-title="Dashboard">
+          <i class="fa-solid fa-chart-line"></i> <span class="nav-text">Dashboard</span>
         </a>
-        <a href="#pos" class="nav-item" id="nav-pos" onclick="switchTab('pos')">
-          <i class="fa-solid fa-cash-register"></i> POS Kasir
+        <a href="#pos" class="nav-item" id="nav-pos" onclick="switchTab('pos')" data-title="POS Kasir">
+          <i class="fa-solid fa-cash-register"></i> <span class="nav-text">POS Kasir</span>
         </a>
-        <a href="#orders" class="nav-item" id="nav-orders" onclick="switchTab('orders')">
-          <i class="fa-solid fa-shopping-bag"></i> Pesanan
+        <a href="#orders" class="nav-item" id="nav-orders" onclick="switchTab('orders')" data-title="Pesanan">
+          <i class="fa-solid fa-shopping-bag"></i> <span class="nav-text">Pesanan</span>
           <span class="badge" id="newOrdersBadge" style="display:none">0</span>
         </a>
-        <a href="#products" class="nav-item" id="nav-products" onclick="switchTab('products')">
-          <i class="fa-solid fa-mug-hot"></i> Produk
+        <a href="#products" class="nav-item" id="nav-products" onclick="switchTab('products')" data-title="Produk">
+          <i class="fa-solid fa-mug-hot"></i> <span class="nav-text">Produk</span>
         </a>
-        <a href="#ingredients" class="nav-item" id="nav-ingredients" onclick="switchTab('ingredients')">
-          <i class="fa-solid fa-boxes-stacked"></i> Bahan & HPP
+        <a href="#ingredients" class="nav-item" id="nav-ingredients" onclick="switchTab('ingredients')" data-title="Bahan & HPP">
+          <i class="fa-solid fa-boxes-stacked"></i> <span class="nav-text">Bahan & HPP</span>
         </a>
-        <a href="#expenses" class="nav-item" id="nav-expenses" onclick="switchTab('expenses')">
-          <i class="fa-solid fa-receipt"></i> Biaya & Beban
+        <a href="#expenses" class="nav-item" id="nav-expenses" onclick="switchTab('expenses')" data-title="Biaya & Beban">
+          <i class="fa-solid fa-receipt"></i> <span class="nav-text">Biaya & Beban</span>
         </a>
-        <a href="#reports" class="nav-item" id="nav-reports" onclick="switchTab('reports')">
-          <i class="fa-solid fa-chart-pie"></i> Laporan Keuangan
+        <a href="#reports" class="nav-item" id="nav-reports" onclick="switchTab('reports')" data-title="Laporan Keuangan">
+          <i class="fa-solid fa-chart-pie"></i> <span class="nav-text">Laporan Keuangan</span>
         </a>
-        <a href="#settings" class="nav-item" id="nav-settings" onclick="switchTab('settings')">
-          <i class="fa-solid fa-sliders"></i> Pengaturan
+        <a href="#settings" class="nav-item" id="nav-settings" onclick="switchTab('settings')" data-title="Pengaturan">
+          <i class="fa-solid fa-sliders"></i> <span class="nav-text">Pengaturan</span>
         </a>
-        <a href="javascript:void(0)" class="nav-item" onclick="logout()" style="color: #f87171; margin-top: auto;">
-          <i class="fa-solid fa-right-from-bracket"></i> Keluar (Logout)
+        <a href="javascript:void(0)" class="nav-item" onclick="logout()" style="color: #f87171; margin-top: auto;" data-title="Keluar (Logout)">
+          <i class="fa-solid fa-right-from-bracket"></i> <span class="nav-text">Keluar (Logout)</span>
         </a>
       </nav>
 
@@ -160,8 +163,13 @@
 
       <!-- Content Header -->
       <header class="content-header">
-        <div class="header-title">
-          <h1 id="pageTitle">Dashboard Ringkasan</h1>
+        <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+          <button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="Buka/Tutup Menu" title="Buka/Tutup Sidebar (Ctrl+B)">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="header-title" style="min-width: 0;">
+            <h1 id="pageTitle" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Dashboard Ringkasan</h1>
+          </div>
         </div>
         <div class="header-actions">
           <div id="listeningDot" class="listening-indicator">

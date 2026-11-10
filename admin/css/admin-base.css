@@ -20,6 +20,7 @@
       --danger-bg: #faebe8;
 
       --sidebar-width: 250px;
+      --sidebar-collapsed-width: 72px;
     }
 
     * {
@@ -48,25 +49,48 @@
       width: var(--sidebar-width);
       background-color: var(--coffee-dark);
       color: var(--cream);
-      padding: 24px;
+      padding: 24px 18px;
       display: flex;
       flex-direction: column;
       position: fixed;
       height: 100vh;
-      z-index: 100;
+      top: 0;
+      left: 0;
+      z-index: 1050;
       box-shadow: 4px 0 20px rgba(35, 18, 10, 0.15);
-      transition: transform 0.3s ease;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
+    /* Sidebar Header & Brand */
     .sidebar-header {
-      font-family: 'Outfit', sans-serif;
-      font-size: 24px;
-      font-weight: 800;
-      margin-bottom: 40px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 24px;
+      min-height: 40px;
+    }
+
+    .sidebar-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
       color: var(--cream);
+      letter-spacing: -0.5px;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .sidebar-brand .brand-text {
+      transition: opacity 0.2s ease, max-width 0.25s ease;
+      display: inline-block;
+      overflow: hidden;
+      white-space: nowrap;
     }
 
     .bean-logo {
@@ -77,7 +101,9 @@
       background: var(--latte);
       transform: rotate(28deg);
       position: relative;
-      top: 2px;
+      top: 1px;
+      flex-shrink: 0;
+      transition: transform 0.25s ease;
     }
 
     .bean-logo:after {
@@ -92,10 +118,77 @@
       transform: rotate(15deg);
     }
 
+    .sidebar-close-btn {
+      display: none;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--cream);
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 15px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .sidebar-close-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+
+    /* Backdrop for mobile drawer */
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(27, 14, 7, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1040;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar-backdrop.show {
+      display: block;
+      opacity: 1;
+    }
+
+    /* Toggle Button in Header */
+    .sidebar-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--light);
+      border: 1px solid var(--border);
+      color: var(--coffee);
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(59, 31, 18, 0.05);
+      flex-shrink: 0;
+    }
+
+    .sidebar-toggle-btn:hover {
+      background: var(--cream);
+      color: var(--coffee-dark);
+      border-color: var(--latte);
+      transform: scale(1.04);
+    }
+
+    .sidebar-toggle-btn:active {
+      transform: scale(0.96);
+    }
+
     .sidebar-nav {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 6px;
       flex: 1;
     }
 
@@ -103,7 +196,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 12px 16px;
+      padding: 11px 14px;
       color: #dfcdbf;
       text-decoration: none;
       font-size: 14px;
@@ -111,6 +204,22 @@
       border-radius: 12px;
       transition: all 0.2s ease;
       cursor: pointer;
+      position: relative;
+      white-space: nowrap;
+    }
+
+    .nav-item i {
+      font-size: 16px;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .nav-item .nav-text {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: opacity 0.2s ease;
     }
 
     .nav-item:hover {
@@ -137,19 +246,98 @@
       font-size: 12px;
       color: #927568;
       text-align: center;
-      padding-top: 20px;
+      padding-top: 16px;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
+      white-space: nowrap;
+      overflow: hidden;
     }
 
     /* Main Area Styling */
     main.main-content {
       margin-left: var(--sidebar-width);
       flex: 1;
-      padding: 32px;
+      padding: 28px 32px;
       min-width: 0;
       display: flex;
       flex-direction: column;
       gap: 24px;
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Desktop Collapsed Sidebar State */
+    body.sidebar-collapsed aside.sidebar {
+      width: var(--sidebar-collapsed-width);
+      padding: 24px 10px;
+    }
+
+    body.sidebar-collapsed aside.sidebar .sidebar-header {
+      justify-content: center;
+    }
+
+    body.sidebar-collapsed aside.sidebar .brand-text {
+      display: none;
+    }
+
+    body.sidebar-collapsed aside.sidebar .bean-logo {
+      transform: scale(1.3) rotate(28deg);
+      margin: 0;
+    }
+
+    body.sidebar-collapsed aside.sidebar #sidebarUserBox {
+      padding: 8px 0;
+      justify-content: center;
+    }
+
+    body.sidebar-collapsed aside.sidebar #sidebarUserBox > div:last-child {
+      display: none;
+    }
+
+    body.sidebar-collapsed aside.sidebar .nav-item {
+      padding: 12px 0;
+      justify-content: center;
+      gap: 0;
+    }
+
+    body.sidebar-collapsed aside.sidebar .nav-item .nav-text {
+      display: none;
+    }
+
+    body.sidebar-collapsed aside.sidebar .nav-item .badge {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      padding: 2px 4px;
+      font-size: 9px;
+      min-width: 14px;
+      text-align: center;
+    }
+
+    body.sidebar-collapsed aside.sidebar .nav-item:hover::after {
+      content: attr(data-title);
+      position: absolute;
+      left: calc(100% + 12px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--coffee-dark);
+      color: var(--cream);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      z-index: 2000;
+      pointer-events: none;
+      animation: fadeIn 0.15s ease;
+    }
+
+    body.sidebar-collapsed aside.sidebar .sidebar-footer {
+      display: none;
+    }
+
+    body.sidebar-collapsed main.main-content {
+      margin-left: var(--sidebar-collapsed-width);
     }
 
     /* Content Header */
@@ -849,6 +1037,57 @@
     @media (max-width: 768px) {
       .form-grid {
         grid-template-columns: 1fr;
+      }
+
+      aside.sidebar {
+        width: 270px !important;
+        transform: translateX(-100%);
+        padding: 24px 18px !important;
+      }
+
+      aside.sidebar.show {
+        transform: translateX(0) !important;
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+      }
+
+      /* In mobile drawer, always show brand text and full user info */
+      aside.sidebar .brand-text {
+        display: inline-block !important;
+      }
+
+      aside.sidebar #sidebarUserBox > div:last-child {
+        display: block !important;
+      }
+
+      aside.sidebar .nav-item .nav-text {
+        display: inline-block !important;
+      }
+
+      aside.sidebar .sidebar-close-btn {
+        display: flex !important;
+      }
+
+      aside.sidebar .nav-item:hover::after {
+        display: none !important;
+      }
+
+      main.main-content,
+      body.sidebar-collapsed main.main-content {
+        margin-left: 0 !important;
+        padding: 16px !important;
+      }
+
+      .content-header {
+        position: sticky;
+        top: 0;
+        z-index: 900;
+        background: var(--bg);
+        padding: 12px 0 16px 0;
+        margin-bottom: 8px;
+      }
+
+      .content-header h1 {
+        font-size: 20px;
       }
     }
 

@@ -97,6 +97,14 @@
     }
 
     function startApp() {
+      // Restore sidebar collapsed preference on desktop
+      if (window.innerWidth > 768) {
+        const isCollapsed = localStorage.getItem('djaco_sidebar_collapsed') === 'true';
+        if (isCollapsed) {
+          document.body.classList.add('sidebar-collapsed');
+        }
+      }
+
       loadHeldOrders();
 
       // Read URL hash on load (e.g. #pos, #products)
@@ -128,6 +136,18 @@
           if (container) container.classList.remove('show-cart');
         } else {
           renderPosCart();
+        }
+      }
+    });
+
+    // Keyboard shortcut to toggle sidebar (Ctrl+B / Cmd+B)
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        // Only toggle if not actively typing inside input or textarea
+        const tag = (document.activeElement?.tagName || '').toLowerCase();
+        if (tag !== 'input' && tag !== 'textarea') {
+          e.preventDefault();
+          toggleSidebar();
         }
       }
     });

@@ -669,25 +669,6 @@
       display: none;
     }
 
-    /* Mobile settings button */
-    .menu-toggle {
-      display: none;
-      position: fixed;
-      top: 16px;
-      left: 16px;
-      z-index: 1000;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background-color: var(--coffee-dark);
-      color: var(--cream);
-      align-items: center;
-      justify-content: center;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    }
-
     /* ========================================================
        RESPONSIVE BREAKPOINTS (DESKTOP, TABLET & MOBILE)
        ======================================================== */
@@ -796,24 +777,6 @@
 
       .modal-head {
         padding: 16px 20px !important;
-      }
-
-      aside.sidebar {
-        transform: translateX(-100%);
-      }
-
-      aside.sidebar.show {
-        transform: translateX(0);
-      }
-
-      main.main-content {
-        margin-left: 0;
-        padding: 16px;
-        padding-top: 68px;
-      }
-
-      .menu-toggle {
-        display: flex;
       }
     }
 
