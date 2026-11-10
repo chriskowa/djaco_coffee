@@ -217,6 +217,10 @@
       } else if (tabId === 'pos') {
         renderPosMenu();
         renderPosCart();
+      } else if (tabId === 'orders') {
+        if (typeof filterOrders === 'function') {
+          filterOrders();
+        }
       } else if (tabId === 'ingredients') {
         renderIngredientsGrid();
       } else if (tabId === 'expenses') {

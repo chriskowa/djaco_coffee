@@ -174,8 +174,34 @@
     }
 
     // ---------------- ORDERS TAB RENDERERS ----------------
+    let orderPeriodPreset = 'all';
+
+    function formatOrderDateYMD(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function getOrderDateYMD(order) {
+      const raw = String(order.date || order.createdAt || '');
+      if (raw.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(raw)) {
+        return raw.substring(0, 10);
+      }
+      const d = new Date(raw);
+      if (!isNaN(d.getTime())) {
+        return formatOrderDateYMD(d);
+      }
+      return '';
+    }
+
     function renderOrdersList(ordersToRender = orders) {
       const container = document.getElementById('orders-list-container');
+      const countBadge = document.getElementById('orderCountBadge');
+      if (countBadge) {
+        countBadge.innerText = `${ordersToRender.length} Transaksi`;
+      }
+
       if (ordersToRender.length === 0) {
         container.innerHTML = `
           <div class="panel" style="text-align: center; color: #8c7365; padding: 40px;">
@@ -269,31 +295,110 @@
 
 
 
-    function filterOrders() {
-      const q = (document.getElementById('orderSearch')?.value || '').toLowerCase().trim();
-      const dateFilter = document.getElementById('orderDateFilter')?.value || '';
+    // ---------------- ORDER PERIOD FILTERING ----------------
+    function setOrderPeriod(preset) {
+      orderPeriodPreset = preset;
 
-      const filtered = orders.filter(o => {
-        const matchQ = !q ||
-          (o.invoiceNo || '').toLowerCase().includes(q) ||
-          (o.customerName || '').toLowerCase().includes(q) ||
-          (o.customerPhone || '').toLowerCase().includes(q);
+      // Clear custom date input if preset is not custom
+      if (preset !== 'custom') {
+        const dateInput = document.getElementById('orderDateFilter');
+        if (dateInput) dateInput.value = '';
+      }
 
-        let matchDate = true;
-        if (dateFilter) {
-          const rawDate = String(o.date || o.createdAt || '');
-          matchDate = rawDate.startsWith(dateFilter);
+      // Update button active state
+      const btnGroup = document.getElementById('orderPeriodBtnGroup');
+      if (btnGroup) {
+        const btns = btnGroup.querySelectorAll('.period-btn');
+        btns.forEach(b => {
+          b.classList.remove('active');
+          if (
+            (preset === 'all' && b.innerText.includes('Semua')) ||
+            (preset === 'today' && b.innerText.includes('Hari Ini')) ||
+            (preset === '7days' && b.innerText.includes('7 Hari')) ||
+            (preset === '1month' && b.innerText.includes('1 Bulan')) ||
+            (preset === '1year' && b.innerText.includes('1 Tahun'))
+          ) {
+            b.classList.add('active');
+          }
+        });
+      }
+
+      filterOrders();
+    }
+
+    function handleOrderDateInputChange() {
+      const dateInput = document.getElementById('orderDateFilter');
+      if (dateInput && dateInput.value) {
+        orderPeriodPreset = 'custom';
+        const btnGroup = document.getElementById('orderPeriodBtnGroup');
+        if (btnGroup) {
+          btnGroup.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
         }
-
-        return matchQ && matchDate;
-      });
-      renderOrdersList(filtered);
+      }
+      filterOrders();
     }
 
     function clearOrderDateFilter() {
       const el = document.getElementById('orderDateFilter');
       if (el) el.value = '';
-      filterOrders();
+      setOrderPeriod('all');
+    }
+
+    function filterOrders() {
+      const q = (document.getElementById('orderSearch')?.value || '').toLowerCase().trim();
+      const customDate = document.getElementById('orderDateFilter')?.value || '';
+
+      const now = new Date();
+      const todayYMD = formatOrderDateYMD(now);
+
+      let startDateYMD = '';
+      let endDateYMD = todayYMD;
+
+      if (orderPeriodPreset === 'today') {
+        startDateYMD = todayYMD;
+        endDateYMD = todayYMD;
+      } else if (orderPeriodPreset === '7days') {
+        const d7 = new Date();
+        d7.setDate(now.getDate() - 6);
+        startDateYMD = formatOrderDateYMD(d7);
+      } else if (orderPeriodPreset === '1month') {
+        const d30 = new Date();
+        d30.setDate(now.getDate() - 29);
+        startDateYMD = formatOrderDateYMD(d30);
+      } else if (orderPeriodPreset === '1year') {
+        startDateYMD = `${now.getFullYear()}-01-01`;
+        endDateYMD = `${now.getFullYear()}-12-31`;
+      }
+
+      const filtered = orders.filter(o => {
+        // 1. Text search
+        const matchQ = !q ||
+          (o.invoiceNo || '').toLowerCase().includes(q) ||
+          (o.customerName || '').toLowerCase().includes(q) ||
+          (o.customerPhone || '').toLowerCase().includes(q);
+
+        if (!matchQ) return false;
+
+        // 2. Date filtering
+        const orderYMD = getOrderDateYMD(o);
+        if (!orderYMD) return true;
+
+        if (customDate) {
+          return orderYMD === customDate;
+        }
+
+        if (orderPeriodPreset === 'all') {
+          return true;
+        }
+
+        if (startDateYMD && endDateYMD) {
+          return orderYMD >= startDateYMD && orderYMD <= endDateYMD;
+        }
+
+        return true;
+      });
+
+      renderOrdersList(filtered);
     }
 
     async function changeStatus(invoiceNo, newStatus) {
@@ -352,3 +457,7 @@
 
     window.deleteOrder = deleteOrder;
     window.deleteCurrentModalOrder = deleteCurrentModalOrder;
+    window.setOrderPeriod = setOrderPeriod;
+    window.handleOrderDateInputChange = handleOrderDateInputChange;
+    window.clearOrderDateFilter = clearOrderDateFilter;
+    window.filterOrders = filterOrders;

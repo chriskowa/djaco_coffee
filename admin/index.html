@@ -548,21 +548,38 @@
 
       <!-- TAB: ORDERS -->
       <section class="tab-section" id="section-orders">
-        <div class="orders-controls" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;">
-          <div class="search-box" style="flex: 1; min-width: 240px;">
-            <i class="fa-solid fa-search"></i>
-            <input type="text" id="orderSearch" placeholder="Cari nomor invoice, nama, atau no HP..."
-              oninput="filterOrders()">
+        <div class="orders-controls" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;">
+            <div class="search-box" style="flex: 1; min-width: 240px;">
+              <i class="fa-solid fa-search"></i>
+              <input type="text" id="orderSearch" placeholder="Cari nomor invoice, nama, atau no HP..."
+                oninput="filterOrders()">
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <span id="orderCountBadge" style="font-size: 12px; font-weight: 700; color: var(--coffee); background: var(--cream); padding: 6px 12px; border-radius: 99px; border: 1px solid var(--border);">0 Transaksi</span>
+              <button class="btn btn-outline" onclick="requestNotificationPermission()" id="notifyPermissionBtn">
+                <i class="fa-solid fa-bell"></i> Notifikasi
+              </button>
+            </div>
           </div>
-          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 6px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 4px 8px;">
+
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #fff; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--border);">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--coffee);"><i class="fa-solid fa-filter"></i> Periode:</span>
+              <div class="period-btn-group" id="orderPeriodBtnGroup">
+                <button type="button" class="period-btn active" onclick="setOrderPeriod('all')">Semua</button>
+                <button type="button" class="period-btn" onclick="setOrderPeriod('today')">Hari Ini</button>
+                <button type="button" class="period-btn" onclick="setOrderPeriod('7days')">7 Hari</button>
+                <button type="button" class="period-btn" onclick="setOrderPeriod('1month')">1 Bulan</button>
+                <button type="button" class="period-btn" onclick="setOrderPeriod('1year')">1 Tahun</button>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 6px; background: var(--cream); border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px;">
               <i class="fa-regular fa-calendar" style="color: #8c7365; font-size: 12px;"></i>
-              <input type="date" id="orderDateFilter" style="border: none; background: transparent; font-size: 12px; font-weight: 600; color: var(--dark); outline: none;" onchange="filterOrders()" title="Filter tanggal transaksi">
+              <input type="date" id="orderDateFilter" style="border: none; background: transparent; font-size: 12px; font-weight: 600; color: var(--dark); outline: none;" onchange="handleOrderDateInputChange()" title="Pilih tanggal spesifik">
               <button type="button" onclick="clearOrderDateFilter()" style="border: none; background: none; font-size: 11px; color: #8c7365; cursor: pointer;" title="Reset filter tanggal"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <button class="btn btn-outline" onclick="requestNotificationPermission()" id="notifyPermissionBtn">
-              <i class="fa-solid fa-bell"></i> Notifikasi
-            </button>
           </div>
         </div>
 
