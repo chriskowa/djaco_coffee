@@ -190,3 +190,4 @@ echo "Database Sekarang:\n";
 echo "- Total Pesanan: " . $stats['totalOrders'] . "\n";
 echo "- Rentang Tanggal: " . $stats['earliestDate'] . " s/d " . $stats['latestDate'] . "\n";
 echo "- Total Omset: Rp " . number_format($stats['totalRevenue'], 0, ',', '.') . "\n";
+

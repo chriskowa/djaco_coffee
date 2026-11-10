@@ -39,6 +39,9 @@
       // Render receipt text inside .invoicebox
       const box = document.getElementById('adminInvoiceBox');
       const orderDateStr = order.createdAt ? new Date(order.createdAt).toLocaleString('id-ID') : new Date().toLocaleString('id-ID');
+      const isCompleted = String(order.status || '').toLowerCase() === 'completed';
+      const displayStatus = isCompleted ? 'LUNAS / SELESAI' : (order.status || 'Pending');
+      const statusColor = isCompleted ? '#2e7d32' : (String(order.status || '').toLowerCase() === 'cancelled' ? '#c62828' : '#b45309');
 
       const itemsRowsHtml = order.items.map(it => `
         <div class="receipt-row">
@@ -53,7 +56,7 @@
           Invoice: <b>${order.invoiceNo}</b><br>
           ${orderDateStr}<br>
           Pembeli: ${order.customerName}<br>
-          Status: ${order.status || 'Pending'}
+          Status: <b style="color:${statusColor};">${displayStatus}</b>
         </div>
         
         ${itemsRowsHtml}
@@ -102,10 +105,12 @@
     }
 
     function buildWaOrderLines(order) {
+      const isCompleted = String(order.status || '').toLowerCase() === 'completed';
       const lines = [
         `Halo ${order.customerName}, ini struk pembelian Anda di DjaCo Coffee:`,
         '',
         `No Invoice: ${order.invoiceNo}`,
+        `Status: ${isCompleted ? 'LUNAS / SELESAI' : (order.status || 'Pending')}`,
         `Metode: ${order.paymentMethod}`,
         ''
       ];

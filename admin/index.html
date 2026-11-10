@@ -423,14 +423,35 @@
               </div>
             </div>
 
-            <button class="btn btn-primary" style="width:100%; padding:12px; margin-bottom: 8px;"
+            <!-- Transaction Process Option: Langsung Selesai vs Pending -->
+            <div style="margin-bottom: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px;">
+              <div style="font-size: 11px; font-weight: 700; color: #8c7365; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <span>PROSES TRANSAKSI KASIR</span>
+                <span id="posStatusIndicatorBadge" style="color: var(--success); font-weight: 800; font-size: 10px;">
+                  <i class="fa-solid fa-circle-check"></i> Masuk Pembukuan
+                </span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <label id="posOptCompletedLabel" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; background: var(--success-bg); border: 1.5px solid var(--success); cursor: pointer; font-size: 12px; font-weight: 700; color: var(--success);">
+                  <input type="radio" name="posTransactionStatus" id="posOptCompleted" value="Completed" checked onchange="handlePosStatusOptionChange()" style="accent-color: var(--success); cursor: pointer;">
+                  <span>Langsung Selesai</span>
+                </label>
+                <label id="posOptPendingLabel" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; background: var(--light); border: 1px solid var(--border); cursor: pointer; font-size: 12px; font-weight: 600; color: var(--dark);">
+                  <input type="radio" name="posTransactionStatus" id="posOptPending" value="Pending" onchange="handlePosStatusOptionChange()" style="accent-color: var(--coffee); cursor: pointer;">
+                  <span>Antrean / Pending</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <button class="btn btn-success" id="posSubmitOrderBtn" style="width:100%; padding:13px; font-size: 14px; font-weight: 800; margin-bottom: 8px;"
               onclick="checkoutPosOrder()">
-              <i class="fa-solid fa-cash-register"></i> Amankan & Cetak Order
+              <i class="fa-solid fa-check-double"></i> Bayar & Selesai (Masuk Pembukuan)
             </button>
-            <button class="btn btn-warning"
-              style="width:100%; padding:10px; background-color: var(--warning); color: white; border:0; border-radius:10px; font-weight:bold; cursor:pointer;"
+            <button class="btn btn-outline"
+              style="width:100%; padding:9px; font-size: 12px; font-weight: 700; color: var(--coffee); border-color: var(--border); cursor: pointer;"
               onclick="holdPosOrder()">
-              <i class="fa-solid fa-pause"></i> Simpan Transaksi Sementara
+              <i class="fa-solid fa-pause"></i> Simpan Transaksi Sementara (Hold)
             </button>
 
             <!-- Held Orders List -->

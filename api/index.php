@@ -453,6 +453,10 @@ switch ($action) {
         $customerName  = trim($input['customerName'] ?? '-') ?: '-';
         $customerPhone = trim($input['customerPhone'] ?? '-') ?: '-';
         $paymentMethod = trim($input['paymentMethod'] ?? 'QRIS');
+        $status        = trim($input['status'] ?? 'Pending');
+        if ($status !== 'Completed' && $status !== 'Pending') {
+            $status = 'Pending';
+        }
         $notes         = trim($input['notes'] ?? '');
         $items         = $input['items'] ?? [];
         $discount      = (float)($input['discount'] ?? 0);
@@ -480,7 +484,7 @@ switch ($action) {
                     packaging_cost, other_expense, total
                 ) VALUES (
                     :invoice_no, :transaction_id, :customer_name, :customer_phone, 
-                    :payment_method, 'Pending', :notes, :discount, :admin_fee, 
+                    :payment_method, :status, :notes, :discount, :admin_fee, 
                     :packaging_cost, :other_expense, :total
                 )
             ");
@@ -490,6 +494,7 @@ switch ($action) {
                 ':customer_name'  => $customerName,
                 ':customer_phone' => $customerPhone,
                 ':payment_method' => $paymentMethod,
+                ':status'         => $status,
                 ':notes'          => $notes,
                 ':discount'       => $discount,
                 ':admin_fee'      => $adminFee,
@@ -575,6 +580,8 @@ switch ($action) {
             jsonSuccess([
                 'message'   => 'Order berhasil dibuat',
                 'invoiceNo' => $invoiceNo,
+                'status'    => $status,
+                'total'     => $total,
                 'products'  => $freshProducts
             ]);
 

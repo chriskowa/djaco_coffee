@@ -498,6 +498,55 @@
       document.getElementById('posChangeDue').innerText = cashVal >= subtotal ? rupiah(changeDue) : "Uang belum cukup";
     }
 
+    // Toggle POS Checkout Status (Langsung Selesai vs Pending)
+    function handlePosStatusOptionChange() {
+      const isCompleted = document.getElementById('posOptCompleted')?.checked;
+      const btn = document.getElementById('posSubmitOrderBtn');
+      const badge = document.getElementById('posStatusIndicatorBadge');
+      const lblCompleted = document.getElementById('posOptCompletedLabel');
+      const lblPending = document.getElementById('posOptPendingLabel');
+
+      if (isCompleted) {
+        if (btn) {
+          btn.className = 'btn btn-success';
+          btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Bayar & Selesai (Masuk Pembukuan)';
+        }
+        if (badge) {
+          badge.style.color = 'var(--success)';
+          badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Masuk Pembukuan';
+        }
+        if (lblCompleted) {
+          lblCompleted.style.background = 'var(--success-bg)';
+          lblCompleted.style.borderColor = 'var(--success)';
+          lblCompleted.style.color = 'var(--success)';
+        }
+        if (lblPending) {
+          lblPending.style.background = 'var(--light)';
+          lblPending.style.borderColor = 'var(--border)';
+          lblPending.style.color = 'var(--dark)';
+        }
+      } else {
+        if (btn) {
+          btn.className = 'btn btn-primary';
+          btn.innerHTML = '<i class="fa-solid fa-clock"></i> Simpan Antrean Order (Pending)';
+        }
+        if (badge) {
+          badge.style.color = 'var(--warning)';
+          badge.innerHTML = '<i class="fa-solid fa-clock"></i> Masuk Antrean';
+        }
+        if (lblPending) {
+          lblPending.style.background = 'var(--warning-bg)';
+          lblPending.style.borderColor = 'var(--warning)';
+          lblPending.style.color = 'var(--warning)';
+        }
+        if (lblCompleted) {
+          lblCompleted.style.background = 'var(--light)';
+          lblCompleted.style.borderColor = 'var(--border)';
+          lblCompleted.style.color = 'var(--dark)';
+        }
+      }
+    }
+
     // Checkout POS Transactions
     async function checkoutPosOrder() {
       const checkedItems = posCart.filter(i => i.checked !== false);
@@ -518,12 +567,14 @@
       const customerName = document.getElementById('posCustomerName').value.trim() || 'Walk-in Kasir';
       const customerPhone = document.getElementById('posCustomerPhone').value.trim() || '-';
       const notes = document.getElementById('posOrderNotes').value.trim() || 'Order POS Kasir';
+      const status = document.getElementById('posOptPending')?.checked ? 'Pending' : 'Completed';
 
       const payload = {
         action: 'createOrder',
         customerName,
         customerPhone,
         paymentMethod: method,
+        status: status,
         notes,
         items: checkedItems.map(i => ({
           productId: i.productId,
@@ -539,13 +590,14 @@
       };
 
       try {
-        showToast("Memproses transaksi POS...");
+        showToast(status === 'Completed' ? "Menyelesaikan transaksi & membukukan..." : "Menyimpan transaksi antrean...");
         const result = await apiPost('createorder', payload);
 
         // Save state for invoice printing
         activeInvoiceOrder = {
           ...payload,
           ...result,
+          status: result.status || status,
           invoiceNo: result.invoiceNo,
           transactionId: result.transactionId,
           total: result.total || total,
