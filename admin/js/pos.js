@@ -970,6 +970,9 @@
                 <button type="button" onclick="loadOrderToPos('${o.invoiceNo}')" style="background:#efe0c8; border:1px solid #d9b98c; padding:3px 7px; border-radius:6px; font-size:10px; color:#6b4329; cursor:pointer; font-weight:700;" title="Muat & Edit Transaksi ini">
                   <i class="fa-solid fa-pen-to-square"></i> Edit
                 </button>
+                <button type="button" onclick="deleteOrder('${o.invoiceNo}')" style="background:#fff0f0; border:1px solid #f5c2c7; padding:3px 7px; border-radius:6px; font-size:10px; color:var(--danger); cursor:pointer; font-weight:700;" title="Hapus Transaksi ${o.invoiceNo}">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
               </div>
             </div>
           </div>

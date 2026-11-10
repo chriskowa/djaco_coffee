@@ -255,6 +255,7 @@
                 <button class="btn btn-outline btn-sm" onclick="showOrderInvoice('${o.invoiceNo}')"><i class="fa-solid fa-receipt"></i> Struk / QRIS</button>
                 <button class="btn btn-outline btn-sm" onclick="loadOrderToPos('${o.invoiceNo}')" title="Muat dan edit transaksi ini di kasir POS"><i class="fa-solid fa-pen-to-square"></i> Muat & Edit</button>
                 ${actionButtonsHtml}
+                <button class="btn btn-danger btn-sm" onclick="deleteOrder('${o.invoiceNo}')" title="Hapus permanen transaksi ini"><i class="fa-solid fa-trash"></i> Hapus</button>
               </div>
             </div>
           </div>
@@ -311,3 +312,43 @@
         if (card) card.style.opacity = '1';
       }
     }
+
+    async function deleteOrder(invoiceNo) {
+      if (!invoiceNo) return;
+      const confirmed = confirm(`PERINGATAN:\nApakah Anda yakin ingin MENGHAPUS PERMANEN transaksi invoice ${invoiceNo}?\n\nJika pesanan masih aktif, stok produk dan bahan baku akan dikembalikan otomatis.`);
+      if (!confirmed) return;
+
+      const card = document.getElementById(`order-card-${invoiceNo}`);
+      if (card) card.style.opacity = '0.3';
+
+      try {
+        const res = await apiPost('deleteorder', { invoiceNo });
+        showToast(res.message || `Transaksi ${invoiceNo} berhasil dihapus.`);
+
+        // Close receipt modal if open with this order
+        if (activeInvoiceOrder && activeInvoiceOrder.invoiceNo === invoiceNo) {
+          closeAdminInvoiceModal();
+        }
+
+        // Cancel POS edit mode if editing this invoice
+        if (typeof posEditingInvoice !== 'undefined' && posEditingInvoice === invoiceNo) {
+          if (typeof cancelPosEditMode === 'function') cancelPosEditMode();
+        }
+
+        await reloadData();
+        if (typeof renderDashboardOverview === 'function') renderDashboardOverview();
+      } catch (err) {
+        console.error('Delete order failed:', err);
+        alert('Gagal menghapus transaksi: ' + (err.message || 'Error server'));
+        if (card) card.style.opacity = '1';
+      }
+    }
+
+    function deleteCurrentModalOrder() {
+      if (activeInvoiceOrder && activeInvoiceOrder.invoiceNo) {
+        deleteOrder(activeInvoiceOrder.invoiceNo);
+      }
+    }
+
+    window.deleteOrder = deleteOrder;
+    window.deleteCurrentModalOrder = deleteCurrentModalOrder;

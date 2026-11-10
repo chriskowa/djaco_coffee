@@ -1048,6 +1048,79 @@ switch ($action) {
         break;
 
     // ---------------------------------------------------------
+    // 7b. DELETE ORDER / TRANSACTION
+    // ---------------------------------------------------------
+    case 'deleteorder':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+
+        $invoiceNo = trim($input['invoiceNo'] ?? '');
+        $orderId = (int)($input['id'] ?? 0);
+
+        if (empty($invoiceNo) && $orderId <= 0) {
+            jsonError('invoiceNo atau ID order wajib diisi', 400);
+        }
+
+        try {
+            $pdo->beginTransaction();
+
+            if (!empty($invoiceNo)) {
+                $stmt = $pdo->prepare("SELECT id, invoice_no, status FROM orders WHERE invoice_no = ?");
+                $stmt->execute([$invoiceNo]);
+            } else {
+                $stmt = $pdo->prepare("SELECT id, invoice_no, status FROM orders WHERE id = ?");
+                $stmt->execute([$orderId]);
+            }
+            $order = $stmt->fetch();
+
+            if (!$order) {
+                $pdo->rollBack();
+                jsonError('Transaksi tidak ditemukan', 404);
+            }
+
+            $realId = (int)$order['id'];
+            $realInvoiceNo = (string)$order['invoice_no'];
+            $status = (string)$order['status'];
+
+            // Jika status order bukan 'Cancelled', kembalikan stok produk & bahan baku resep
+            if ($status !== 'Cancelled') {
+                $itemsStmt = $pdo->prepare("SELECT product_id, qty FROM order_items WHERE order_id = ?");
+                $itemsStmt->execute([$realId]);
+                $items = $itemsStmt->fetchAll();
+
+                $restoreProdStmt = $pdo->prepare("UPDATE products SET stock = stock + :qty WHERE id = :id");
+                $restoreIngStmt = $pdo->prepare("
+                    UPDATE ingredients i
+                    JOIN product_recipes pr ON i.id = pr.ingredient_id
+                    SET i.current_stock = i.current_stock + (pr.quantity * :qty)
+                    WHERE pr.product_id = :product_id
+                ");
+
+                foreach ($items as $it) {
+                    if (!empty($it['product_id'])) {
+                        $restoreProdStmt->execute([':qty' => (int)$it['qty'], ':id' => $it['product_id']]);
+                        $restoreIngStmt->execute([':qty' => (int)$it['qty'], ':product_id' => $it['product_id']]);
+                    }
+                }
+            }
+
+            // Hapus order_items dan orders
+            $pdo->prepare("DELETE FROM order_items WHERE order_id = ?")->execute([$realId]);
+            $pdo->prepare("DELETE FROM orders WHERE id = ?")->execute([$realId]);
+
+            $pdo->commit();
+
+            jsonSuccess([
+                'message'   => "Transaksi $realInvoiceNo berhasil dihapus permanen.",
+                'invoiceNo' => $realInvoiceNo
+            ]);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            jsonError('Gagal menghapus transaksi: ' . $e->getMessage(), 500);
+        }
+        break;
+
+    // ---------------------------------------------------------
     // 8. DELETE PRODUCT
     // ---------------------------------------------------------
     case 'deleteproduct':
