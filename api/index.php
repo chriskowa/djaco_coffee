@@ -107,18 +107,29 @@ switch ($action) {
         break;
 
     // ---------------------------------------------------------
-    // 1. GET ALL DATA (Products + Options + Announcements)
+    // 1. GET ALL DATA (Products + Options + Announcements + Best Sellers)
     // ---------------------------------------------------------
     case 'all':
         $productsStmt = $pdo->query("
             SELECT 
-                id, name, category, 
-                CAST(price AS DECIMAL(10,2)) as price, 
-                CAST(cogs AS DECIMAL(10,2)) as cogs, 
-                stock, status, image, description, 
-                featured, has_variant as hasVariant 
-            FROM products 
-            WHERE status != 'Inactive'
+                p.id, p.name, p.category, 
+                CAST(p.price AS DECIMAL(10,2)) as price, 
+                CAST(p.cogs AS DECIMAL(10,2)) as cogs, 
+                p.stock, p.status, p.image, p.description, 
+                p.featured, p.has_variant as hasVariant,
+                COALESCE(sales.total_sold, 0) as totalSold
+            FROM products p
+            LEFT JOIN (
+                SELECT 
+                    COALESCE(p2.id, oi.product_id) as matched_id,
+                    SUM(oi.qty) as total_sold
+                FROM order_items oi
+                JOIN orders o ON oi.order_id = o.id
+                LEFT JOIN products p2 ON oi.product_id = p2.id OR LOWER(TRIM(oi.product_name)) = LOWER(TRIM(p2.name))
+                WHERE o.status != 'Cancelled'
+                GROUP BY COALESCE(p2.id, oi.product_id)
+            ) sales ON p.id = sales.matched_id
+            WHERE p.status != 'Inactive'
             ORDER BY category ASC, name ASC
         ");
         $rawProducts = $productsStmt->fetchAll();
@@ -134,9 +145,22 @@ switch ($action) {
                 'image'       => (string)$p['image'],
                 'description' => (string)($p['description'] ?? ''),
                 'featured'    => (bool)$p['featured'],
-                'hasVariant'  => (bool)$p['hasVariant']
+                'hasVariant'  => (bool)$p['hasVariant'],
+                'totalSold'   => (int)$p['totalSold']
             ];
         }, $rawProducts);
+
+        // Best Sellers calculation
+        $bestSellers = array_values(array_filter($products, function($p) {
+            return $p['stock'] > 0 && ($p['totalSold'] > 0 || $p['featured']);
+        }));
+        usort($bestSellers, function($a, $b) {
+            if ($b['totalSold'] !== $a['totalSold']) {
+                return $b['totalSold'] - $a['totalSold'];
+            }
+            return ($b['featured'] ? 1 : 0) - ($a['featured'] ? 1 : 0);
+        });
+        $bestSellers = array_slice($bestSellers, 0, 10);
 
         $optionsStmt = $pdo->query("
             SELECT 
@@ -179,6 +203,7 @@ switch ($action) {
 
         jsonSuccess([
             'products'      => $products,
+            'bestSellers'   => $bestSellers,
             'options'       => $options,
             'announcements' => $announcements
         ]);
@@ -205,7 +230,23 @@ switch ($action) {
         $limit = isset($_GET['limit']) ? max(1, min(200, (int)$_GET['limit'])) : 50;
 
         // Products
-        $productsStmt = $pdo->query("SELECT * FROM products ORDER BY id ASC");
+        $productsStmt = $pdo->query("
+            SELECT 
+                p.*,
+                COALESCE(sales.total_sold, 0) as totalSold
+            FROM products p
+            LEFT JOIN (
+                SELECT 
+                    COALESCE(p2.id, oi.product_id) as matched_id,
+                    SUM(oi.qty) as total_sold
+                FROM order_items oi
+                JOIN orders o ON oi.order_id = o.id
+                LEFT JOIN products p2 ON oi.product_id = p2.id OR LOWER(TRIM(oi.product_name)) = LOWER(TRIM(p2.name))
+                WHERE o.status != 'Cancelled'
+                GROUP BY COALESCE(p2.id, oi.product_id)
+            ) sales ON p.id = sales.matched_id
+            ORDER BY id ASC
+        ");
         $rawProducts = $productsStmt->fetchAll();
         $products = array_map(function($p) {
             return [
@@ -219,7 +260,8 @@ switch ($action) {
                 'image'       => (string)$p['image'],
                 'description' => (string)($p['description'] ?? ''),
                 'featured'    => (bool)$p['featured'],
-                'hasVariant'  => (bool)$p['has_variant']
+                'hasVariant'  => (bool)$p['has_variant'],
+                'totalSold'   => (int)$p['totalSold']
             ];
         }, $rawProducts);
 
