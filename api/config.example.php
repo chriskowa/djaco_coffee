@@ -1,6 +1,7 @@
 <?php
 /**
- * DjaCo Coffee - Database & API Configuration
+ * DjaCo Coffee - Database & API Configuration Example
+ * Salin file ini menjadi `api/config.php` dan sesuaikan kredensial database Anda.
  */
 
 // Allow CORS & set JSON response (only if not CLI)
@@ -20,9 +21,8 @@ if (php_sapi_name() !== 'cli') {
 // -------------------------------------------------------------
 // Database Credentials
 // -------------------------------------------------------------
-// Deteksi otomatis environment (CLI / Laravel Herd / Laragon / Localhost vs Production cPanel)
 $httpHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
-$cleanHost = explode(':', $httpHost)[0]; // hilangkan port jika ada
+$cleanHost = explode(':', $httpHost)[0];
 
 $isLocal = (php_sapi_name() === 'cli')
     || in_array($cleanHost, ['localhost', '127.0.0.1', '::1'])
@@ -31,20 +31,19 @@ $isLocal = (php_sapi_name() === 'cli')
     || str_contains($cleanHost, 'djaco.web.id.test');
 
 if ($isLocal) {
-    // Pengaturan Lokal (Laravel Herd / Laragon / XAMPP)
+    // Pengaturan Lokal (Herd / Laragon / XAMPP)
     define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
     define('DB_PORT', getenv('DB_PORT') ?: '3306');
     define('DB_NAME', getenv('DB_NAME') ?: 'djaco_db');
     define('DB_USER', getenv('DB_USER') ?: 'root');
     define('DB_PASS', getenv('DB_PASS') ?: '');
 } else {
-    // Pengaturan Production (Shared Hosting cPanel)
-    // Ganti nilai di bawah ini dengan database cPanel Anda
+    // Pengaturan Production (Hosting DomaiNesia / cPanel)
     define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
     define('DB_PORT', getenv('DB_PORT') ?: '3306');
-    define('DB_NAME', getenv('DB_NAME') ?: 'djaco_db');
-    define('DB_USER', getenv('DB_USER') ?: 'djaco_user');
-    define('DB_PASS', getenv('DB_PASS') ?: 'password_database_anda');
+    define('DB_NAME', getenv('DB_NAME') ?: 'nama_database_hosting');
+    define('DB_USER', getenv('DB_USER') ?: 'user_database_hosting');
+    define('DB_PASS', getenv('DB_PASS') ?: 'password_database_hosting');
 }
 
 /**
@@ -110,15 +109,11 @@ function getBearerToken() {
         return $matches[1];
     }
 
-    // Fallback: check query or post param
     return $_GET['token'] ?? $_POST['token'] ?? '';
 }
 
 /**
  * Require valid authenticated user
- * @param PDO $pdo
- * @param string|null $requiredRole
- * @return array Authenticated user data
  */
 function requireAuth($pdo, $requiredRole = null) {
     $token = getBearerToken();
@@ -145,4 +140,3 @@ function requireAuth($pdo, $requiredRole = null) {
 
     return $user;
 }
-

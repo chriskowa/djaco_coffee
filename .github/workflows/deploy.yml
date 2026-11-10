@@ -31,6 +31,12 @@ jobs:
             mkdir -p "$TARGET_DIR"
             cd "$TARGET_DIR" || exit 1
 
+            # Amankan api/config.php di server agar tidak tertimpa/terhapus saat git reset
+            if [ -f "api/config.php" ]; then
+              echo "🔒 Mengamankan api/config.php di server sebelum deploy..."
+              cp api/config.php /tmp/djaco_config_backup.php
+            fi
+
             # 2. Inisialisasi otomatis jika belum ada git di server
             if [ ! -d ".git" ]; then
               echo "🔄 Menginisialisasi repositori baru di server..."
@@ -44,6 +50,16 @@ jobs:
               git remote set-url origin https://github.com/chriskowa/djaco_coffee.git || true
               git fetch origin main
               git reset --hard origin/main
+            fi
+
+            # Pulihkan api/config.php dari cadangan lokal server
+            if [ -f "/tmp/djaco_config_backup.php" ]; then
+              echo "🔑 Memulihkan api/config.php di server..."
+              cp /tmp/djaco_config_backup.php api/config.php
+              rm -f /tmp/djaco_config_backup.php
+            elif [ ! -f "api/config.php" ] && [ -f "api/config.example.php" ]; then
+              echo "⚠️ api/config.php belum ada, menyalin dari api/config.example.php..."
+              cp api/config.example.php api/config.php
             fi
 
             echo "✅ Deployment selesai! Commit aktif:"

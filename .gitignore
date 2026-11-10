@@ -20,5 +20,8 @@ node_modules/
 /lama/
 seed_data.json
 generate_sql.php
+# Sensitive credentials
 api/config.php
+/api/config.php
+*.env
 
