@@ -21,5 +21,30 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}  # Private key dari GitHub Secrets
           port: ${{ secrets.SSH_PORT || 64000 }} # Port SSH DomaiNesia (default: 64000)
           script: |
-            cd /home/ruangdid/djaco.web.id
-            git pull origin main
+            # 1. Deteksi direktori target di hosting DomaiNesia
+            TARGET_DIR="/home/ruangdid/djaco.web.id"
+            if [ ! -d "$TARGET_DIR" ] && [ -d "/home/ruangdid/public_html/djaco.web.id" ]; then
+              TARGET_DIR="/home/ruangdid/public_html/djaco.web.id"
+            fi
+
+            echo "📁 Target direktori deploy: $TARGET_DIR"
+            mkdir -p "$TARGET_DIR"
+            cd "$TARGET_DIR" || exit 1
+
+            # 2. Inisialisasi otomatis jika belum ada git di server
+            if [ ! -d ".git" ]; then
+              echo "🔄 Menginisialisasi repositori baru di server..."
+              git init
+              git remote add origin https://github.com/chriskowa/djaco_coffee.git || true
+              git fetch origin main
+              git reset --hard origin/main
+              git branch -M main
+            else
+              echo "⬇️ Mengambil pembaruan terbaru dari origin/main..."
+              git remote set-url origin https://github.com/chriskowa/djaco_coffee.git || true
+              git fetch origin main
+              git reset --hard origin/main
+            fi
+
+            echo "✅ Deployment selesai! Commit aktif:"
+            git log -1 --oneline
