@@ -121,6 +121,39 @@
       }
     }
 
+    // ---------------- SYNC EXPENSES & RAW MATERIALS FROM SPREADSHEET ----------------
+    async function syncSpreadsheetExpenses() {
+      const btns = [
+        document.getElementById('btnSyncExpenses'),
+        document.getElementById('btnSyncExpensesSettings')
+      ];
+      btns.forEach(b => {
+        if (b) {
+          b.disabled = true;
+          b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengimpor...';
+        }
+      });
+
+      try {
+        const res = await apiPost('importspreadsheetexpenses', {});
+        showToast(res.message || 'Sinkronisasi pengeluaran berhasil!');
+        await reloadData();
+        if (typeof loadFinancialReports === 'function') loadFinancialReports();
+        if (typeof renderExpensesList === 'function') renderExpensesList();
+        if (typeof renderIngredientsTable === 'function') renderIngredientsTable();
+      } catch (err) {
+        console.error('Import expenses failed:', err);
+        alert('Gagal mengimpor pengeluaran: ' + (err.message || 'Error server'));
+      } finally {
+        btns.forEach(b => {
+          if (b) {
+            b.disabled = false;
+            b.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Tarik Data Pengeluaran';
+          }
+        });
+      }
+    }
+
     function startApp() {
       // Restore sidebar collapsed preference on desktop
       if (window.innerWidth > 768) {

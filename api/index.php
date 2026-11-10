@@ -330,7 +330,7 @@ switch ($action) {
                 expense_date as expenseDate, created_at as createdAt 
             FROM expenses 
             ORDER BY expense_date DESC, id DESC 
-            LIMIT 50
+            LIMIT 500
         ");
         $rawExpenses = $expStmt->fetchAll();
         $expenses = array_map(function($e) {
@@ -1766,6 +1766,18 @@ switch ($action) {
             'skipped'       => $skipped,
             'totalInDb'     => $totalDbOrders
         ]);
+        break;
+
+    // ---------------------------------------------------------
+    // 18. IMPORT SPREADSHEET EXPENSES & LINK RAW MATERIALS
+    // ---------------------------------------------------------
+    case 'importspreadsheetexpenses':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+
+        require_once __DIR__ . '/import_spreadsheet_expenses.php';
+        $result = runImportSpreadsheetExpenses($pdo);
+        jsonSuccess($result);
         break;
 
     default:

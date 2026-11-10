@@ -1,5 +1,5 @@
 // ---------------- DASHBOARD TAB & DYNAMIC PERIOD FILTER ----------------
-let dashPeriodPreset = 'thismonth';
+let dashPeriodPreset = 'thisyear';
 let dashStartDateVal = '';
 let dashEndDateVal = '';
 let dashboardDataCache = null;
@@ -45,10 +45,13 @@ function computeDashPresetDates(preset) {
     start = formatDashDateYMD(firstDayPrev);
     end = formatDashDateYMD(lastDayPrev);
     label = `Bulan Lalu (${formatHumanDate(start)} - ${formatHumanDate(end)})`;
-  } else {
-    // Default: 'thismonth'
+  } else if (preset === 'thismonth') {
     start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
     label = `Bulan Ini (${formatHumanDate(start)} - ${formatHumanDate(end)})`;
+  } else {
+    // Default: 'thisyear'
+    start = `${now.getFullYear()}-01-01`;
+    label = `Tahun Ini (${formatHumanDate(start)} - ${formatHumanDate(end)})`;
   }
 
   return { start, end, label };
@@ -69,6 +72,7 @@ async function setDashboardPeriod(preset) {
         (preset === '7days' && b.innerText.includes('7 Hari')) ||
         (preset === 'thismonth' && b.innerText.includes('Bulan Ini')) ||
         (preset === 'lastmonth' && b.innerText.includes('Bulan Lalu')) ||
+        (preset === 'thisyear' && b.innerText.includes('Tahun Ini')) ||
         (preset === 'custom' && b.innerText.includes('Kustom'))
       ) {
         b.classList.add('active');
@@ -370,7 +374,7 @@ function renderDashboardTrendChart(dailyTrend) {
 // Initial entry point for Dashboard overview
 function renderDashboardOverview() {
   if (!dashStartDateVal || !dashEndDateVal) {
-    const range = computeDashPresetDates('thismonth');
+    const range = computeDashPresetDates('thisyear');
     dashStartDateVal = range.start;
     dashEndDateVal = range.end;
     loadDashboardData(dashStartDateVal, dashEndDateVal, range.label);

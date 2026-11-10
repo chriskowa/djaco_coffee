@@ -189,8 +189,9 @@
             <div class="period-btn-group" id="dashPeriodBtnGroup">
               <button type="button" class="period-btn" onclick="setDashboardPeriod('today')">Hari Ini</button>
               <button type="button" class="period-btn" onclick="setDashboardPeriod('7days')">7 Hari</button>
-              <button type="button" class="period-btn active" onclick="setDashboardPeriod('thismonth')">Bulan Ini</button>
+              <button type="button" class="period-btn" onclick="setDashboardPeriod('thismonth')">Bulan Ini</button>
               <button type="button" class="period-btn" onclick="setDashboardPeriod('lastmonth')">Bulan Lalu</button>
+              <button type="button" class="period-btn active" onclick="setDashboardPeriod('thisyear')">Tahun Ini</button>
               <button type="button" class="period-btn" onclick="setDashboardPeriod('custom')"><i class="fa-regular fa-calendar"></i> Kustom</button>
             </div>
           </div>
@@ -655,13 +656,22 @@
             <label for="spreadsheet-sync-url">URL Google Apps Script Penjualan</label>
             <input type="text" id="spreadsheet-sync-url" class="form-control" value="https://script.google.com/macros/s/AKfycbw2uB1SnBD5T-IXMb25qCMtnFLFUBkYtBKWr4I_hlSC6ez5r-2D00hmIFuA2eZ0f19cgg/exec" placeholder="https://script.google.com/macros/s/.../exec">
           </div>
-          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: var(--cream); padding: 14px 18px; border-radius: 14px; border: 1px solid var(--border);">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: var(--cream); padding: 14px 18px; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 12px;">
             <div>
               <div style="font-size: 13px; font-weight: 800; color: var(--coffee);">Tarik Riwayat Penjualan Google Sheets</div>
               <div style="font-size: 11px; color: #8c7365; margin-top: 2px;">Menyinkronkan semua invoice, item pesanan, dan tanggal transaksi lama.</div>
             </div>
             <button type="button" class="btn btn-primary" id="btnSyncSpreadsheet" onclick="syncSpreadsheetSales()">
               <i class="fa-solid fa-cloud-arrow-down"></i> Tarik Data Penjualan
+            </button>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: var(--cream); padding: 14px 18px; border-radius: 14px; border: 1px solid var(--border);">
+            <div>
+              <div style="font-size: 13px; font-weight: 800; color: var(--coffee);">Tarik Pengeluaran & Bahan Baku Spreadsheet</div>
+              <div style="font-size: 11px; color: #8c7365; margin-top: 2px;">Impor semua pengeluaran awal, peralatan, utilitas, dan sinkron bahan baku.</div>
+            </div>
+            <button type="button" class="btn btn-outline" id="btnSyncExpensesSettings" onclick="syncSpreadsheetExpenses()" style="background:#efe0c8; color:var(--coffee); border-color:var(--gold);">
+              <i class="fa-solid fa-cloud-arrow-down"></i> Tarik Data Pengeluaran
             </button>
           </div>
         </div>
@@ -773,20 +783,27 @@
               <i class="fa-solid fa-search"></i>
               <input type="text" id="expenseSearch" placeholder="Cari pengeluaran..." oninput="filterExpenses()">
             </div>
-            <select class="form-control" id="expenseCategoryFilter" style="width: 190px; padding: 10px;"
+            <select class="form-control" id="expenseCategoryFilter" style="width: 210px; padding: 10px;"
               onchange="filterExpenses()">
               <option value="Semua">Semua Kategori</option>
-              <option value="Gaji & Upah">Gaji & Upah</option>
-              <option value="Servis & Maintenance">Servis & Maintenance</option>
               <option value="Bahan Baku">Bahan Baku</option>
+              <option value="Kemasan & Packaging">Kemasan & Packaging</option>
+              <option value="Peralatan & Perlengkapan">Peralatan & Perlengkapan</option>
               <option value="Utilitas & Listrik">Utilitas & Listrik</option>
+              <option value="Gaji & Upah">Gaji & Upah</option>
               <option value="Sewa & Tempat">Sewa & Tempat</option>
+              <option value="Servis & Maintenance">Servis & Maintenance</option>
               <option value="Operasional Lainnya">Operasional Lainnya</option>
             </select>
           </div>
-          <button class="btn btn-primary" onclick="openAddExpenseModal()">
-            <i class="fa-solid fa-plus"></i> Catat Pengeluaran
-          </button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-outline" style="background: #efe0c8; color: var(--coffee); border-color: var(--gold);" onclick="syncSpreadsheetExpenses()" id="btnSyncExpenses">
+              <i class="fa-solid fa-cloud-arrow-down"></i> Impor dari Spreadsheet
+            </button>
+            <button class="btn btn-primary" onclick="openAddExpenseModal()">
+              <i class="fa-solid fa-plus"></i> Catat Pengeluaran
+            </button>
+          </div>
         </div>
 
         <!-- Expense Table -->
@@ -1424,11 +1441,13 @@
             <div class="form-group">
               <label for="exp-category">Kategori Pengeluaran*</label>
               <select id="exp-category" class="form-control" required>
-                <option value="Gaji & Upah">Gaji & Upah</option>
-                <option value="Servis & Maintenance">Servis & Maintenance</option>
                 <option value="Bahan Baku">Bahan Baku</option>
+                <option value="Kemasan & Packaging">Kemasan & Packaging</option>
+                <option value="Peralatan & Perlengkapan">Peralatan & Perlengkapan</option>
                 <option value="Utilitas & Listrik">Utilitas & Listrik</option>
+                <option value="Gaji & Upah">Gaji & Upah</option>
                 <option value="Sewa & Tempat">Sewa & Tempat</option>
+                <option value="Servis & Maintenance">Servis & Maintenance</option>
                 <option value="Operasional Lainnya">Operasional Lainnya</option>
               </select>
             </div>
