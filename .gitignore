@@ -20,6 +20,5 @@ node_modules/
 /lama/
 seed_data.json
 generate_sql.php
-
-/api/config.php
+api/config.php
 
