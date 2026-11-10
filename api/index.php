@@ -736,10 +736,75 @@ switch ($action) {
             jsonError('invoiceNo dan status wajib diisi');
         }
 
-        $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE invoice_no = ?");
-        $stmt->execute([$newStatus, $invoiceNo]);
+        try {
+            $pdo->beginTransaction();
 
-        jsonSuccess(['message' => "Status invoice $invoiceNo berhasil diubah ke $newStatus"]);
+            $orderStmt = $pdo->prepare("SELECT id, status FROM orders WHERE invoice_no = ?");
+            $orderStmt->execute([$invoiceNo]);
+            $order = $orderStmt->fetch();
+
+            if (!$order) {
+                $pdo->rollBack();
+                jsonError('Pesanan tidak ditemukan', 404);
+            }
+
+            $oldStatus = (string)$order['status'];
+            $orderId = (int)$order['id'];
+
+            if ($oldStatus !== $newStatus) {
+                // If transitioning to 'Cancelled', kembalikan stok produk & bahan baku resep
+                if ($newStatus === 'Cancelled') {
+                    $itemsStmt = $pdo->prepare("SELECT product_id, qty FROM order_items WHERE order_id = ?");
+                    $itemsStmt->execute([$orderId]);
+                    $items = $itemsStmt->fetchAll();
+
+                    $restoreProdStmt = $pdo->prepare("UPDATE products SET stock = stock + :qty WHERE id = :id");
+                    $restoreIngStmt = $pdo->prepare("
+                        UPDATE ingredients i
+                        JOIN product_recipes pr ON i.id = pr.ingredient_id
+                        SET i.current_stock = i.current_stock + (pr.quantity * :qty)
+                        WHERE pr.product_id = :product_id
+                    ");
+
+                    foreach ($items as $it) {
+                        if (!empty($it['product_id'])) {
+                            $restoreProdStmt->execute([':qty' => (int)$it['qty'], ':id' => $it['product_id']]);
+                            $restoreIngStmt->execute([':qty' => (int)$it['qty'], ':product_id' => $it['product_id']]);
+                        }
+                    }
+                }
+                // If transitioning FROM 'Cancelled' kembali ke status aktif, potong ulang stok
+                else if ($oldStatus === 'Cancelled') {
+                    $itemsStmt = $pdo->prepare("SELECT product_id, qty FROM order_items WHERE order_id = ?");
+                    $itemsStmt->execute([$orderId]);
+                    $items = $itemsStmt->fetchAll();
+
+                    $deductProdStmt = $pdo->prepare("UPDATE products SET stock = GREATEST(0, stock - :qty) WHERE id = :id");
+                    $deductIngStmt = $pdo->prepare("
+                        UPDATE ingredients i
+                        JOIN product_recipes pr ON i.id = pr.ingredient_id
+                        SET i.current_stock = GREATEST(0, i.current_stock - (pr.quantity * :qty))
+                        WHERE pr.product_id = :product_id
+                    ");
+
+                    foreach ($items as $it) {
+                        if (!empty($it['product_id'])) {
+                            $deductProdStmt->execute([':qty' => (int)$it['qty'], ':id' => $it['product_id']]);
+                            $deductIngStmt->execute([':qty' => (int)$it['qty'], ':product_id' => $it['product_id']]);
+                        }
+                    }
+                }
+
+                $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE invoice_no = ?");
+                $stmt->execute([$newStatus, $invoiceNo]);
+            }
+
+            $pdo->commit();
+            jsonSuccess(['message' => "Status invoice $invoiceNo berhasil diubah ke $newStatus"]);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            jsonError('Gagal memperbarui status order: ' . $e->getMessage(), 500);
+        }
         break;
 
     // ---------------------------------------------------------
@@ -1298,6 +1363,168 @@ switch ($action) {
             'expensesByCategory' => $expensesByCategory,
             'itemSales'          => $itemSales,
             'dailyTrend'         => $dailyTrend
+        ]);
+        break;
+
+    // ---------------------------------------------------------
+    // 17. IMPORT HISTORICAL SALES FROM GOOGLE SPREADSHEET
+    // ---------------------------------------------------------
+    case 'importspreadsheetsales':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+
+        $defaultUrl = 'https://script.google.com/macros/s/AKfycbw2uB1SnBD5T-IXMb25qCMtnFLFUBkYtBKWr4I_hlSC6ez5r-2D00hmIFuA2eZ0f19cgg/exec';
+        $scriptUrl = trim($input['scriptUrl'] ?? '') ?: $defaultUrl;
+
+        $targetUrl = $scriptUrl . (strpos($scriptUrl, '?') === false ? '?' : '&') . 'action=admindata&limit=1000';
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $targetUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $resp = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || empty($resp)) {
+            jsonError("Gagal mengambil data dari Spreadsheet (HTTP $httpCode): " . ($curlErr ?: 'Koneksi timeout'), 502);
+        }
+
+        $sheetData = json_decode($resp, true);
+        if (!isset($sheetData['orders']) || !is_array($sheetData['orders'])) {
+            jsonError("Format data Spreadsheet tidak valid atau sheet 'Penjualan' tidak memiliki transaksi", 422);
+        }
+
+        $rawOrders = $sheetData['orders'];
+
+        // Map product names to ID & category
+        $pStmt = $pdo->query("SELECT id, name, category, price, cogs FROM products");
+        $productMap = [];
+        while ($row = $pStmt->fetch()) {
+            $norm = strtolower(trim($row['name']));
+            $productMap[$norm] = $row;
+        }
+
+        $checkStmt = $pdo->prepare("SELECT id FROM orders WHERE invoice_no = ?");
+        $orderInsertStmt = $pdo->prepare("
+            INSERT INTO orders (
+                invoice_no, transaction_id, customer_name, customer_phone,
+                payment_method, status, notes, discount, admin_fee,
+                packaging_cost, other_expense, total, created_at, updated_at
+            ) VALUES (
+                :invoice_no, :transaction_id, :customer_name, :customer_phone,
+                :payment_method, :status, :notes, :discount, :admin_fee,
+                :packaging_cost, :other_expense, :total, :created_at, :updated_at
+            )
+        ");
+        $itemInsertStmt = $pdo->prepare("
+            INSERT INTO order_items (
+                order_id, invoice_no, product_id, product_name, category,
+                base_price, unit_price, qty, options_text, item_note, subtotal
+            ) VALUES (
+                :order_id, :invoice_no, :product_id, :product_name, :category,
+                :base_price, :unit_price, :qty, :options_text, :item_note, :subtotal
+            )
+        ");
+
+        $inserted = 0;
+        $skipped = 0;
+
+        foreach ($rawOrders as $o) {
+            $inv = trim($o['invoiceNo'] ?? '');
+            if (empty($inv)) continue;
+
+            $checkStmt->execute([$inv]);
+            if ($checkStmt->fetchColumn()) {
+                $skipped++;
+                continue;
+            }
+
+            $rawDate = $o['date'] ?? '';
+            $createdAt = date('Y-m-d H:i:s');
+            if (!empty($rawDate)) {
+                $ts = strtotime($rawDate);
+                if ($ts !== false) $createdAt = date('Y-m-d H:i:s', $ts);
+            }
+
+            $txId     = trim($o['transactionId'] ?? '') ?: ('TX-' . $inv);
+            $custName = trim($o['customerName'] ?? '-') ?: '-';
+            $custPhone= trim($o['customerPhone'] ?? '-') ?: '-';
+            $payMethod= trim($o['paymentMethod'] ?? 'QRIS') ?: 'QRIS';
+            $status   = trim($o['status'] ?? 'Completed') ?: 'Completed';
+            $notes    = trim($o['notes'] ?? '');
+            $discount = (float)($o['discount'] ?? 0);
+            $total    = (float)($o['netSales'] ?? $o['grossSales'] ?? $o['total'] ?? 0);
+
+            try {
+                $pdo->beginTransaction();
+                $orderInsertStmt->execute([
+                    ':invoice_no'     => $inv,
+                    ':transaction_id' => $txId,
+                    ':customer_name'  => $custName,
+                    ':customer_phone' => $custPhone,
+                    ':payment_method' => $payMethod,
+                    ':status'         => $status,
+                    ':notes'          => $notes,
+                    ':discount'       => $discount,
+                    ':admin_fee'      => 0,
+                    ':packaging_cost' => 0,
+                    ':other_expense'  => 0,
+                    ':total'          => $total,
+                    ':created_at'     => $createdAt,
+                    ':updated_at'     => $createdAt
+                ]);
+
+                $orderId = (int)$pdo->lastInsertId();
+
+                $items = $o['items'] ?? [];
+                foreach ($items as $it) {
+                    $itemName = trim($it['name'] ?? $it['productName'] ?? 'Menu');
+                    $norm = strtolower($itemName);
+
+                    $productId = null;
+                    $category  = 'Menu';
+                    if (isset($productMap[$norm])) {
+                        $productId = $productMap[$norm]['id'];
+                        $category  = $productMap[$norm]['category'];
+                    }
+
+                    $qty       = max(1, (int)($it['qty'] ?? 1));
+                    $unitPrice = (float)($it['unitPrice'] ?? $it['price'] ?? 0);
+                    $subtotal  = (float)($it['subtotal'] ?? ($unitPrice * $qty));
+
+                    $itemInsertStmt->execute([
+                        ':order_id'     => $orderId,
+                        ':invoice_no'   => $inv,
+                        ':product_id'   => $productId,
+                        ':product_name' => $itemName,
+                        ':category'     => $category,
+                        ':base_price'   => $unitPrice,
+                        ':unit_price'   => $unitPrice,
+                        ':qty'          => $qty,
+                        ':options_text' => trim($it['optionsText'] ?? ''),
+                        ':item_note'    => trim($it['itemNote'] ?? ''),
+                        ':subtotal'     => $subtotal
+                    ]);
+                }
+
+                $pdo->commit();
+                $inserted++;
+            } catch (Exception $e) {
+                $pdo->rollBack();
+            }
+        }
+
+        $totalDbOrders = (int)$pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
+
+        jsonSuccess([
+            'message'       => "Sinkronisasi selesai: $inserted pesanan baru dimasukkan, $skipped pesanan dilewati (sudah ada).",
+            'inserted'      => $inserted,
+            'skipped'       => $skipped,
+            'totalInDb'     => $totalDbOrders
         ]);
         break;
 

@@ -567,6 +567,29 @@
           </p>
         </div>
 
+        <!-- Sinkronisasi Data Penjualan Spreadsheet -->
+        <div class="panel settings-card" style="border: 1px solid rgba(197, 155, 98, 0.4); background: #fffcf8;">
+          <div class="panel-title" style="color: var(--coffee);">
+            <i class="fa-solid fa-file-excel"></i> Sinkronisasi Penjualan Lama (Google Spreadsheet)
+          </div>
+          <p style="font-size: 13px; line-height: 1.6; color: #795d48; margin-bottom: 16px;">
+            Impor atau sinkronkan data riwayat transaksi penjualan lama dari sheet <b>Penjualan</b> di Google Sheets ke database MySQL lokal. Data yang sudah pernah dimasukkan tidak akan terduplikasi.
+          </p>
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label for="spreadsheet-sync-url">URL Google Apps Script Penjualan</label>
+            <input type="text" id="spreadsheet-sync-url" class="form-control" value="https://script.google.com/macros/s/AKfycbw2uB1SnBD5T-IXMb25qCMtnFLFUBkYtBKWr4I_hlSC6ez5r-2D00hmIFuA2eZ0f19cgg/exec" placeholder="https://script.google.com/macros/s/.../exec">
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: var(--cream); padding: 14px 18px; border-radius: 14px; border: 1px solid var(--border);">
+            <div>
+              <div style="font-size: 13px; font-weight: 800; color: var(--coffee);">Tarik Riwayat Penjualan Google Sheets</div>
+              <div style="font-size: 11px; color: #8c7365; margin-top: 2px;">Menyinkronkan semua invoice, item pesanan, dan tanggal transaksi lama.</div>
+            </div>
+            <button type="button" class="btn btn-primary" id="btnSyncSpreadsheet" onclick="syncSpreadsheetSales()">
+              <i class="fa-solid fa-cloud-arrow-down"></i> Tarik Data Penjualan
+            </button>
+          </div>
+        </div>
+
         <!-- Danger Zone: Reset Transaksi -->
         <div class="panel settings-card" style="border: 1px solid rgba(173, 61, 43, 0.4); background: #fffcfb;">
           <div class="panel-title" style="color: var(--danger);">

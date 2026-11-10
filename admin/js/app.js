@@ -96,6 +96,31 @@
       }
     }
 
+    // ---------------- SYNC HISTORICAL SALES FROM GOOGLE SPREADSHEET ----------------
+    async function syncSpreadsheetSales() {
+      const btn = document.getElementById('btnSyncSpreadsheet');
+      const scriptUrl = document.getElementById('spreadsheet-sync-url')?.value.trim();
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...';
+      }
+
+      try {
+        const res = await apiPost('importspreadsheetsales', { scriptUrl: scriptUrl });
+        showToast(res.message || 'Sinkronisasi berhasil!');
+        await reloadData();
+      } catch (err) {
+        console.error('Sync failed:', err);
+        alert('Gagal menyinkronkan data: ' + (err.message || 'Error server'));
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Tarik Data Penjualan';
+        }
+      }
+    }
+
     function startApp() {
       // Restore sidebar collapsed preference on desktop
       if (window.innerWidth > 768) {
