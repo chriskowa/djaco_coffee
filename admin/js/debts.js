@@ -6,6 +6,7 @@ let activeHistoryDebtId = null;
 
 // Render Debt List & Summary KPIs
 function renderDebtsList() {
+  const debtData = window.debts || debts || [];
   const q = (document.getElementById('debtSearch')?.value || '').toLowerCase().trim();
   const statusFilter = document.getElementById('debtStatusFilter')?.value || 'Semua';
   const tbody = document.getElementById('debtsTableBody');
@@ -14,7 +15,7 @@ function renderDebtsList() {
   if (!tbody) return;
 
   // Filter list
-  const filtered = debts.filter(d => {
+  const filtered = debtData.filter(d => {
     const matchQ = (d.creditorName || '').toLowerCase().includes(q) ||
                    (d.debtNo || '').toLowerCase().includes(q) ||
                    (d.notes || '').toLowerCase().includes(q);
@@ -26,12 +27,12 @@ function renderDebtsList() {
   });
 
   // Calculate totals
-  const totalLoan = debts.reduce((sum, d) => sum + Number(d.loanAmount || 0), 0);
-  const totalPaid = debts.reduce((sum, d) => sum + Number(d.totalPaid || 0), 0);
+  const totalLoan = debtData.reduce((sum, d) => sum + Number(d.loanAmount || 0), 0);
+  const totalPaid = debtData.reduce((sum, d) => sum + Number(d.totalPaid || 0), 0);
   const totalRemaining = Math.max(0, totalLoan - totalPaid);
   const progressPct = totalLoan > 0 ? ((totalPaid / totalLoan) * 100).toFixed(1) : 0;
-  const activeCount = debts.filter(d => (d.status || '').toLowerCase() !== 'paid off' && Number(d.remainingBalance) > 0).length;
-  const paidCount = debts.length - activeCount;
+  const activeCount = debtData.filter(d => (d.status || '').toLowerCase() !== 'paid off' && Number(d.remainingBalance) > 0).length;
+  const paidCount = debtData.length - activeCount;
 
   // Update KPI Cards
   const statLoan = document.getElementById('stat-total-debt');
@@ -179,6 +180,7 @@ async function saveDebtForm(event) {
     showToast('Data pinjaman modal berhasil disimpan!');
     closeDebtModal();
     await reloadData();
+    renderDebtsList();
   } catch (err) {
     console.error(err);
     showToast(err.message || 'Gagal menyimpan pinjaman', true);
@@ -194,6 +196,7 @@ async function deleteDebt(id) {
     await apiPost('deletedebt', { id });
     showToast('Data pinjaman berhasil dihapus');
     await reloadData();
+    renderDebtsList();
   } catch (err) {
     console.error(err);
     showToast(err.message || 'Gagal menghapus pinjaman', true);
@@ -247,6 +250,7 @@ async function saveDebtPaymentForm(event) {
     showToast(`Cicilan sebesar ${rupiah(payload.amount)} berhasil dicatat!`);
     closeDebtPaymentModal();
     await reloadData();
+    renderDebtsList();
 
     // If history modal is currently open for this debt, refresh it
     if (activeHistoryDebtId === payload.debtId) {
@@ -264,7 +268,8 @@ async function saveDebtPaymentForm(event) {
 // ---------------- DEBT HISTORY MODAL ----------------
 function openDebtHistoryModal(debtId) {
   activeHistoryDebtId = debtId;
-  const d = debts.find(x => x.id === Number(debtId));
+  const debtData = window.debts || debts || [];
+  const d = debtData.find(x => x.id === Number(debtId));
   if (!d) return;
 
   const modal = document.getElementById('debtHistoryModalOverlay');
@@ -286,7 +291,7 @@ function openDebtHistoryModal(debtId) {
   const payments = d.payments || [];
 
   if (payments.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:25px; color:#8c7365;">Belum ada riwayat cicilan yang dibayarkan untuk pinjaman ini.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:25px; color:#8c7365;">Belum ada riwayat cicilan yang dibayarkan untuk pinjaman ini.</td></tr>`;
   } else {
     tbody.innerHTML = payments.map((p, idx) => `
       <tr style="border-bottom:1px solid #ead7ba;">
@@ -319,9 +324,11 @@ async function deleteDebtPayment(paymentId, debtId) {
     await apiPost('deletedebtpayment', { id: paymentId });
     showToast('Catatan cicilan berhasil dihapus');
     await reloadData();
+    renderDebtsList();
     openDebtHistoryModal(debtId);
   } catch (err) {
     console.error(err);
     showToast(err.message || 'Gagal menghapus cicilan', true);
   }
 }
+

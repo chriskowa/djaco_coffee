@@ -188,7 +188,9 @@
         ingredients = data.ingredients || [];
         expenses = data.expenses || [];
         debts = data.debts || [];
+        window.debts = debts;
         debtSummary = data.debtSummary || null;
+        window.debtSummary = debtSummary;
         recipes = data.recipes || [];
         reports = data.reports;
         orders = data.orders || [];
