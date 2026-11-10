@@ -1,40 +1,25 @@
-name: Deploy to Shared Hosting (cPanel)
+name: Deploy to DomaiNesia
 
 on:
   push:
     branches:
-      - main
+      - main  # Branch yang dipantau untuk perubahan
 
 jobs:
-  web-deploy:
-    name: Sync to cPanel via FTP
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🚚 Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
-      - name: 🚀 Sync Files to Shared Hosting
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: ${{ secrets.FTP_PORT || 21 }}
-          protocol: ftp
-          # Arahkan ke root direktori domain Anda di cPanel
-          server-dir: /public_html/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github*
-            **/.github*/**
-            **/lama/**
-            **/seed_data.json
-            **/generate_sql.php
-            **/node_modules/**
-            **/tests/**
-            **/*.md
-
+          host: ${{ secrets.SSH_HOST }}        # Host IP DomaiNesia (misal: 36.50.77.81)
+          username: ${{ secrets.SSH_USER }}    # Username cPanel DomaiNesia (misal: ruangdid)
+          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Private key dari GitHub Secrets
+          port: ${{ secrets.SSH_PORT || 64000 }} # Port SSH DomaiNesia (default: 64000)
+          script: |
+            cd /home/ruangdid/djaco.web.id
+            git pull origin main
