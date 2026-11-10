@@ -168,6 +168,9 @@ async function loadFinancialReports() {
     // 5. Operating Expenses Table
     renderReportExpensesBreakdown(data.expensesByCategory || [], Number(data.financialSummary?.totalExpenses || 0));
 
+    // 6. Debts & Installments Position & Cashflow
+    renderReportDebtSection(data.debtReport || {}, data.financialSummary || {});
+
   } catch (err) {
     console.error('Failed to load financial reports:', err);
     if (activeText) activeText.innerText = 'Gagal memuat laporan: ' + (err.message || 'Error API');
@@ -491,6 +494,96 @@ function renderReportExpensesBreakdown(expensesByCategory, totalExpenses) {
   }).join('');
 }
 
+// 7B. Render Debt Position & Period Installments Section
+function renderReportDebtSection(debtReport = {}, finSummary = {}) {
+  const totalLoan = Number(debtReport.totalLoan || 0);
+  const totalPaid = Number(debtReport.totalPaid || 0);
+  const remaining = Number(debtReport.remainingBalance || 0);
+  const periodPaid = Number(debtReport.periodPaymentsTotal || 0);
+  const netProfit = Number(finSummary.netProfit || 0);
+  const freeCashflow = netProfit - periodPaid;
+
+  // KPI elements
+  const elLoan = document.getElementById('rep-total-debt');
+  const elPaid = document.getElementById('rep-total-debt-paid');
+  const elRem = document.getElementById('rep-total-debt-remaining');
+  const elPeriodPaid = document.getElementById('rep-period-debt-paid');
+
+  if (elLoan) elLoan.innerText = rupiah(totalLoan);
+  if (elPaid) elPaid.innerText = rupiah(totalPaid);
+  if (elRem) elRem.innerText = rupiah(remaining);
+  if (elPeriodPaid) elPeriodPaid.innerText = rupiah(periodPaid);
+
+  // Free Cashflow Insight box
+  const elCfNetProfit = document.getElementById('rep-cf-net-profit');
+  const elCfDebtPaid = document.getElementById('rep-cf-debt-paid');
+  const elCfFree = document.getElementById('rep-cf-free-cashflow');
+  const elCfStatus = document.getElementById('rep-cf-status-badge');
+
+  if (elCfNetProfit) elCfNetProfit.innerText = rupiah(netProfit);
+  if (elCfDebtPaid) elCfDebtPaid.innerText = rupiah(periodPaid);
+  if (elCfFree) {
+    elCfFree.innerText = rupiah(freeCashflow);
+    elCfFree.style.color = freeCashflow >= 0 ? 'var(--success)' : 'var(--danger)';
+  }
+  if (elCfStatus) {
+    if (periodPaid === 0 && totalLoan === 0) {
+      elCfStatus.innerHTML = `<span class="badge" style="background:#efe0c8; color:#6b4329;"><i class="fa-solid fa-circle-info"></i> Tidak Ada Cicilan</span>`;
+    } else if (freeCashflow >= 0) {
+      elCfStatus.innerHTML = `<span class="badge" style="background:#16a34a; color:#fff;"><i class="fa-solid fa-circle-check"></i> Cash Flow Sehat (Laba menutup cicilan)</span>`;
+    } else {
+      elCfStatus.innerHTML = `<span class="badge" style="background:#ef4444; color:#fff;"><i class="fa-solid fa-triangle-exclamation"></i> Defisit Kas (Cicilan melebihi laba toko)</span>`;
+    }
+  }
+
+  // 1. Debt Status Table
+  const debtTbody = document.getElementById('reportDebtsTableBody');
+  const debtsList = debtReport.debtsList || [];
+  if (debtTbody) {
+    if (debtsList.length === 0) {
+      debtTbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #927568; padding: 20px;">Tidak ada data pinjaman modal usaha.</td></tr>`;
+    } else {
+      debtTbody.innerHTML = debtsList.map(d => {
+        const isPaid = (d.status || '').toLowerCase() === 'paid off' || (Number(d.loanAmount) > 0 && Number(d.remainingBalance) <= 0);
+        const statusBadge = isPaid
+          ? `<span class="badge" style="background:#16a34a; color:#fff; font-size:10px;"><i class="fa-solid fa-circle-check"></i> Lunas</span>`
+          : `<span class="badge" style="background:#d97706; color:#fff; font-size:10px;"><i class="fa-solid fa-clock"></i> Aktif</span>`;
+        return `
+          <tr>
+            <td><b style="color:var(--coffee);">${esc(d.creditorName)}</b><br><small style="color:#8c7365;">${esc(d.debtNo)}</small></td>
+            <td style="white-space:nowrap;">${esc(d.loanDate)}</td>
+            <td style="text-align:right; font-weight:700;">${rupiah(d.loanAmount)}</td>
+            <td style="text-align:right; font-weight:700; color:var(--success);">${rupiah(d.totalPaid)}</td>
+            <td style="text-align:right; font-weight:700; color:${d.remainingBalance > 0 ? 'var(--danger)' : '#16a34a'};">${rupiah(d.remainingBalance)}</td>
+            <td style="text-align:center;">${d.progressPct || 0}%</td>
+            <td style="text-align:center;">${statusBadge}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+  }
+
+  // 2. Period Payments Table
+  const payTbody = document.getElementById('reportPeriodPaymentsBody');
+  const periodPayments = debtReport.periodPayments || [];
+  if (payTbody) {
+    if (periodPayments.length === 0) {
+      payTbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #927568; padding: 20px;">Tidak ada pembayaran cicilan hutang pada periode ini.</td></tr>`;
+    } else {
+      payTbody.innerHTML = periodPayments.map((p, idx) => `
+        <tr>
+          <td style="text-align:center; color:#8c7365;">${idx + 1}</td>
+          <td style="white-space:nowrap;">${esc(p.paymentDate)}</td>
+          <td><code>${esc(p.paymentNo)}</code></td>
+          <td><b>${esc(p.creditorName)}</b></td>
+          <td style="text-align:right; font-weight:700; color:var(--success);">${rupiah(p.amount)}</td>
+          <td><span class="badge" style="background:#efe0c8; color:#6b4329; font-size:10px;">${esc(p.paymentMethod)}</span> ${esc(p.notes || '')}</td>
+        </tr>
+      `).join('');
+    }
+  }
+}
+
 // 8. Download Clean CSV / Excel Report
 function downloadReportsCSV() {
   if (!currentReportData) {
@@ -541,6 +634,26 @@ function downloadReportsCSV() {
   expenses.forEach(e => {
     csv += `"${e.category}";${e.count};${e.amount}\n`;
   });
+  csv += '\n';
+
+  // Section 5: Debt Position & Installments
+  const debt = currentReportData.debtReport || {};
+  csv += '=== LAPORAN LIABILITAS & HUTANG MODAL USAHA ===\n';
+  csv += `Komponen;Nominal (Rp);Keterangan\n`;
+  csv += `Total Plafon Pinjaman;${debt.totalLoan || 0};Pokok Pinjaman Modal Awal\n`;
+  csv += `Total Sudah Dicicil;${debt.totalPaid || 0};Akumulasi Semua Setoran\n`;
+  csv += `Sisa Hutang Berjalan;${debt.remainingBalance || 0};Kewajiban Belum Terbayar\n`;
+  csv += `Cicilan Dibayar di Periode Ini;${debt.periodPaymentsTotal || 0};Setoran Periode Terpilih\n`;
+  csv += `Arus Kas Bersih (Free Cashflow);${fin.freeCashflow || 0};Laba Bersih - Cicilan Periode Ini\n\n`;
+
+  if (Array.isArray(debt.periodPayments) && debt.periodPayments.length > 0) {
+    csv += '=== RINCIAN PEMBAYARAN CICILAN PERIODE INI ===\n';
+    csv += 'Tanggal;No Bukti;Kreditur;Nominal (Rp);Metode Bayar;Catatan\n';
+    debt.periodPayments.forEach(p => {
+      csv += `"${p.paymentDate}";"${p.paymentNo}";"${p.creditorName}";${p.amount};"${p.paymentMethod}";"${(p.notes || '').replace(/;/g, ',')}"\n`;
+    });
+    csv += '\n';
+  }
 
   // Trigger file download
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

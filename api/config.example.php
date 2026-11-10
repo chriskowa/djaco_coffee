@@ -140,3 +140,4 @@ function requireAuth($pdo, $requiredRole = null) {
 
     return $user;
 }
+

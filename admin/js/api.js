@@ -187,6 +187,8 @@
         productOptions = data.options || [];
         ingredients = data.ingredients || [];
         expenses = data.expenses || [];
+        debts = data.debts || [];
+        debtSummary = data.debtSummary || null;
         recipes = data.recipes || [];
         reports = data.reports;
         orders = data.orders || [];
@@ -205,6 +207,8 @@
           renderIngredientsGrid();
         } else if (activeTab === 'expenses') {
           renderExpensesList();
+        } else if (activeTab === 'debts') {
+          renderDebtsList();
         }
 
         listeningDot.style.opacity = '1';

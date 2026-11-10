@@ -14,6 +14,8 @@
     let orders = [];
     let ingredients = [];
     let expenses = [];
+    let debts = [];
+    let debtSummary = null;
     let recipes = [];
     let activeRecipeProductId = null;
     let localRecipeItems = [];
@@ -190,6 +192,7 @@
         'products': 'Kelola Database Produk',
         'ingredients': 'Master Bahan Baku & Kalkulator HPP',
         'expenses': 'Beban & Pengeluaran Operasional',
+        'debts': 'Manajemen Hutang & Cicilan Modal',
         'reports': 'Laporan Keuangan & Penjualan Lengkap',
         'settings': 'Pengaturan Dashboard'
       };
@@ -225,6 +228,10 @@
         renderIngredientsGrid();
       } else if (tabId === 'expenses') {
         renderExpensesList();
+      } else if (tabId === 'debts') {
+        if (typeof renderDebtsList === 'function') {
+          renderDebtsList();
+        }
       } else if (tabId === 'reports') {
         if (typeof renderReportsModule === 'function') {
           renderReportsModule();

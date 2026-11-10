@@ -8,8 +8,52 @@ require_once __DIR__ . '/config.php';
 
 $pdo = getDbConnection();
 
+// Ensure debt tables exist
+function ensureDebtTablesExist($pdo) {
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+    try {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS `debts` (
+              `id` int(11) NOT NULL AUTO_INCREMENT,
+              `debt_no` varchar(50) NOT NULL UNIQUE,
+              `creditor_name` varchar(150) NOT NULL,
+              `loan_amount` decimal(14,2) NOT NULL DEFAULT 0.00,
+              `loan_date` date NOT NULL,
+              `due_date` date DEFAULT NULL,
+              `tenor_months` int(11) DEFAULT 0,
+              `interest_rate` decimal(6,2) NOT NULL DEFAULT 0.00,
+              `notes` text DEFAULT NULL,
+              `status` varchar(30) NOT NULL DEFAULT 'Active',
+              `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+              `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`),
+              KEY `idx_status` (`status`),
+              KEY `idx_loan_date` (`loan_date`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+            CREATE TABLE IF NOT EXISTS `debt_payments` (
+              `id` int(11) NOT NULL AUTO_INCREMENT,
+              `debt_id` int(11) NOT NULL,
+              `payment_no` varchar(50) NOT NULL UNIQUE,
+              `payment_date` date NOT NULL,
+              `amount` decimal(14,2) NOT NULL DEFAULT 0.00,
+              `payment_method` varchar(50) NOT NULL DEFAULT 'Transfer Bank',
+              `notes` text DEFAULT NULL,
+              `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`),
+              KEY `idx_debt_id` (`debt_id`),
+              KEY `idx_payment_date` (`payment_date`),
+              CONSTRAINT `fk_debt_payments_debt` FOREIGN KEY (`debt_id`) REFERENCES `debts` (`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        ");
+    } catch (Exception $e) {}
+}
+ensureDebtTablesExist($pdo);
+
 // Read input method & parameters
-$method = $_SERVER['REQUEST_METHOD'];
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $action = $_GET['action'] ?? '';
 
 // Support JSON POST body or form-data
@@ -437,6 +481,97 @@ switch ($action) {
         $mGross = $mSales - $monthCogs;
         $mNet = $mGross - $monthExp;
 
+        // Debts and repayments
+        $debtsStmt = $pdo->query("
+            SELECT 
+                d.id, d.debt_no, d.creditor_name, 
+                CAST(d.loan_amount AS DECIMAL(14,2)) as loan_amount, 
+                d.loan_date, d.due_date, d.tenor_months, 
+                CAST(d.interest_rate AS DECIMAL(6,2)) as interest_rate, 
+                d.notes, d.status, d.created_at,
+                COALESCE(SUM(dp.amount), 0) as total_paid,
+                MAX(dp.payment_date) as last_payment_date,
+                COUNT(dp.id) as payment_count
+            FROM debts d
+            LEFT JOIN debt_payments dp ON d.id = dp.debt_id
+            GROUP BY d.id
+            ORDER BY d.loan_date DESC, d.id DESC
+        ");
+        $rawDebts = $debtsStmt->fetchAll();
+
+        $debtIds = array_column($rawDebts, 'id');
+        $paymentsByDebtId = [];
+        if (!empty($debtIds)) {
+            $inDebts = implode(',', array_map('intval', $debtIds));
+            $dpStmt = $pdo->query("
+                SELECT id, debt_id, payment_no, payment_date, 
+                       CAST(amount AS DECIMAL(14,2)) as amount, 
+                       payment_method, notes, created_at
+                FROM debt_payments 
+                WHERE debt_id IN ($inDebts)
+                ORDER BY payment_date DESC, id DESC
+            ");
+            while ($p = $dpStmt->fetch()) {
+                $paymentsByDebtId[$p['debt_id']][] = [
+                    'id'            => (int)$p['id'],
+                    'debtId'        => (int)$p['debt_id'],
+                    'paymentNo'     => (string)$p['payment_no'],
+                    'paymentDate'   => (string)$p['payment_date'],
+                    'amount'        => (float)$p['amount'],
+                    'paymentMethod' => (string)$p['payment_method'],
+                    'notes'         => (string)($p['notes'] ?? ''),
+                    'createdAt'     => (string)$p['created_at']
+                ];
+            }
+        }
+
+        $totalLoanSum = 0;
+        $totalPaidSum = 0;
+        $activeDebtCount = 0;
+        $paidDebtCount = 0;
+
+        $debts = array_map(function($d) use (&$totalLoanSum, &$totalPaidSum, &$activeDebtCount, &$paidDebtCount, $paymentsByDebtId) {
+            $loanAmt = (float)$d['loan_amount'];
+            $paidAmt = (float)$d['total_paid'];
+            $remaining = max(0, $loanAmt - $paidAmt);
+            $totalLoanSum += $loanAmt;
+            $totalPaidSum += $paidAmt;
+            if (strtolower($d['status']) === 'paid off' || ($loanAmt > 0 && $remaining <= 0)) {
+                $paidDebtCount++;
+            } else {
+                $activeDebtCount++;
+            }
+
+            return [
+                'id'              => (int)$d['id'],
+                'debtNo'          => (string)$d['debt_no'],
+                'creditorName'    => (string)$d['creditor_name'],
+                'loanAmount'      => $loanAmt,
+                'loanDate'        => (string)$d['loan_date'],
+                'dueDate'         => (string)($d['due_date'] ?? ''),
+                'tenorMonths'     => (int)$d['tenor_months'],
+                'interestRate'    => (float)$d['interest_rate'],
+                'notes'           => (string)($d['notes'] ?? ''),
+                'status'          => (string)$d['status'],
+                'totalPaid'       => $paidAmt,
+                'remainingBalance'=> $remaining,
+                'progressPct'     => $loanAmt > 0 ? round(($paidAmt / $loanAmt) * 100, 1) : 0,
+                'lastPaymentDate' => (string)($d['last_payment_date'] ?? ''),
+                'paymentCount'    => (int)$d['payment_count'],
+                'payments'        => $paymentsByDebtId[$d['id']] ?? [],
+                'createdAt'       => (string)$d['created_at']
+            ];
+        }, $rawDebts);
+
+        $debtSummary = [
+            'totalLoan'        => $totalLoanSum,
+            'totalPaid'        => $totalPaidSum,
+            'remainingBalance' => max(0, $totalLoanSum - $totalPaidSum),
+            'progressPct'      => $totalLoanSum > 0 ? round(($totalPaidSum / $totalLoanSum) * 100, 1) : 0,
+            'activeCount'      => $activeDebtCount,
+            'paidCount'        => $paidDebtCount
+        ];
+
         jsonSuccess([
             'products'    => $products,
             'options'     => $options,
@@ -444,6 +579,8 @@ switch ($action) {
             'ingredients' => $ingredients,
             'expenses'    => $expenses,
             'recipes'     => $recipes,
+            'debts'       => $debts,
+            'debtSummary' => $debtSummary,
             'reports'     => [
                 'todaySales'          => (float)$stats['todaySales'],
                 'todayOrders'         => (int)$stats['todayOrders'],
@@ -1499,6 +1636,174 @@ switch ($action) {
         jsonSuccess(['message' => 'Pengeluaran berhasil dihapus']);
         break;
 
+    // ---------------------------------------------------------
+    // 13B. DEBTS & REPAYMENTS (MANAJEMEN HUTANG & CICILAN MODAL)
+    // ---------------------------------------------------------
+    case 'savedebt':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+
+        $id           = (int)($input['id'] ?? 0);
+        $creditorName = trim($input['creditorName'] ?? '');
+        $loanAmount   = (float)($input['loanAmount'] ?? 0);
+        $loanDate     = trim($input['loanDate'] ?? '') ?: date('Y-m-d');
+        $dueDate      = trim($input['dueDate'] ?? '') ?: null;
+        $tenorMonths  = (int)($input['tenorMonths'] ?? 0);
+        $interestRate = (float)($input['interestRate'] ?? 0);
+        $notes        = trim($input['notes'] ?? '');
+        $status       = trim($input['status'] ?? 'Active');
+
+        if (empty($creditorName)) jsonError('Nama kreditur / pemberi pinjaman wajib diisi');
+        if ($loanAmount <= 0) jsonError('Nominal pokok pinjaman harus lebih besar dari 0');
+
+        if ($id > 0) {
+            $stmt = $pdo->prepare("
+                UPDATE debts 
+                SET creditor_name = :creditor_name, loan_amount = :loan_amount, 
+                    loan_date = :loan_date, due_date = :due_date, tenor_months = :tenor_months, 
+                    interest_rate = :interest_rate, notes = :notes, status = :status
+                WHERE id = :id
+            ");
+            $stmt->execute([
+                ':creditor_name' => $creditorName,
+                ':loan_amount'   => $loanAmount,
+                ':loan_date'     => $loanDate,
+                ':due_date'      => $dueDate,
+                ':tenor_months'  => $tenorMonths,
+                ':interest_rate' => $interestRate,
+                ':notes'         => $notes,
+                ':status'        => $status,
+                ':id'            => $id
+            ]);
+        } else {
+            $debtNo = 'DBT-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
+            $stmt = $pdo->prepare("
+                INSERT INTO debts (debt_no, creditor_name, loan_amount, loan_date, due_date, tenor_months, interest_rate, notes, status)
+                VALUES (:debt_no, :creditor_name, :loan_amount, :loan_date, :due_date, :tenor_months, :interest_rate, :notes, :status)
+            ");
+            $stmt->execute([
+                ':debt_no'       => $debtNo,
+                ':creditor_name' => $creditorName,
+                ':loan_amount'   => $loanAmount,
+                ':loan_date'     => $loanDate,
+                ':due_date'      => $dueDate,
+                ':tenor_months'  => $tenorMonths,
+                ':interest_rate' => $interestRate,
+                ':notes'         => $notes,
+                ':status'        => $status
+            ]);
+            $id = (int)$pdo->lastInsertId();
+        }
+
+        jsonSuccess(['message' => 'Data pinjaman berhasil disimpan', 'id' => $id]);
+        break;
+
+    case 'deletedebt':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+        $id = (int)($input['id'] ?? 0);
+        if ($id <= 0) jsonError('ID pinjaman tidak valid');
+
+        $stmt = $pdo->prepare("DELETE FROM debts WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        jsonSuccess(['message' => 'Data pinjaman berhasil dihapus']);
+        break;
+
+    case 'savedebtpayment':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+
+        $id            = (int)($input['id'] ?? 0);
+        $debtId        = (int)($input['debtId'] ?? 0);
+        $paymentDate   = trim($input['paymentDate'] ?? '') ?: date('Y-m-d');
+        $amount        = (float)($input['amount'] ?? 0);
+        $paymentMethod = trim($input['paymentMethod'] ?? 'Transfer Bank');
+        $notes         = trim($input['notes'] ?? '');
+
+        if ($debtId <= 0) jsonError('Pilih pinjaman yang akan dicicil');
+        if ($amount <= 0) jsonError('Nominal pembayaran cicilan harus lebih besar dari 0');
+
+        $debtStmt = $pdo->prepare("SELECT id, loan_amount, creditor_name FROM debts WHERE id = :id");
+        $debtStmt->execute([':id' => $debtId]);
+        $debt = $debtStmt->fetch();
+        if (!$debt) jsonError('Data pinjaman tidak ditemukan');
+
+        if ($id > 0) {
+            $stmt = $pdo->prepare("
+                UPDATE debt_payments 
+                SET payment_date = :payment_date, amount = :amount, 
+                    payment_method = :payment_method, notes = :notes
+                WHERE id = :id AND debt_id = :debt_id
+            ");
+            $stmt->execute([
+                ':payment_date'   => $paymentDate,
+                ':amount'         => $amount,
+                ':payment_method' => $paymentMethod,
+                ':notes'          => $notes,
+                ':id'             => $id,
+                ':debt_id'        => $debtId
+            ]);
+        } else {
+            $paymentNo = 'PAY-DBT-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
+            $stmt = $pdo->prepare("
+                INSERT INTO debt_payments (debt_id, payment_no, payment_date, amount, payment_method, notes)
+                VALUES (:debt_id, :payment_no, :payment_date, :amount, :payment_method, :notes)
+            ");
+            $stmt->execute([
+                ':debt_id'        => $debtId,
+                ':payment_no'     => $paymentNo,
+                ':payment_date'   => $paymentDate,
+                ':amount'         => $amount,
+                ':payment_method' => $paymentMethod,
+                ':notes'          => $notes
+            ]);
+            $id = (int)$pdo->lastInsertId();
+        }
+
+        // Auto-update status hutang jika sudah lunas
+        $totalPaidStmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) FROM debt_payments WHERE debt_id = :debt_id");
+        $totalPaidStmt->execute([':debt_id' => $debtId]);
+        $totalPaid = (float)$totalPaidStmt->fetchColumn();
+
+        $newStatus = ($totalPaid >= (float)$debt['loan_amount']) ? 'Paid Off' : 'Active';
+        $updDebt = $pdo->prepare("UPDATE debts SET status = :status WHERE id = :id");
+        $updDebt->execute([':status' => $newStatus, ':id' => $debtId]);
+
+        jsonSuccess([
+            'message'    => 'Pembayaran cicilan berhasil dicatat',
+            'id'         => $id,
+            'debtId'     => $debtId,
+            'totalPaid'  => $totalPaid,
+            'remaining'  => max(0, (float)$debt['loan_amount'] - $totalPaid),
+            'debtStatus' => $newStatus
+        ]);
+        break;
+
+    case 'deletedebtpayment':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+        $id = (int)($input['id'] ?? 0);
+        if ($id <= 0) jsonError('ID cicilan tidak valid');
+
+        $pStmt = $pdo->prepare("SELECT debt_id FROM debt_payments WHERE id = :id");
+        $pStmt->execute([':id' => $id]);
+        $debtId = (int)$pStmt->fetchColumn();
+
+        $stmt = $pdo->prepare("DELETE FROM debt_payments WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+
+        if ($debtId > 0) {
+            $debt = $pdo->query("SELECT loan_amount FROM debts WHERE id = $debtId")->fetch();
+            if ($debt) {
+                $totalPaid = (float)$pdo->query("SELECT COALESCE(SUM(amount), 0) FROM debt_payments WHERE debt_id = $debtId")->fetchColumn();
+                $newStatus = ($totalPaid >= (float)$debt['loan_amount']) ? 'Paid Off' : 'Active';
+                $pdo->prepare("UPDATE debts SET status = :status WHERE id = :id")->execute([':status' => $newStatus, ':id' => $debtId]);
+            }
+        }
+
+        jsonSuccess(['message' => 'Catatan cicilan berhasil dihapus']);
+        break;
+
     case 'resettransactions':
         if ($method !== 'POST') jsonError('Method POST required', 405);
         $currentUser = requireAuth($pdo, 'admin');
@@ -1691,23 +1996,104 @@ switch ($action) {
         $netProfit = $grossProfit - $totalExpenses;
         $netMarginPct = $netSales > 0 ? round(($netProfit / $netSales) * 100, 1) : 0;
 
+        // 7. Debts and Repayments in Report Period
+        $periodPaymentsStmt = $pdo->prepare("
+            SELECT 
+                dp.id, dp.debt_id, dp.payment_no, dp.payment_date, 
+                CAST(dp.amount AS DECIMAL(14,2)) as amount, 
+                dp.payment_method, dp.notes,
+                d.creditor_name, d.debt_no
+            FROM debt_payments dp
+            JOIN debts d ON dp.debt_id = d.id
+            WHERE dp.payment_date BETWEEN :start_date AND :end_date
+            ORDER BY dp.payment_date DESC, dp.id DESC
+        ");
+        $periodPaymentsStmt->execute([':start_date' => $startDate, ':end_date' => $endDate]);
+        $rawPeriodPayments = $periodPaymentsStmt->fetchAll();
+        $periodPaymentsTotal = 0;
+        $periodPayments = array_map(function($p) use (&$periodPaymentsTotal) {
+            $amt = (float)$p['amount'];
+            $periodPaymentsTotal += $amt;
+            return [
+                'id'            => (int)$p['id'],
+                'debtId'        => (int)$p['debt_id'],
+                'debtNo'        => (string)$p['debt_no'],
+                'creditorName'  => (string)$p['creditor_name'],
+                'paymentNo'     => (string)$p['payment_no'],
+                'paymentDate'   => (string)$p['payment_date'],
+                'amount'        => $amt,
+                'paymentMethod' => (string)$p['payment_method'],
+                'notes'         => (string)($p['notes'] ?? '')
+            ];
+        }, $rawPeriodPayments);
+
+        // Overall debts snapshot
+        $allDebtsStmt = $pdo->query("
+            SELECT 
+                d.id, d.debt_no, d.creditor_name, 
+                CAST(d.loan_amount AS DECIMAL(14,2)) as loan_amount, 
+                d.loan_date, d.due_date, d.status,
+                COALESCE(SUM(dp.amount), 0) as total_paid,
+                MAX(dp.payment_date) as last_payment_date
+            FROM debts d
+            LEFT JOIN debt_payments dp ON d.id = dp.debt_id
+            GROUP BY d.id
+            ORDER BY d.loan_date ASC
+        ");
+        $totalAllLoan = 0;
+        $totalAllPaid = 0;
+        $debtsList = array_map(function($d) use (&$totalAllLoan, &$totalAllPaid) {
+            $loan = (float)$d['loan_amount'];
+            $paid = (float)$d['total_paid'];
+            $rem  = max(0, $loan - $paid);
+            $totalAllLoan += $loan;
+            $totalAllPaid += $paid;
+            return [
+                'id'              => (int)$d['id'],
+                'debtNo'          => (string)$d['debt_no'],
+                'creditorName'    => (string)$d['creditor_name'],
+                'loanAmount'      => $loan,
+                'loanDate'        => (string)$d['loan_date'],
+                'dueDate'         => (string)($d['due_date'] ?? ''),
+                'status'          => (string)$d['status'],
+                'totalPaid'       => $paid,
+                'remainingBalance'=> $rem,
+                'progressPct'     => $loan > 0 ? round(($paid / $loan) * 100, 1) : 0,
+                'lastPaymentDate' => (string)($d['last_payment_date'] ?? '')
+            ];
+        }, $allDebtsStmt->fetchAll());
+
+        $freeCashflow = $netProfit - $periodPaymentsTotal;
+
         jsonSuccess([
             'period' => [
                 'startDate' => $startDate,
                 'endDate'   => $endDate
             ],
             'financialSummary' => [
-                'netSales'        => $netSales,
-                'totalCogs'       => $totalCogs,
-                'grossProfit'     => $grossProfit,
-                'grossMarginPct'  => $grossMarginPct,
-                'totalExpenses'   => $totalExpenses,
-                'netProfit'       => $netProfit,
-                'netMarginPct'    => $netMarginPct,
-                'totalOrders'     => (int)$salesSummary['totalOrders'],
-                'completedOrders' => (int)$salesSummary['completedOrders'],
-                'cancelledOrders' => (int)$salesSummary['cancelledOrders'],
-                'pendingOrders'   => (int)$salesSummary['pendingOrders']
+                'netSales'            => $netSales,
+                'totalCogs'           => $totalCogs,
+                'grossProfit'         => $grossProfit,
+                'grossMarginPct'      => $grossMarginPct,
+                'totalExpenses'       => $totalExpenses,
+                'netProfit'           => $netProfit,
+                'netMarginPct'        => $netMarginPct,
+                'periodPaymentsTotal' => $periodPaymentsTotal,
+                'freeCashflow'        => $freeCashflow,
+                'totalOrders'         => (int)$salesSummary['totalOrders'],
+                'completedOrders'     => (int)$salesSummary['completedOrders'],
+                'cancelledOrders'     => (int)$salesSummary['cancelledOrders'],
+                'pendingOrders'       => (int)$salesSummary['pendingOrders']
+            ],
+            'debtReport' => [
+                'totalLoan'           => $totalAllLoan,
+                'totalPaid'           => $totalAllPaid,
+                'remainingBalance'    => max(0, $totalAllLoan - $totalAllPaid),
+                'progressPct'         => $totalAllLoan > 0 ? round(($totalAllPaid / $totalAllLoan) * 100, 1) : 0,
+                'periodPaymentsTotal' => $periodPaymentsTotal,
+                'freeCashflow'        => $freeCashflow,
+                'debtsList'           => $debtsList,
+                'periodPayments'      => $periodPayments
             ],
             'paymentMethods' => [
                 'qrisSales'  => (float)$salesSummary['qrisSales'],

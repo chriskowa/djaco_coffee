@@ -142,6 +142,9 @@
         <a href="#expenses" class="nav-item" id="nav-expenses" onclick="switchTab('expenses')" data-title="Biaya & Beban">
           <i class="fa-solid fa-receipt"></i> <span class="nav-text">Biaya & Beban</span>
         </a>
+        <a href="#debts" class="nav-item" id="nav-debts" onclick="switchTab('debts')" data-title="Hutang & Cicilan">
+          <i class="fa-solid fa-hand-holding-dollar"></i> <span class="nav-text">Hutang & Cicilan</span>
+        </a>
         <a href="#reports" class="nav-item" id="nav-reports" onclick="switchTab('reports')" data-title="Laporan Keuangan">
           <i class="fa-solid fa-chart-pie"></i> <span class="nav-text">Laporan Keuangan</span>
         </a>
@@ -852,6 +855,78 @@
         </div>
       </section>
 
+      <!-- TAB: DEBTS & REPAYMENTS (MANAJEMEN HUTANG & CICILAN) -->
+      <section class="tab-section" id="section-debts">
+        <!-- KPI Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="card-lbl">Total Pokok Pinjaman</span>
+            <span class="card-val" id="stat-total-debt" style="color: var(--coffee);">Rp0</span>
+            <div class="card-footer"><i class="fa-solid fa-file-invoice-dollar"></i> Plafon semua pinjaman</div>
+          </div>
+          <div class="stat-card">
+            <span class="card-lbl">Total Sudah Dicicil</span>
+            <span class="card-val" id="stat-total-debt-paid" style="color: var(--success);">Rp0</span>
+            <div class="card-footer"><i class="fa-solid fa-circle-check"></i> Akumulasi setoran cicilan</div>
+          </div>
+          <div class="stat-card">
+            <span class="card-lbl">Sisa Hutang Berjalan</span>
+            <span class="card-val" id="stat-total-debt-remaining" style="color: var(--danger);">Rp0</span>
+            <div class="card-footer"><i class="fa-solid fa-hourglass-half"></i> Kewajiban belum terbayar</div>
+          </div>
+          <div class="stat-card">
+            <span class="card-lbl">Progress Pelunasan</span>
+            <span class="card-val" id="stat-debt-progress" style="color: var(--gold);">0%</span>
+            <div class="card-footer"><i class="fa-solid fa-chart-line"></i> <span id="stat-debt-counts">0 Aktif / 0 Lunas</span></div>
+          </div>
+        </div>
+
+        <!-- Action / Filter Bar -->
+        <div class="panel" style="margin-top: 18px; padding: 18px 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; flex:1; max-width: 600px;">
+              <input type="text" id="debtSearch" placeholder="Cari kreditur / catatan hutang..." oninput="filterDebts()" style="flex:1; min-width: 220px; padding:10px 14px; border:1px solid #d9b98c; border-radius:10px; background:#fffdf9;">
+              <select class="form-control" id="debtStatusFilter" style="width: 170px; padding: 10px;" onchange="filterDebts()">
+                <option value="Semua">Semua Status</option>
+                <option value="Active" selected>Aktif (Belum Lunas)</option>
+                <option value="Paid Off">Lunas</option>
+              </select>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-primary" onclick="openAddDebtModal()">
+                <i class="fa-solid fa-plus"></i> Catat Pinjaman Baru
+              </button>
+            </div>
+          </div>
+
+          <!-- Debt Table -->
+          <div style="overflow-x:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <span style="font-size:15px; font-weight:800; color:var(--coffee);"><i class="fa-solid fa-hand-holding-dollar"></i> Daftar Pinjaman Modal Usaha</span>
+              <span class="badge" id="debtTableSummaryBadge" style="background:#efe0c8; color:#6b4329; font-weight:700; padding:6px 12px; border-radius:8px;">Memuat data...</span>
+            </div>
+            <table class="data-table" style="width:100%; border-collapse: collapse;" id="debtsTable">
+              <thead>
+                <tr style="background: #f6ebd9; text-align: left;">
+                  <th style="padding:12px 14px;">No Pinjaman</th>
+                  <th style="padding:12px 14px;">Kreditur / Sumber</th>
+                  <th style="padding:12px 14px;">Tgl Pinjam</th>
+                  <th style="padding:12px 14px;">Total Pokok</th>
+                  <th style="padding:12px 14px;">Sudah Dicicil</th>
+                  <th style="padding:12px 14px;">Sisa Hutang</th>
+                  <th style="padding:12px 14px;">Progress</th>
+                  <th style="padding:12px 14px; text-align:center;">Status</th>
+                  <th style="padding:12px 14px; text-align:right;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="debtsTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- TAB: FINANCIAL & SALES REPORTS -->
       <section class="tab-section" id="section-reports">
         <!-- Print Header (Visible only when printing) -->
@@ -1083,6 +1158,103 @@
                 </tr>
               </thead>
               <tbody id="reportExpensesBreakdownBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- NEW PANEL: LIABILITIES & DEBT REPAYMENTS REPORT -->
+        <div class="panel" style="margin-top: 24px;">
+          <div class="panel-title">
+            <div>
+              <i class="fa-solid fa-scale-balanced"></i> Laporan Posisi Hutang & Cicilan Modal Usaha
+              <div style="font-size: 12px; font-weight: 500; color: #8c7365;">Posisi liabilitas modal, cicilan terbayar pada periode ini, dan analisis arus kas bersih</div>
+            </div>
+          </div>
+
+          <!-- Debt Summary KPI Cards -->
+          <div class="stats-grid" style="margin-bottom: 20px;">
+            <div class="stat-card" style="padding: 14px 16px;">
+              <span class="card-lbl">Total Plafon Pinjaman</span>
+              <span class="card-val" id="rep-total-debt" style="font-size: 20px; color: var(--coffee);">Rp0</span>
+              <div class="card-footer"><i class="fa-solid fa-file-invoice-dollar"></i> Modal awal dari hutang</div>
+            </div>
+            <div class="stat-card" style="padding: 14px 16px;">
+              <span class="card-lbl">Total Sudah Dicicil</span>
+              <span class="card-val" id="rep-total-debt-paid" style="font-size: 20px; color: var(--success);">Rp0</span>
+              <div class="card-footer"><i class="fa-solid fa-circle-check"></i> Akumulasi semua setoran</div>
+            </div>
+            <div class="stat-card" style="padding: 14px 16px;">
+              <span class="card-lbl">Sisa Hutang Berjalan</span>
+              <span class="card-val" id="rep-total-debt-remaining" style="font-size: 20px; color: var(--danger);">Rp0</span>
+              <div class="card-footer"><i class="fa-solid fa-hourglass-half"></i> Sisa kewajiban aktif</div>
+            </div>
+            <div class="stat-card" style="padding: 14px 16px;">
+              <span class="card-lbl">Cicilan di Periode Ini</span>
+              <span class="card-val" id="rep-period-debt-paid" style="font-size: 20px; color: var(--gold);">Rp0</span>
+              <div class="card-footer"><i class="fa-solid fa-calendar-check"></i> Setoran selama periode laporan</div>
+            </div>
+          </div>
+
+          <!-- Cash Flow Insight Box -->
+          <div style="background: linear-gradient(135deg, #fffaf1, #f6ebd9); border: 1px solid #d9b98c; border-radius: 14px; padding: 16px 20px; margin-bottom: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
+              <span style="font-weight: 800; font-size: 14px; color: var(--coffee);">
+                <i class="fa-solid fa-money-bill-transfer"></i> Analisis Arus Kas Bersih (Free Cashflow)
+              </span>
+              <div id="rep-cf-status-badge"></div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; font-size: 13px; color: #5c3523;">
+              <div>Laba Bersih Toko: <b id="rep-cf-net-profit" style="color:var(--coffee);">Rp0</b></div>
+              <div>− Cicilan Hutang Periode Ini: <b id="rep-cf-debt-paid" style="color:var(--danger);">Rp0</b></div>
+              <div>= <b>Arus Kas Bersih Tersisa:</b> <b id="rep-cf-free-cashflow" style="font-size: 15px;">Rp0</b></div>
+            </div>
+            <div style="font-size: 11px; color: #8c7365; margin-top: 6px;">
+              *Catatan: Pokok cicilan hutang mengurangi kas tersedia namun bukan merupakan beban operasional (tidak mengurangi laba kotor/bersih kafe).
+            </div>
+          </div>
+
+          <!-- Table 1: Master Pinjaman Status -->
+          <h4 style="font-size: 14px; color: var(--coffee); margin-bottom: 8px;">
+            <i class="fa-solid fa-building-columns"></i> Status Seluruh Pinjaman Modal
+          </h4>
+          <div style="overflow-x: auto; margin-bottom: 24px;">
+            <table class="data-table" id="reportDebtsTable">
+              <thead>
+                <tr>
+                  <th>Kreditur / Sumber Pinjaman</th>
+                  <th>Tgl Mulai</th>
+                  <th style="text-align: right;">Total Pokok</th>
+                  <th style="text-align: right;">Sudah Dicicil</th>
+                  <th style="text-align: right;">Sisa Hutang</th>
+                  <th style="text-align: center;">Pelunasan</th>
+                  <th style="text-align: center;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="reportDebtsTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Table 2: Rincian Cicilan di Periode Laporan -->
+          <h4 style="font-size: 14px; color: var(--coffee); margin-bottom: 8px;">
+            <i class="fa-solid fa-clock-rotate-left"></i> Rincian Pembayaran Cicilan Pada Periode Ini
+          </h4>
+          <div style="overflow-x: auto;">
+            <table class="data-table" id="reportPeriodPaymentsTable">
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center;">No</th>
+                  <th>Tanggal Bayar</th>
+                  <th>No Bukti Cicilan</th>
+                  <th>Kreditur / Pinjaman</th>
+                  <th style="text-align: right;">Nominal Dicicil</th>
+                  <th>Metode & Catatan</th>
+                </tr>
+              </thead>
+              <tbody id="reportPeriodPaymentsBody">
                 <!-- Dynamically populated -->
               </tbody>
             </table>
@@ -1500,6 +1672,175 @@
     </div>
   </div>
 
+  <!-- MODAL: ADD / EDIT DEBT -->
+  <div class="modal-overlay" id="debtModalOverlay">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-head">
+        <h2 id="debtModalTitle">Catat Pinjaman / Hutang Modal</h2>
+        <button class="modal-close" onclick="closeDebtModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="debtForm" onsubmit="saveDebtForm(event)">
+          <input type="hidden" id="debt-id" value="0">
+
+          <div class="form-group">
+            <label for="debt-creditor">Nama Kreditur / Pemberi Pinjaman*</label>
+            <input type="text" id="debt-creditor" class="form-control"
+              placeholder="Contoh: Bank BRI (KUR), Pinjaman Keluarga, Investor Teman" required>
+          </div>
+
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0;">
+            <div class="form-group">
+              <label for="debt-amount">Nominal Pokok Pinjaman (Rp)*</label>
+              <input type="number" id="debt-amount" class="form-control" placeholder="Contoh: 50000000" min="1" required>
+            </div>
+            <div class="form-group">
+              <label for="debt-date">Tanggal Mulai Pinjam*</label>
+              <input type="date" id="debt-date" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 0;">
+            <div class="form-group">
+              <label for="debt-tenor">Tenor (Bulan)</label>
+              <input type="number" id="debt-tenor" class="form-control" placeholder="12" min="0">
+            </div>
+            <div class="form-group">
+              <label for="debt-due-date">Jatuh Tempo</label>
+              <input type="date" id="debt-due-date" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="debt-interest">Bunga (% / thn)</label>
+              <input type="number" step="0.1" id="debt-interest" class="form-control" placeholder="6.0" min="0">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="debt-status">Status Pinjaman</label>
+            <select id="debt-status" class="form-control">
+              <option value="Active">Aktif (Sedang Berjalan)</option>
+              <option value="Paid Off">Lunas</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="debt-notes">Catatan / Peruntukan Modal</label>
+            <textarea id="debt-notes" class="form-control" rows="2"
+              placeholder="Contoh: Pembelian mesin espresso 2-group, grinder, dan renovasi bar counter"></textarea>
+          </div>
+
+          <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" onclick="closeDebtModal()">Batal</button>
+            <button type="submit" class="btn btn-primary" id="saveDebtBtn">Simpan Pinjaman</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD REPAYMENT / CICILAN -->
+  <div class="modal-overlay" id="debtPaymentModalOverlay">
+    <div class="modal-box" style="max-width: 480px;">
+      <div class="modal-head">
+        <h2>Catat Pembayaran Cicilan Hutang</h2>
+        <button class="modal-close" onclick="closeDebtPaymentModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="debtPaymentForm" onsubmit="saveDebtPaymentForm(event)">
+          <div class="form-group">
+            <label for="pay-debt-id">Pilih Pinjaman yang Dicicil*</label>
+            <select id="pay-debt-id" class="form-control" required></select>
+          </div>
+
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0;">
+            <div class="form-group">
+              <label for="pay-amount">Nominal Cicilan (Rp)*</label>
+              <input type="number" id="pay-amount" class="form-control" placeholder="Contoh: 2500000" min="1" required>
+            </div>
+            <div class="form-group">
+              <label for="pay-date">Tanggal Bayar*</label>
+              <input type="date" id="pay-date" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="pay-method">Sumber Dana / Metode Pembayaran</label>
+            <select id="pay-method" class="form-control">
+              <option value="Transfer Bank">Transfer Bank (Rekening Usaha)</option>
+              <option value="Kas Kafe / Tunai">Kas Kafe / Tunai Toko</option>
+              <option value="Rekening Pribadi">Setoran Rekening Pribadi</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="pay-notes">Catatan Pembayaran (Opsional)</label>
+            <textarea id="pay-notes" class="form-control" rows="2"
+              placeholder="Contoh: Cicilan bulan ke-3 via BCA"></textarea>
+          </div>
+
+          <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" onclick="closeDebtPaymentModal()">Batal</button>
+            <button type="submit" class="btn btn-primary" id="saveDebtPaymentBtn" style="background:#16a34a; border-color:#16a34a;">
+              Simpan Pembayaran
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DEBT HISTORY & DETAILS -->
+  <div class="modal-overlay" id="debtHistoryModalOverlay">
+    <div class="modal-box" style="max-width: 680px;">
+      <div class="modal-head">
+        <div>
+          <h2>Riwayat Pembayaran Cicilan</h2>
+          <div id="historyDebtCreditor" style="font-size:13px; font-weight:700; color:#8c7365;">-</div>
+        </div>
+        <button class="modal-close" onclick="closeDebtHistoryModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; background:#fffaf1; border:1px solid #ead7ba; border-radius:12px; padding:12px 14px; margin-bottom:18px; text-align:center;">
+          <div>
+            <div style="font-size:11px; color:#8c7365;">Total Pinjaman</div>
+            <div id="historyDebtLoan" style="font-size:16px; font-weight:800; color:var(--coffee);">Rp0</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:#8c7365;">Sudah Dicicil</div>
+            <div id="historyDebtPaid" style="font-size:16px; font-weight:800; color:var(--success);">Rp0</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:#8c7365;">Sisa Hutang</div>
+            <div id="historyDebtRemaining" style="font-size:16px; font-weight:800; color:var(--danger);">Rp0</div>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table class="data-table" style="width:100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #f6ebd9; text-align: left;">
+                <th style="padding:10px 12px;">#</th>
+                <th style="padding:10px 12px;">No Setoran</th>
+                <th style="padding:10px 12px;">Tanggal</th>
+                <th style="padding:10px 12px;">Nominal</th>
+                <th style="padding:10px 12px;">Metode</th>
+                <th style="padding:10px 12px;">Catatan</th>
+                <th style="padding:10px 12px; text-align:right;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="debtHistoryTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+          <button type="button" class="btn btn-outline" onclick="closeDebtHistoryModal()">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: INVOICE / RECEIPT VIEWER (FOR PRINT & QRIS) -->
   <div class="modal-overlay" id="invoiceModalOverlay">
     <div class="modal-box" style="width: min(480px, 100%);">
@@ -1589,6 +1930,7 @@
   <script src="/admin/js/products.js"></script>
   <script src="/admin/js/ingredients.js"></script>
   <script src="/admin/js/expenses.js"></script>
+  <script src="/admin/js/debts.js"></script>
   <script src="/admin/js/reports.js"></script>
   <script src="/admin/js/app.js"></script>
 </body>

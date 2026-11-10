@@ -416,6 +416,45 @@ CREATE TABLE `expenses` (
   KEY `idx_expense_date` (`expense_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Table structure for debts (Pinjaman / Modal Usaha)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `debts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `debt_no` varchar(50) NOT NULL UNIQUE,
+  `creditor_name` varchar(150) NOT NULL,
+  `loan_amount` decimal(14,2) NOT NULL DEFAULT 0.00,
+  `loan_date` date NOT NULL,
+  `due_date` date DEFAULT NULL,
+  `tenor_months` int(11) DEFAULT 0,
+  `interest_rate` decimal(6,2) NOT NULL DEFAULT 0.00,
+  `notes` text DEFAULT NULL,
+  `status` varchar(30) NOT NULL DEFAULT 'Active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_loan_date` (`loan_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for debt_payments (Pembayaran Cicilan Hutang)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `debt_payments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `debt_id` int(11) NOT NULL,
+  `payment_no` varchar(50) NOT NULL UNIQUE,
+  `payment_date` date NOT NULL,
+  `amount` decimal(14,2) NOT NULL DEFAULT 0.00,
+  `payment_method` varchar(50) NOT NULL DEFAULT 'Transfer Bank',
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_debt_id` (`debt_id`),
+  KEY `idx_payment_date` (`payment_date`),
+  CONSTRAINT `fk_debt_payments_debt` FOREIGN KEY (`debt_id`) REFERENCES `debts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Auto-sync initial product COGS from recipe BOM
 UPDATE `products` p 
 SET p.cogs = (
