@@ -187,7 +187,8 @@
       }
 
       container.innerHTML = ordersToRender.map(o => {
-        const orderDateStr = o.date ? new Date(o.date).toLocaleString('id-ID', {
+        const rawDate = o.date || o.createdAt;
+        const orderDateStr = rawDate ? new Date(rawDate).toLocaleString('id-ID', {
           day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
         }) : '-';
 
@@ -263,13 +264,30 @@
 
 
     function filterOrders() {
-      const q = document.getElementById('orderSearch').value.toLowerCase();
-      const filtered = orders.filter(o =>
-        o.invoiceNo.toLowerCase().includes(q) ||
-        o.customerName.toLowerCase().includes(q) ||
-        o.customerPhone.toLowerCase().includes(q)
-      );
+      const q = (document.getElementById('orderSearch')?.value || '').toLowerCase().trim();
+      const dateFilter = document.getElementById('orderDateFilter')?.value || '';
+
+      const filtered = orders.filter(o => {
+        const matchQ = !q ||
+          (o.invoiceNo || '').toLowerCase().includes(q) ||
+          (o.customerName || '').toLowerCase().includes(q) ||
+          (o.customerPhone || '').toLowerCase().includes(q);
+
+        let matchDate = true;
+        if (dateFilter) {
+          const rawDate = String(o.date || o.createdAt || '');
+          matchDate = rawDate.startsWith(dateFilter);
+        }
+
+        return matchQ && matchDate;
+      });
       renderOrdersList(filtered);
+    }
+
+    function clearOrderDateFilter() {
+      const el = document.getElementById('orderDateFilter');
+      if (el) el.value = '';
+      filterOrders();
     }
 
     async function changeStatus(invoiceNo, newStatus) {

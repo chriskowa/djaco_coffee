@@ -282,6 +282,12 @@
       const container = document.querySelector('.pos-container');
       const isCartView = container && container.classList.contains('show-cart');
 
+      // Initialize datetime if empty
+      const dtInput = document.getElementById('posOrderDateTime');
+      if (dtInput && !dtInput.value) {
+        setPosDateTimeNow();
+      }
+
       const totalItemsCount = posCart.reduce((s, i) => s + (Number(i.qty) || 0), 0);
       if (countBadge) {
         countBadge.innerText = `${totalItemsCount} item`;
@@ -467,6 +473,24 @@
       renderPosMenu();
     }
 
+    function getLocalDateTimeInputValue(date = new Date()) {
+      const d = (date instanceof Date && !isNaN(date)) ? date : new Date(date);
+      const pad = n => String(n).padStart(2, '0');
+      const y = d.getFullYear();
+      const m = pad(d.getMonth() + 1);
+      const day = pad(d.getDate());
+      const hh = pad(d.getHours());
+      const mm = pad(d.getMinutes());
+      return `${y}-${m}-${day}T${hh}:${mm}`;
+    }
+
+    function setPosDateTimeNow() {
+      const dtInput = document.getElementById('posOrderDateTime');
+      if (dtInput) {
+        dtInput.value = getLocalDateTimeInputValue(new Date());
+      }
+    }
+
     function clearPosCart() {
       if (posCart.length === 0) return;
       if (!confirm("Kosongkan semua item di keranjang kasir?")) return;
@@ -474,6 +498,7 @@
       document.getElementById('posCustomerName').value = '';
       document.getElementById('posCustomerPhone').value = '';
       document.getElementById('posOrderNotes').value = '';
+      setPosDateTimeNow();
       renderPosCart();
       renderPosMenu();
       showToast("Keranjang kasir telah dikosongkan");
@@ -569,12 +594,16 @@
       const notes = document.getElementById('posOrderNotes').value.trim() || 'Order POS Kasir';
       const status = document.getElementById('posOptPending')?.checked ? 'Pending' : 'Completed';
 
+      const rawDateTime = document.getElementById('posOrderDateTime')?.value;
+      const createdAt = rawDateTime ? rawDateTime.replace('T', ' ') + ':00' : null;
+
       const payload = {
         action: 'createOrder',
         customerName,
         customerPhone,
         paymentMethod: method,
         status: status,
+        createdAt: createdAt,
         notes,
         items: checkedItems.map(i => ({
           productId: i.productId,
@@ -601,7 +630,8 @@
           invoiceNo: result.invoiceNo,
           transactionId: result.transactionId,
           total: result.total || total,
-          createdAt: new Date(),
+          createdAt: result.createdAt || (rawDateTime ? new Date(rawDateTime) : new Date()),
+          date: result.date || result.createdAt || (rawDateTime ? new Date(rawDateTime) : new Date()),
           items: checkedItems // Hold localized items details
         };
 
@@ -612,6 +642,7 @@
         posCart = posCart.filter(i => i.checked === false);
         posCart.forEach(i => i.checked = true);
 
+        setPosDateTimeNow();
         renderPosCart();
         renderPosMenu();
         togglePosMobileView('menu');
@@ -658,6 +689,7 @@
       const labelName = title.trim() || defaultName;
       const customerPhone = document.getElementById('posCustomerPhone').value.trim();
       const notes = document.getElementById('posOrderNotes').value.trim();
+      const orderDateTime = document.getElementById('posOrderDateTime')?.value || '';
 
       const heldObj = {
         id: 'held-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
@@ -665,6 +697,7 @@
         customerName: labelName,
         customerPhone: customerPhone,
         notes: notes,
+        orderDateTime: orderDateTime,
         items: JSON.parse(JSON.stringify(posCart)),
         createdAt: new Date().toISOString()
       };
@@ -677,6 +710,7 @@
       document.getElementById('posCustomerName').value = '';
       document.getElementById('posCustomerPhone').value = '';
       document.getElementById('posOrderNotes').value = '';
+      setPosDateTimeNow();
       renderPosCart();
       renderPosMenu();
       showToast("Transaksi sementara disimpan!");
@@ -705,6 +739,10 @@
         document.getElementById('posCustomerName').value = held.customerName || '';
         document.getElementById('posCustomerPhone').value = held.customerPhone || '';
         document.getElementById('posOrderNotes').value = held.notes || '';
+        if (held.orderDateTime) {
+          const dtInput = document.getElementById('posOrderDateTime');
+          if (dtInput) dtInput.value = held.orderDateTime;
+        }
       }
 
       heldOrders.splice(idx, 1);

@@ -294,6 +294,7 @@ switch ($action) {
                 'total'         => (float)$o['total'],
                 'netSales'      => (float)$o['total'],
                 'items'         => $itemsByOrderId[$o['id']] ?? [],
+                'date'          => (string)$o['created_at'],
                 'createdAt'     => (string)$o['created_at']
             ];
         }, $rawOrders);
@@ -465,8 +466,13 @@ switch ($action) {
         $otherExpense  = (float)($input['otherExpense'] ?? 0);
         $total         = (float)($input['total'] ?? 0);
 
+        // Transaction date & time (customizable for offline / retroactive records)
+        $rawDateTime   = trim($input['createdAt'] ?? $input['date'] ?? $input['orderDateTime'] ?? '');
+        $createdAtTs   = !empty($rawDateTime) ? strtotime($rawDateTime) : time();
+        $createdAt     = ($createdAtTs !== false) ? date('Y-m-d H:i:s', $createdAtTs) : date('Y-m-d H:i:s');
+
         if (empty($invoiceNo)) {
-            $invoiceNo = 'DJC-' . date('Ymd-His-') . strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
+            $invoiceNo = 'DJC-' . date('Ymd-His-', $createdAtTs) . strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
         }
 
         if (empty($items) || !is_array($items)) {
@@ -481,11 +487,11 @@ switch ($action) {
                 INSERT INTO orders (
                     invoice_no, transaction_id, customer_name, customer_phone, 
                     payment_method, status, notes, discount, admin_fee, 
-                    packaging_cost, other_expense, total
+                    packaging_cost, other_expense, total, created_at
                 ) VALUES (
                     :invoice_no, :transaction_id, :customer_name, :customer_phone, 
                     :payment_method, :status, :notes, :discount, :admin_fee, 
-                    :packaging_cost, :other_expense, :total
+                    :packaging_cost, :other_expense, :total, :created_at
                 )
             ");
             $orderStmt->execute([
@@ -500,7 +506,8 @@ switch ($action) {
                 ':admin_fee'      => $adminFee,
                 ':packaging_cost' => $packagingCost,
                 ':other_expense'  => $otherExpense,
-                ':total'          => $total
+                ':total'          => $total,
+                ':created_at'     => $createdAt
             ]);
 
             $orderId = (int)$pdo->lastInsertId();
@@ -582,6 +589,8 @@ switch ($action) {
                 'invoiceNo' => $invoiceNo,
                 'status'    => $status,
                 'total'     => $total,
+                'createdAt' => $createdAt,
+                'date'      => $createdAt,
                 'products'  => $freshProducts
             ]);
 

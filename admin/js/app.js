@@ -131,6 +131,9 @@
       }
 
       loadHeldOrders();
+      if (typeof setPosDateTimeNow === 'function') {
+        setPosDateTimeNow();
+      }
 
       // Read URL hash on load (e.g. #pos, #products)
       const hash = (window.location.hash || '').replace('#', '').trim();

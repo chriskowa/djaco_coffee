@@ -382,6 +382,19 @@
                 placeholder="No WhatsApp Pembeli (opsional)">
               <input type="text" id="posOrderNotes" class="form-control form-control-sm" style="padding:8px;"
                 placeholder="Catatan Tambahan Order">
+
+              <!-- Form Tanggal & Waktu Transaksi -->
+              <div style="background: var(--light); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                  <label for="posOrderDateTime" style="font-size: 11px; font-weight: 700; color: #8c7365; margin: 0; display: flex; align-items: center; gap: 5px;">
+                    <i class="fa-regular fa-calendar-days"></i> Tgl & Waktu Transaksi
+                  </label>
+                  <button type="button" onclick="setPosDateTimeNow()" style="background: none; border: none; padding: 0; font-size: 11px; color: var(--coffee); font-weight: 700; cursor: pointer; text-decoration: underline;" title="Set ke waktu sekarang">
+                    <i class="fa-solid fa-rotate-right" style="font-size: 10px;"></i> Waktu Sekarang
+                  </button>
+                </div>
+                <input type="datetime-local" id="posOrderDateTime" class="form-control form-control-sm" style="padding: 6px 8px; font-size: 12px; font-weight: 600; background: #fff; border: 1px solid var(--border); border-radius: 6px; width: 100%;">
+              </div>
             </div>
 
             <!-- Checkout calculations -->
@@ -499,15 +512,22 @@
 
       <!-- TAB: ORDERS -->
       <section class="tab-section" id="section-orders">
-        <div class="orders-controls">
-          <div class="search-box">
+        <div class="orders-controls" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;">
+          <div class="search-box" style="flex: 1; min-width: 240px;">
             <i class="fa-solid fa-search"></i>
-            <input type="text" id="orderSearch" placeholder="Cari berdasarkan nomor invoice, nama pembeli..."
+            <input type="text" id="orderSearch" placeholder="Cari nomor invoice, nama, atau no HP..."
               oninput="filterOrders()">
           </div>
-          <button class="btn btn-outline" onclick="requestNotificationPermission()" id="notifyPermissionBtn">
-            <i class="fa-solid fa-bell"></i> Aktifkan Notifikasi Browser
-          </button>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 4px 8px;">
+              <i class="fa-regular fa-calendar" style="color: #8c7365; font-size: 12px;"></i>
+              <input type="date" id="orderDateFilter" style="border: none; background: transparent; font-size: 12px; font-weight: 600; color: var(--dark); outline: none;" onchange="filterOrders()" title="Filter tanggal transaksi">
+              <button type="button" onclick="clearOrderDateFilter()" style="border: none; background: none; font-size: 11px; color: #8c7365; cursor: pointer;" title="Reset filter tanggal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <button class="btn btn-outline" onclick="requestNotificationPermission()" id="notifyPermissionBtn">
+              <i class="fa-solid fa-bell"></i> Notifikasi
+            </button>
+          </div>
         </div>
 
         <div id="orders-list-container">
