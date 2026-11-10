@@ -253,12 +253,17 @@
               </div>
               <div class="order-actions-buttons">
                 <button class="btn btn-outline btn-sm" onclick="showOrderInvoice('${o.invoiceNo}')"><i class="fa-solid fa-receipt"></i> Struk / QRIS</button>
+                <button class="btn btn-outline btn-sm" onclick="loadOrderToPos('${o.invoiceNo}')" title="Muat dan edit transaksi ini di kasir POS"><i class="fa-solid fa-pen-to-square"></i> Muat & Edit</button>
                 ${actionButtonsHtml}
               </div>
             </div>
           </div>
         `;
       }).join('');
+
+      if (typeof renderPosRecentTransactions === 'function') {
+        renderPosRecentTransactions();
+      }
     }
 
 

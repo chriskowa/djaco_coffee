@@ -288,6 +288,8 @@
         setPosDateTimeNow();
       }
 
+      renderPosRecentTransactions();
+
       const totalItemsCount = posCart.reduce((s, i) => s + (Number(i.qty) || 0), 0);
       if (countBadge) {
         countBadge.innerText = `${totalItemsCount} item`;
@@ -597,8 +599,12 @@
       const rawDateTime = document.getElementById('posOrderDateTime')?.value;
       const createdAt = rawDateTime ? rawDateTime.replace('T', ' ') + ':00' : null;
 
+      const isEditing = Boolean(posEditingInvoice);
+      const targetEndpoint = isEditing ? 'updateorder' : 'createorder';
+
       const payload = {
-        action: 'createOrder',
+        action: isEditing ? 'updateOrder' : 'createOrder',
+        invoiceNo: isEditing ? posEditingInvoice : undefined,
         customerName,
         customerPhone,
         paymentMethod: method,
@@ -619,15 +625,15 @@
       };
 
       try {
-        showToast(status === 'Completed' ? "Menyelesaikan transaksi & membukukan..." : "Menyimpan transaksi antrean...");
-        const result = await apiPost('createorder', payload);
+        showToast(isEditing ? `Menyimpan penyesuaian ${posEditingInvoice}...` : (status === 'Completed' ? "Menyelesaikan transaksi & membukukan..." : "Menyimpan transaksi antrean..."));
+        const result = await apiPost(targetEndpoint, payload);
 
         // Save state for invoice printing
         activeInvoiceOrder = {
           ...payload,
           ...result,
           status: result.status || status,
-          invoiceNo: result.invoiceNo,
+          invoiceNo: result.invoiceNo || posEditingInvoice,
           transactionId: result.transactionId,
           total: result.total || total,
           createdAt: result.createdAt || (rawDateTime ? new Date(rawDateTime) : new Date()),
@@ -638,15 +644,22 @@
         // Open Invoice & reset
         showAdminInvoiceModal(activeInvoiceOrder);
 
+        // Reset edit mode
+        posEditingInvoice = null;
+        const banner = document.getElementById('posEditModeBanner');
+        if (banner) banner.style.display = 'none';
+
         // Remove only checked items, and reset remaining items to checked
         posCart = posCart.filter(i => i.checked === false);
         posCart.forEach(i => i.checked = true);
 
         setPosDateTimeNow();
+        handlePosStatusOptionChange();
         renderPosCart();
         renderPosMenu();
         togglePosMobileView('menu');
         await reloadData();
+        renderPosRecentTransactions();
       } catch (err) {
         console.error(err);
         alert("Gagal memproses transaksi POS. Cek koneksi & Deployment URL.");
@@ -790,6 +803,174 @@
               <button onclick="deleteHeldOrder('${h.id}')" style="border:0; background:#faebe8; color:var(--danger); font-size:10px; padding:4px 8px; border-radius:6px; cursor:pointer;">
                 Hapus
               </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ---------------- LOAD ORDER TO POS FOR ADJUSTMENTS / EDIT ----------------
+    function loadOrderToPos(invoiceNo) {
+      const order = orders.find(o => o.invoiceNo === invoiceNo);
+      if (!order) {
+        showToast("Transaksi " + invoiceNo + " tidak ditemukan", true);
+        return;
+      }
+
+      if (posCart.length > 0 && posEditingInvoice !== invoiceNo) {
+        if (!confirm("Keranjang kasir aktif tidak kosong. Apakah Anda ingin MENGGANTIKAN keranjang dengan transaksi " + invoiceNo + "?")) {
+          return;
+        }
+      }
+
+      switchTab('pos');
+      posEditingInvoice = invoiceNo;
+
+      // Populate POS Cart items
+      if (Array.isArray(order.items) && order.items.length > 0) {
+        posCart = order.items.map(it => {
+          let opts = [];
+          if (Array.isArray(it.options)) {
+            opts = it.options;
+          } else if (it.optionsText) {
+            opts = it.optionsText.split(',').map(part => {
+              const [g, o] = part.split(':').map(s => s.trim());
+              return { group: g || 'Varian', option: o || g };
+            });
+          }
+          return {
+            uid: 'edit-' + Math.random().toString(36).substring(2, 9),
+            productId: it.productId,
+            name: it.name,
+            unitPrice: Number(it.unitPrice) || Number(it.basePrice) || 0,
+            qty: Number(it.qty) || 1,
+            subtotal: Number(it.subtotal) || ((Number(it.unitPrice) || 0) * (Number(it.qty) || 1)),
+            options: opts,
+            itemNote: it.itemNote || '',
+            checked: true
+          };
+        });
+      } else {
+        posCart = [];
+      }
+
+      // Populate form fields
+      document.getElementById('posCustomerName').value = (order.customerName === '-' ? '' : order.customerName) || '';
+      document.getElementById('posCustomerPhone').value = (order.customerPhone === '-' ? '' : order.customerPhone) || '';
+      document.getElementById('posOrderNotes').value = order.notes || '';
+      document.getElementById('posPaymentMethod').value = order.paymentMethod || 'QRIS';
+      togglePosPayment(order.paymentMethod || 'QRIS');
+
+      // Set datetime
+      const rawDt = order.date || order.createdAt;
+      const dtInput = document.getElementById('posOrderDateTime');
+      if (dtInput) {
+        dtInput.value = rawDt ? getLocalDateTimeInputValue(new Date(rawDt)) : getLocalDateTimeInputValue(new Date());
+      }
+
+      // Set status radio
+      const isCompleted = String(order.status || '').toLowerCase() === 'completed';
+      if (isCompleted) {
+        const r1 = document.getElementById('posOptCompleted');
+        if (r1) r1.checked = true;
+      } else {
+        const r2 = document.getElementById('posOptPending');
+        if (r2) r2.checked = true;
+      }
+      handlePosStatusOptionChange();
+
+      // Show edit banner
+      const banner = document.getElementById('posEditModeBanner');
+      const badge = document.getElementById('posEditingInvoiceBadge');
+      if (banner) banner.style.display = 'block';
+      if (badge) badge.innerText = invoiceNo;
+
+      // Update submit button styling
+      const submitBtn = document.getElementById('posSubmitOrderBtn');
+      if (submitBtn) {
+        submitBtn.className = 'btn btn-warning';
+        submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan Penyesuaian (${invoiceNo})`;
+      }
+
+      renderPosCart();
+      renderPosMenu();
+      renderPosRecentTransactions();
+
+      if (window.innerWidth <= 860) {
+        togglePosMobileView('cart');
+      }
+
+      showToast(`Transaksi ${invoiceNo} siap disesuaikan`);
+    }
+
+    function cancelPosEditMode() {
+      if (!posEditingInvoice) return;
+      posEditingInvoice = null;
+      const banner = document.getElementById('posEditModeBanner');
+      if (banner) banner.style.display = 'none';
+      posCart = [];
+      document.getElementById('posCustomerName').value = '';
+      document.getElementById('posCustomerPhone').value = '';
+      document.getElementById('posOrderNotes').value = '';
+      setPosDateTimeNow();
+      handlePosStatusOptionChange();
+      renderPosCart();
+      renderPosMenu();
+      renderPosRecentTransactions();
+      showToast("Mode penyesuaian transaksi dibatalkan");
+    }
+
+    // ---------------- RECENT TRANSACTIONS IN POS ----------------
+    function renderPosRecentTransactions() {
+      const wrapper = document.getElementById('posRecentTransactionsWrapper');
+      if (!wrapper) return;
+
+      if (!Array.isArray(orders) || orders.length === 0) {
+        wrapper.innerHTML = `<div style="text-align:center; padding:12px; color:#8c7365; font-size:11px;">Belum ada riwayat transaksi.</div>`;
+        return;
+      }
+
+      // Take latest 5 transactions
+      const recentList = orders.slice(0, 5);
+
+      wrapper.innerHTML = recentList.map(o => {
+        const rawDate = o.date || o.createdAt;
+        const timeStr = rawDate ? new Date(rawDate).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+        const dateStr = rawDate ? new Date(rawDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '';
+        const isCompleted = String(o.status || '').toLowerCase() === 'completed';
+        const isCancelled = String(o.status || '').toLowerCase() === 'cancelled';
+        
+        let statusBadge = `<span style="font-size:10px; font-weight:700; color:var(--success); background:var(--success-bg); padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-check"></i> Selesai</span>`;
+        if (isCancelled) {
+          statusBadge = `<span style="font-size:10px; font-weight:700; color:var(--danger); background:#faebe8; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-xmark"></i> Batal</span>`;
+        } else if (!isCompleted) {
+          statusBadge = `<span style="font-size:10px; font-weight:700; color:#b45309; background:#fef3c7; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-clock"></i> Pending</span>`;
+        }
+
+        const isBeingEdited = posEditingInvoice === o.invoiceNo;
+        const cardBg = isBeingEdited ? '#fff8e1' : '#fcfbf9';
+        const cardBorder = isBeingEdited ? '1.5px solid #ffb300' : '1px solid var(--border)';
+
+        return `
+          <div style="background:${cardBg}; border:${cardBorder}; border-radius:10px; padding:9px 10px; font-size:11px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-weight:800; color:var(--coffee);">${o.invoiceNo}</span>
+              ${statusBadge}
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; color:#8c7365; margin-bottom:6px;">
+              <span><b>${o.customerName || '-'}</b> · ${o.paymentMethod || 'QRIS'}</span>
+              <span><i class="fa-regular fa-clock" style="font-size:10px;"></i> ${dateStr} ${timeStr}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed #e8d8c3; padding-top:6px;">
+              <span style="font-weight:800; color:var(--coffee); font-size:12px;">${rupiah(o.netSales || o.total)}</span>
+              <div style="display:flex; gap:5px;">
+                <button type="button" onclick="showOrderInvoice('${o.invoiceNo}')" style="background:#fff; border:1px solid var(--border); padding:3px 7px; border-radius:6px; font-size:10px; color:#5c4333; cursor:pointer; font-weight:600;" title="Buka Struk">
+                  <i class="fa-solid fa-receipt"></i> Struk
+                </button>
+                <button type="button" onclick="loadOrderToPos('${o.invoiceNo}')" style="background:#efe0c8; border:1px solid #d9b98c; padding:3px 7px; border-radius:6px; font-size:10px; color:#6b4329; cursor:pointer; font-weight:700;" title="Muat & Edit Transaksi ini">
+                  <i class="fa-solid fa-pen-to-square"></i> Edit
+                </button>
+              </div>
             </div>
           </div>
         `;

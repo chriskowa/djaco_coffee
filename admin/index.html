@@ -364,6 +364,23 @@
               </button>
             </div>
 
+            <!-- Edit Mode Banner (When an existing transaction is loaded for adjustments) -->
+            <div id="posEditModeBanner" style="display: none; background: #fff8e1; border: 1.5px solid #ffb300; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 800; font-size: 12px; color: #b45309; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-pen-to-square"></i> Mode Penyesuaian Transaksi
+                  </div>
+                  <div style="font-size: 11px; color: #78350f; margin-top: 2px;">
+                    Mengedit: <b id="posEditingInvoiceBadge">-</b>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" onclick="cancelPosEditMode()" style="padding: 4px 8px; font-size: 11px; border-color: #ffb300; color: #b45309; font-weight: 700; background: #fff;">
+                  <i class="fa-solid fa-xmark"></i> Batal Edit
+                </button>
+              </div>
+            </div>
+
             <div class="pos-cart-title">
               <span><i class="fa-solid fa-basket-shopping"></i> Keranjang Kasir <span id="posCartCountBadge" class="pos-cart-count-badge">0 item</span></span>
               <button class="btn btn-outline btn-sm" onclick="clearPosCart()"><i class="fa-solid fa-trash-can"></i>
@@ -477,6 +494,24 @@
               <div id="posHeldOrdersWrapper"
                 style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
                 <!-- Dynamically populated held orders -->
+              </div>
+            </div>
+
+            <!-- Recent Transactions in POS (5 Terkini) -->
+            <div class="pos-recent-transactions-container"
+              style="margin-top: 20px; border-top: 2px dashed var(--border); padding-top: 15px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h4
+                  style="font-size:11px; font-weight:700; color:#8c7365; margin: 0; display: flex; align-items: center; gap: 6px; text-transform: uppercase;">
+                  <i class="fa-solid fa-clock-rotate-left"></i> Transaksi Terakhir (Kasir)
+                </h4>
+                <a href="#orders" onclick="switchTab('orders')" style="font-size: 11px; font-weight: 700; color: var(--coffee); text-decoration: none;">
+                  Semua <i class="fa-solid fa-arrow-right"></i>
+                </a>
+              </div>
+              <div id="posRecentTransactionsWrapper"
+                style="display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto;">
+                <!-- Dynamically populated recent orders -->
               </div>
             </div>
 

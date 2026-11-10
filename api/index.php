@@ -824,6 +824,230 @@ switch ($action) {
         break;
 
     // ---------------------------------------------------------
+    // 7b. UPDATE ENTIRE ORDER (Penyesuaian Transaksi / Edit Order)
+    // ---------------------------------------------------------
+    case 'updateorder':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo);
+        $invoiceNo     = trim($input['invoiceNo'] ?? '');
+        $customerName  = trim($input['customerName'] ?? '-') ?: '-';
+        $customerPhone = trim($input['customerPhone'] ?? '-') ?: '-';
+        $paymentMethod = trim($input['paymentMethod'] ?? 'QRIS');
+        $status        = trim($input['status'] ?? 'Completed');
+        if ($status !== 'Completed' && $status !== 'Pending' && $status !== 'Processed' && $status !== 'Cancelled') {
+            $status = 'Completed';
+        }
+        $notes         = trim($input['notes'] ?? '');
+        $items         = $input['items'] ?? [];
+        $total         = (float)($input['total'] ?? 0);
+
+        // Optional custom date
+        $rawDateTime   = trim($input['createdAt'] ?? $input['date'] ?? $input['orderDateTime'] ?? '');
+
+        if (empty($invoiceNo)) {
+            jsonError('invoiceNo wajib diisi');
+        }
+        if (empty($items) || !is_array($items)) {
+            jsonError('Order items tidak boleh kosong');
+        }
+
+        try {
+            $pdo->beginTransaction();
+
+            $orderStmt = $pdo->prepare("SELECT id, status, created_at FROM orders WHERE invoice_no = ?");
+            $orderStmt->execute([$invoiceNo]);
+            $existingOrder = $orderStmt->fetch();
+
+            if (!$existingOrder) {
+                $pdo->rollBack();
+                jsonError('Pesanan tidak ditemukan', 404);
+            }
+
+            $orderId = (int)$existingOrder['id'];
+            $oldStatus = (string)$existingOrder['status'];
+
+            // 1. If old status was NOT 'Cancelled', restore the old items' stock and ingredient stock
+            if ($oldStatus !== 'Cancelled') {
+                $oldItemsStmt = $pdo->prepare("SELECT product_id, qty FROM order_items WHERE order_id = ?");
+                $oldItemsStmt->execute([$orderId]);
+                $oldItems = $oldItemsStmt->fetchAll();
+
+                $restoreProdStmt = $pdo->prepare("UPDATE products SET stock = stock + :qty WHERE id = :id");
+                $restoreIngStmt = $pdo->prepare("
+                    UPDATE ingredients i
+                    JOIN product_recipes pr ON i.id = pr.ingredient_id
+                    SET i.current_stock = i.current_stock + (pr.quantity * :qty)
+                    WHERE pr.product_id = :product_id
+                ");
+
+                foreach ($oldItems as $it) {
+                    if (!empty($it['product_id'])) {
+                        $restoreProdStmt->execute([':qty' => (int)$it['qty'], ':id' => $it['product_id']]);
+                        $restoreIngStmt->execute([':qty' => (int)$it['qty'], ':product_id' => $it['product_id']]);
+                    }
+                }
+            }
+
+            // 2. Delete old order items
+            $delStmt = $pdo->prepare("DELETE FROM order_items WHERE order_id = ?");
+            $delStmt->execute([$orderId]);
+
+            // 3. Insert updated order items and deduct stock (if status != 'Cancelled')
+            $itemStmt = $pdo->prepare("
+                INSERT INTO order_items (
+                    order_id, invoice_no, product_id, product_name, category, 
+                    base_price, unit_price, qty, options_text, item_note, subtotal
+                ) VALUES (
+                    :order_id, :invoice_no, :product_id, :product_name, :category, 
+                    :base_price, :unit_price, :qty, :options_text, :item_note, :subtotal
+                )
+            ");
+
+            $stockStmt = $pdo->prepare("
+                UPDATE products 
+                SET stock = GREATEST(0, stock - :qty) 
+                WHERE id = :product_id
+            ");
+
+            $recipeDeductStmt = $pdo->prepare("
+                UPDATE ingredients i
+                JOIN product_recipes pr ON i.id = pr.ingredient_id
+                SET i.current_stock = GREATEST(0, i.current_stock - (pr.quantity * :qty))
+                WHERE pr.product_id = :product_id
+            ");
+
+            $calculatedTotal = 0;
+
+            foreach ($items as $item) {
+                $pId = $item['productId'] ?? null;
+                $qty = max(1, (int)($item['qty'] ?? 1));
+
+                // Fetch product info
+                $prod = null;
+                if (!empty($pId)) {
+                    $pStmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
+                    $pStmt->execute([$pId]);
+                    $prod = $pStmt->fetch();
+                }
+
+                $pName     = $prod ? $prod['name'] : ($item['name'] ?? 'Custom Item');
+                $category  = $prod ? $prod['category'] : 'Menu';
+                $basePrice = $prod ? (float)$prod['price'] : (float)($item['unitPrice'] ?? 0);
+
+                // Options calculation
+                $optionsText = '';
+                $unitPrice   = $basePrice;
+
+                if (!empty($item['options']) && is_array($item['options'])) {
+                    $optTexts = [];
+                    foreach ($item['options'] as $opt) {
+                        $g = $opt['group'] ?? '';
+                        $o = $opt['option'] ?? '';
+                        if (!empty($g) && !empty($o)) {
+                            $optTexts[] = "$g: $o";
+                            $optPriceStmt = $pdo->prepare("
+                                SELECT price_add 
+                                FROM product_options 
+                                WHERE product_id = ? AND group_name = ? AND option_name = ? AND status != 'Inactive'
+                            ");
+                            $optPriceStmt->execute([$pId, $g, $o]);
+                            $priceAdd = (float)$optPriceStmt->fetchColumn();
+                            $unitPrice += $priceAdd;
+                        }
+                    }
+                    $optionsText = implode(', ', $optTexts);
+                }
+
+                $subtotal = $unitPrice * $qty;
+                $calculatedTotal += $subtotal;
+
+                $itemStmt->execute([
+                    ':order_id'      => $orderId,
+                    ':invoice_no'    => $invoiceNo,
+                    ':product_id'    => $pId,
+                    ':product_name'  => $pName,
+                    ':category'      => $category,
+                    ':base_price'    => $basePrice,
+                    ':unit_price'    => $unitPrice,
+                    ':qty'           => $qty,
+                    ':options_text'  => $optionsText,
+                    ':item_note'     => trim($item['itemNote'] ?? ''),
+                    ':subtotal'      => $subtotal
+                ]);
+
+                // Deduct stock if new status is NOT 'Cancelled'
+                if ($status !== 'Cancelled' && !empty($pId)) {
+                    $stockStmt->execute([
+                        ':qty'        => $qty,
+                        ':product_id' => $pId
+                    ]);
+
+                    $recipeDeductStmt->execute([
+                        ':qty'        => $qty,
+                        ':product_id' => $pId
+                    ]);
+                }
+            }
+
+            $finalTotal = $total > 0 ? $total : $calculatedTotal;
+
+            // 4. Update order record (including created_at if provided)
+            $createdAt = $existingOrder['created_at'];
+            if (!empty($rawDateTime)) {
+                $ts = strtotime($rawDateTime);
+                if ($ts !== false) {
+                    $createdAt = date('Y-m-d H:i:s', $ts);
+                }
+            }
+
+            $updateOrderStmt = $pdo->prepare("
+                UPDATE orders SET 
+                    customer_name  = :customer_name,
+                    customer_phone = :customer_phone,
+                    payment_method = :payment_method,
+                    status         = :status,
+                    notes          = :notes,
+                    total          = :total,
+                    created_at     = :created_at
+                WHERE id = :id
+            ");
+            $updateOrderStmt->execute([
+                ':customer_name'  => $customerName,
+                ':customer_phone' => $customerPhone,
+                ':payment_method' => $paymentMethod,
+                ':status'         => $status,
+                ':notes'          => $notes,
+                ':total'          => $finalTotal,
+                ':created_at'     => $createdAt,
+                ':id'             => $orderId
+            ]);
+
+            $pdo->commit();
+
+            // Return fresh products
+            $freshProductsStmt = $pdo->query("
+                SELECT id, name, category, price, cogs, stock, status, image, description, featured, has_variant as hasVariant 
+                FROM products 
+                WHERE status != 'Inactive'
+            ");
+            $freshProducts = $freshProductsStmt->fetchAll();
+
+            jsonSuccess([
+                'message'   => "Transaksi $invoiceNo berhasil diperbarui & disesuaikan",
+                'invoiceNo' => $invoiceNo,
+                'status'    => $status,
+                'total'     => $finalTotal,
+                'createdAt' => $createdAt,
+                'date'      => $createdAt,
+                'products'  => $freshProducts
+            ]);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            jsonError('Gagal memperbarui order: ' . $e->getMessage(), 500);
+        }
+        break;
+
+    // ---------------------------------------------------------
     // 8. DELETE PRODUCT
     // ---------------------------------------------------------
     case 'deleteproduct':

@@ -25,6 +25,7 @@
 
     // POS Cart & Modal Selector State
     let posCart = [];
+    let posEditingInvoice = null;
     let posSelectedCategory = 'Semua';
     let posModalProduct = null;
     let posModalQty = 1;
