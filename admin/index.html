@@ -18,9 +18,9 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Modular Stylesheets -->
-  <link rel="stylesheet" href="/admin/css/admin-base.css?v=6.3.0">
-  <link rel="stylesheet" href="/admin/css/pos.css?v=6.3.0">
-  <link rel="stylesheet" href="/admin/css/receipt.css?v=6.3.0">
+  <link rel="stylesheet" href="/admin/css/admin-base.css?v=6.3.1">
+  <link rel="stylesheet" href="/admin/css/pos.css?v=6.3.1">
+  <link rel="stylesheet" href="/admin/css/receipt.css?v=6.3.1">
 </head>
 
 <body>
@@ -834,53 +834,95 @@
 
       <!-- TAB: EXPENSES & OPERATIONAL COSTS -->
       <section class="tab-section" id="section-expenses">
-        <!-- Sub Header & Action Buttons -->
-        <div class="orders-controls" style="align-items: center; justify-content: space-between; flex-wrap: wrap;">
-          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <div class="search-box">
-              <i class="fa-solid fa-search"></i>
-              <input type="text" id="expenseSearch" placeholder="Cari pengeluaran..." oninput="filterExpenses()">
+        <!-- Expense Filter Card (Date, Search, Category & Source) -->
+        <div style="background: var(--light); border: 1px solid var(--border); border-radius: 18px; padding: 16px 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 14px;">
+          <!-- Top Row: Date Presets & Custom Date -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--coffee);"><i class="fa-regular fa-calendar"></i> Periode:</span>
+              <div class="period-btn-group" id="expensePeriodBtnGroup">
+                <button type="button" class="period-btn active" onclick="setExpensePeriod('all')">Semua</button>
+                <button type="button" class="period-btn" onclick="setExpensePeriod('today')">Hari Ini</button>
+                <button type="button" class="period-btn" onclick="setExpensePeriod('thismonth')">Bulan Ini</button>
+                <button type="button" class="period-btn" onclick="setExpensePeriod('lastmonth')">Bulan Lalu</button>
+                <button type="button" class="period-btn" onclick="setExpensePeriod('thisyear')">Tahun Ini</button>
+                <button type="button" class="period-btn" onclick="setExpensePeriod('custom')"><i class="fa-regular fa-calendar-days"></i> Kustom</button>
+              </div>
             </div>
-            <select class="form-control" id="expenseCategoryFilter" style="width: 210px; padding: 10px;"
-              onchange="filterExpenses()">
-              <option value="Semua">Semua Kategori</option>
-              <option value="Bahan Baku">Bahan Baku</option>
-              <option value="Kemasan & Packaging">Kemasan & Packaging</option>
-              <option value="Peralatan & Perlengkapan">Peralatan & Perlengkapan</option>
-              <option value="Utilitas & Listrik">Utilitas & Listrik</option>
-              <option value="Gaji & Upah">Gaji & Upah</option>
-              <option value="Sewa & Tempat">Sewa & Tempat</option>
-              <option value="Servis & Maintenance">Servis & Maintenance</option>
-              <option value="Setor Kas ke Bank">Setor Kas ke Bank</option>
-              <option value="Operasional Lainnya">Operasional Lainnya</option>
-            </select>
-            <select class="form-control" id="expenseSourceFilter" style="width: 175px; padding: 10px;"
-              onchange="filterExpenses()">
-              <option value="Semua">Semua Sumber Dana</option>
-              <option value="Kas Tunai (Laci)">💵 Kas Tunai (Laci)</option>
-              <option value="Transfer Bank">💳 Transfer Bank</option>
-            </select>
+
+            <!-- Custom Date Range Picker Box -->
+            <div id="expenseCustomDateBox" class="custom-date-box" style="display: none;">
+              <input type="date" id="expStartDate" aria-label="Tanggal Mulai">
+              <span style="font-size: 12px; color: #8c7365;">s/d</span>
+              <input type="date" id="expEndDate" aria-label="Tanggal Selesai">
+              <button type="button" class="btn btn-sm btn-primary" onclick="applyCustomExpenseDate()">Terapkan</button>
+            </div>
+
+            <!-- Active Period Badge -->
+            <div>
+              <span class="status-badge" id="expActivePeriodBadge" style="background: var(--cream); color: var(--coffee); border: 1px solid var(--border); font-size: 12px; font-weight: 700;">
+                <i class="fa-regular fa-calendar-check"></i> Semua Periode
+              </span>
+            </div>
           </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="btn btn-outline" style="background: #eff6ff; color: #1d4ed8; border-color: #93c5fd;" onclick="openSetorBankModal()">
-              <i class="fa-solid fa-arrow-right-arrow-left"></i> Setor Kas ke Bank
-            </button>
-            <button class="btn btn-outline" style="background: #efe0c8; color: var(--coffee); border-color: var(--gold);" onclick="syncSpreadsheetExpenses()" id="btnSyncExpenses">
-              <i class="fa-solid fa-cloud-arrow-down"></i> Impor dari Spreadsheet
-            </button>
-            <button class="btn btn-primary" onclick="openAddExpenseModal()">
-              <i class="fa-solid fa-plus"></i> Catat Pengeluaran
-            </button>
+
+          <!-- Bottom Row: Search, Category, Payment Source, and Actions -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
+              <div class="search-box" style="min-width: 200px; flex: 1; max-width: 320px;">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="expenseSearch" placeholder="Cari no bukti, judul, catatan..." oninput="filterExpenses()">
+              </div>
+              <select class="form-control" id="expenseCategoryFilter" style="width: 190px; padding: 8px 12px; font-size: 13px;" onchange="filterExpenses()">
+                <option value="Semua">Semua Kategori</option>
+                <option value="Bahan Baku">Bahan Baku</option>
+                <option value="Kemasan & Packaging">Kemasan & Packaging</option>
+                <option value="Peralatan & Perlengkapan">Peralatan & Perlengkapan</option>
+                <option value="Utilitas & Listrik">Utilitas & Listrik</option>
+                <option value="Gaji & Upah">Gaji & Upah</option>
+                <option value="Sewa & Tempat">Sewa & Tempat</option>
+                <option value="Servis & Maintenance">Servis & Maintenance</option>
+                <option value="Setor Kas ke Bank">Setor Kas ke Bank</option>
+                <option value="Operasional Lainnya">Operasional Lainnya</option>
+              </select>
+              <select class="form-control" id="expenseSourceFilter" style="width: 165px; padding: 8px 12px; font-size: 13px;" onchange="filterExpenses()">
+                <option value="Semua">Semua Sumber Dana</option>
+                <option value="Kas Tunai (Laci)">💵 Kas Tunai (Laci)</option>
+                <option value="Transfer Bank">💳 Transfer Bank</option>
+              </select>
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-outline" style="background: #eff6ff; color: #1d4ed8; border-color: #93c5fd;" onclick="openSetorBankModal()" title="Pindahkan uang fisik laci kasir ke rekening bank">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i> Setor Kas ke Bank
+              </button>
+              <button class="btn btn-outline" style="background: #efe0c8; color: var(--coffee); border-color: var(--gold);" onclick="syncSpreadsheetExpenses()" id="btnSyncExpenses">
+                <i class="fa-solid fa-cloud-arrow-down"></i> Impor Spreadsheet
+              </button>
+              <button class="btn btn-primary" onclick="openAddExpenseModal()">
+                <i class="fa-solid fa-plus"></i> Catat Pengeluaran
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Expense Table -->
+        <!-- Expense Table Panel -->
         <div class="panel">
-          <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center;">
-            <span><i class="fa-solid fa-receipt"></i> Riwayat Beban & Pengeluaran Operasional</span>
-            <span class="badge" id="totalExpenseAmountBadge"
-              style="background:var(--danger); color:#fff; font-size:13px; padding:6px 12px; font-weight:700;">Total:
-              Rp0</span>
+          <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <i class="fa-solid fa-receipt"></i> Riwayat Beban & Pengeluaran Operasional
+              <div style="font-size: 12px; font-weight: 500; color: #8c7365;" id="expenseSubtitleInfo">
+                Daftar semua transaksi pengeluaran kafe
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <span class="badge" id="expCountBadge" style="background: var(--cream); color: var(--coffee); border: 1px solid var(--border); font-size: 12px; padding: 5px 10px; font-weight: 700;">
+                0 pengeluaran
+              </span>
+              <span class="badge" id="totalExpenseAmountBadge" style="background: var(--danger); color: #fff; font-size: 13px; padding: 6px 12px; font-weight: 700;">
+                Total: Rp0
+              </span>
+            </div>
           </div>
           <div style="overflow-x: auto;">
             <table class="data-table" style="width:100%; border-collapse: collapse;" id="expensesTable">
@@ -900,6 +942,11 @@
                 <!-- Dynamically populated -->
               </tbody>
             </table>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div class="pagination-bar" id="expensePaginationContainer">
+            <!-- Dynamically populated -->
           </div>
         </div>
       </section>
@@ -2128,17 +2175,17 @@
   </div>
 
     <!-- Modular Scripts with Cache-Busting Version -->
-  <script src="/admin/js/config.js?v=6.3.0"></script>
-  <script src="/admin/js/api.js?v=6.3.0"></script>
-  <script src="/admin/js/dashboard.js?v=6.3.0"></script>
-  <script src="/admin/js/pos.js?v=6.3.0"></script>
-  <script src="/admin/js/orders.js?v=6.3.0"></script>
-  <script src="/admin/js/products.js?v=6.3.0"></script>
-  <script src="/admin/js/ingredients.js?v=6.3.0"></script>
-  <script src="/admin/js/expenses.js?v=6.3.0"></script>
-  <script src="/admin/js/debts.js?v=6.3.0"></script>
-  <script src="/admin/js/reports.js?v=6.3.0"></script>
-  <script src="/admin/js/app.js?v=6.3.0"></script>
+  <script src="/admin/js/config.js?v=6.3.1"></script>
+  <script src="/admin/js/api.js?v=6.3.1"></script>
+  <script src="/admin/js/dashboard.js?v=6.3.1"></script>
+  <script src="/admin/js/pos.js?v=6.3.1"></script>
+  <script src="/admin/js/orders.js?v=6.3.1"></script>
+  <script src="/admin/js/products.js?v=6.3.1"></script>
+  <script src="/admin/js/ingredients.js?v=6.3.1"></script>
+  <script src="/admin/js/expenses.js?v=6.3.1"></script>
+  <script src="/admin/js/debts.js?v=6.3.1"></script>
+  <script src="/admin/js/reports.js?v=6.3.1"></script>
+  <script src="/admin/js/app.js?v=6.3.1"></script>
 </body>
 
 </html>

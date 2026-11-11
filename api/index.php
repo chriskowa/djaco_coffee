@@ -1675,12 +1675,6 @@ switch ($action) {
         if ($method !== 'POST') jsonError('Method POST required', 405);
         $currentUser = requireAuth($pdo);
 
-        $id          = (int)($input['id'] ?? 0);
-        $category    = trim($input['category'] ?? 'Operasional');
-        $title       = trim($input['title'] ?? '');
-        $amount      = (float)($input['amount'] ?? 0);
-        $notes       = trim($input['notes'] ?? '');
-        $expenseDate = trim($input['expenseDate'] ?? date('Y-m-d'));
         $id            = (int)($input['id'] ?? 0);
         $category      = trim($input['category'] ?? 'Operasional');
         $title         = trim($input['title'] ?? '');
@@ -1697,21 +1691,16 @@ switch ($action) {
         if ($id > 0) {
             $stmt = $pdo->prepare("
                 UPDATE expenses 
-                SET category = ?, title = ?, amount = ?, notes = ?, expense_date = ?
                 SET category = ?, title = ?, amount = ?, payment_source = ?, notes = ?, expense_date = ?
                 WHERE id = ?
             ");
-            $stmt->execute([$category, $title, $amount, $notes, $expenseDate, $id]);
             $stmt->execute([$category, $title, $amount, $paymentSource, $notes, $expenseDate, $id]);
         } else {
             $expNo = 'EXP-' . date('Ymd-His') . '-' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
             $stmt = $pdo->prepare("
-                INSERT INTO expenses (expense_no, category, title, amount, notes, expense_date)
-                VALUES (?, ?, ?, ?, ?, ?)
                 INSERT INTO expenses (expense_no, category, title, amount, payment_source, notes, expense_date)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([$expNo, $category, $title, $amount, $notes, $expenseDate]);
             $stmt->execute([$expNo, $category, $title, $amount, $paymentSource, $notes, $expenseDate]);
             $id = (int)$pdo->lastInsertId();
         }
@@ -1737,15 +1726,6 @@ switch ($action) {
         if ($method !== 'POST') jsonError('Method POST required', 405);
         $currentUser = requireAuth($pdo, 'admin');
 
-        $id           = (int)($input['id'] ?? 0);
-        $creditorName = trim($input['creditorName'] ?? '');
-        $loanAmount   = (float)($input['loanAmount'] ?? 0);
-        $loanDate     = trim($input['loanDate'] ?? '') ?: date('Y-m-d');
-        $dueDate      = trim($input['dueDate'] ?? '') ?: null;
-        $tenorMonths  = (int)($input['tenorMonths'] ?? 0);
-        $interestRate = (float)($input['interestRate'] ?? 0);
-        $notes        = trim($input['notes'] ?? '');
-        $status       = trim($input['status'] ?? 'Active');
         $id             = (int)($input['id'] ?? 0);
         $creditorName   = trim($input['creditorName'] ?? '');
         $loanAmount     = (float)($input['loanAmount'] ?? 0);
