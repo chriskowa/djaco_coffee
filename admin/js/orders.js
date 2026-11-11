@@ -43,12 +43,18 @@
       const displayStatus = isCompleted ? 'LUNAS / SELESAI' : (order.status || 'Pending');
       const statusColor = isCompleted ? '#2e7d32' : (String(order.status || '').toLowerCase() === 'cancelled' ? '#c62828' : '#b45309');
 
-      const itemsRowsHtml = order.items.map(it => `
-        <div class="receipt-row">
-          <span>${it.name} x${it.qty}${it.optionsText ? `<br><small style="color:#666;">${it.optionsText}</small>` : ''}${it.itemNote ? `<br><small style="color:red;">Note: ${it.itemNote}</small>` : ''}</span>
-          <b>${rupiah(it.subtotal || (it.qty * it.unitPrice))}</b>
-        </div>
-      `).join('');
+      const rawItems = Array.isArray(order.items) ? order.items : [];
+      const itemsRowsHtml = rawItems.map(it => {
+        const itName = it.name || it.productName || 'Item Menu';
+        const itQty = it.qty || 1;
+        const itSub = Number(it.subtotal != null && it.subtotal > 0 ? it.subtotal : (Number(it.unitPrice || 0) * itQty));
+        return `
+          <div class="receipt-row">
+            <span>${esc(itName)} x${itQty}${it.optionsText ? `<br><small style="color:#666;">${esc(it.optionsText)}</small>` : ''}${it.itemNote ? `<br><small style="color:red;">Note: ${esc(it.itemNote)}</small>` : ''}</span>
+            <b>${rupiah(itSub)}</b>
+          </div>
+        `;
+      }).join('');
 
       box.innerHTML = `
         <h3>DjaCo Coffee</h3>
@@ -240,16 +246,22 @@
           statusClass = 'status-cancelled';
         }
 
-        const itemsHtml = o.items.map(it => `
-          <div class="order-item-row">
-            <div>
-              <div class="order-item-name">${it.name} <span style="color:#8c7365;">x${it.qty}</span></div>
-              ${it.optionsText ? `<div class="order-item-desc"><i class="fa-solid fa-tag"></i> ${it.optionsText}</div>` : ''}
-              ${it.itemNote ? `<div class="order-item-desc" style="color:var(--danger);"><i class="fa-regular fa-comment"></i> Catatan: ${it.itemNote}</div>` : ''}
+        const itemsList = Array.isArray(o.items) ? o.items : [];
+        const itemsHtml = itemsList.map(it => {
+          const itName = it.name || it.productName || 'Item Menu';
+          const itQty = it.qty || 1;
+          const itSub = Number(it.subtotal != null && it.subtotal > 0 ? it.subtotal : (Number(it.unitPrice || 0) * itQty));
+          return `
+            <div class="order-item-row">
+              <div>
+                <div class="order-item-name">${esc(itName)} <span style="color:#8c7365;">x${itQty}</span></div>
+                ${it.optionsText ? `<div class="order-item-desc"><i class="fa-solid fa-tag"></i> ${esc(it.optionsText)}</div>` : ''}
+                ${it.itemNote ? `<div class="order-item-desc" style="color:var(--danger);"><i class="fa-regular fa-comment"></i> Catatan: ${esc(it.itemNote)}</div>` : ''}
+              </div>
+              <div style="font-weight: 700; color: var(--coffee);">${rupiah(itSub)}</div>
             </div>
-            <div style="font-weight: 700; color: var(--coffee);">${rupiah(it.subtotal)}</div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
 
         return `
           <div class="order-card" id="order-card-${o.invoiceNo}">

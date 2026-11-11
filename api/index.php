@@ -359,16 +359,30 @@ switch ($action) {
             $inClause = implode(',', array_map('intval', $orderIds));
             $itemsStmt = $pdo->query("SELECT * FROM order_items WHERE order_id IN ($inClause)");
             while ($item = $itemsStmt->fetch()) {
+                $pName = (string)$item['product_name'];
+                $sub = (float)$item['subtotal'];
+                $uPrice = (float)$item['unit_price'];
+
+                if (($pName === 'Menu' || $sub <= 0) && !empty($item['product_id'])) {
+                    $pFallbackStmt = $pdo->prepare("SELECT name, price, category FROM products WHERE id = ?");
+                    $pFallbackStmt->execute([$item['product_id']]);
+                    if ($pFallback = $pFallbackStmt->fetch()) {
+                        if ($pName === 'Menu') $pName = (string)$pFallback['name'];
+                        if ($uPrice <= 0) $uPrice = (float)$pFallback['price'];
+                        if ($sub <= 0) $sub = $uPrice * (int)$item['qty'];
+                    }
+                }
+
                 $itemsByOrderId[$item['order_id']][] = [
                     'productId'   => $item['product_id'],
-                    'name'        => $item['product_name'],
+                    'name'        => $pName,
                     'category'    => $item['category'],
                     'basePrice'   => (float)$item['base_price'],
-                    'unitPrice'   => (float)$item['unit_price'],
+                    'unitPrice'   => $uPrice,
                     'qty'         => (int)$item['qty'],
                     'optionsText' => $item['options_text'],
                     'itemNote'    => $item['item_note'],
-                    'subtotal'    => (float)$item['subtotal']
+                    'subtotal'    => $sub
                 ];
             }
         }
@@ -789,14 +803,61 @@ switch ($action) {
 
             foreach ($items as $it) {
                 $pId = (string)($it['productId'] ?? $it['id'] ?? '');
-                $pName = (string)($it['name'] ?? $it['productName'] ?? 'Menu');
-                $pCat = (string)($it['category'] ?? '');
-                $bPrice = (float)($it['basePrice'] ?? 0);
-                $uPrice = (float)($it['unitPrice'] ?? $bPrice);
+
+                // Fetch product info from database to guarantee name, category, and price are NEVER missing
+                $prod = null;
+                if (!empty($pId)) {
+                    $pStmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
+                    $pStmt->execute([$pId]);
+                    $prod = $pStmt->fetch();
+                }
+
+                $pName = !empty($it['name']) && $it['name'] !== 'Menu'
+                    ? (string)$it['name']
+                    : ($prod ? (string)$prod['name'] : (string)($it['productName'] ?? 'Menu'));
+
+                $pCat = !empty($it['category'])
+                    ? (string)$it['category']
+                    : ($prod ? (string)$prod['category'] : 'Menu');
+
+                $bPrice = isset($it['basePrice']) && (float)$it['basePrice'] > 0
+                    ? (float)$it['basePrice']
+                    : ($prod ? (float)$prod['price'] : (float)($it['unitPrice'] ?? 0));
+
                 $qty = max(1, (int)($it['qty'] ?? 1));
-                $optText = (string)($it['optionsText'] ?? '');
+
+                // Process options & optionsText
+                $optionsText = (string)($it['optionsText'] ?? '');
+                $unitPrice = isset($it['unitPrice']) && (float)$it['unitPrice'] > 0
+                    ? (float)$it['unitPrice']
+                    : $bPrice;
+
+                if (empty($optionsText) && !empty($it['options']) && is_array($it['options'])) {
+                    $optTexts = [];
+                    foreach ($it['options'] as $opt) {
+                        $g = $opt['group'] ?? '';
+                        $o = $opt['option'] ?? '';
+                        if (!empty($g) && !empty($o)) {
+                            $optTexts[] = "$g: $o";
+                            if (!isset($it['unitPrice'])) {
+                                $optPriceStmt = $pdo->prepare("
+                                    SELECT price_add 
+                                    FROM product_options 
+                                    WHERE product_id = ? AND group_name = ? AND option_name = ? AND status != 'Inactive'
+                                ");
+                                $optPriceStmt->execute([$pId, $g, $o]);
+                                $priceAdd = (float)$optPriceStmt->fetchColumn();
+                                $unitPrice += $priceAdd;
+                            }
+                        }
+                    }
+                    $optionsText = implode(', ', $optTexts);
+                }
+
                 $itNote = (string)($it['itemNote'] ?? '');
-                $sub = (float)($it['subtotal'] ?? ($uPrice * $qty));
+                $sub = isset($it['subtotal']) && (float)$it['subtotal'] > 0
+                    ? (float)$it['subtotal']
+                    : ($unitPrice * $qty);
 
                 $itemStmt->execute([
                     ':order_id'     => $orderId,
@@ -805,9 +866,9 @@ switch ($action) {
                     ':product_name' => $pName,
                     ':category'     => $pCat,
                     ':base_price'   => $bPrice,
-                    ':unit_price'   => $uPrice,
+                    ':unit_price'   => $unitPrice,
                     ':qty'          => $qty,
-                    ':options_text' => $optText,
+                    ':options_text' => $optionsText,
                     ':item_note'    => $itNote,
                     ':subtotal'     => $sub
                 ]);

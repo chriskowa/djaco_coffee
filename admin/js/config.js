@@ -47,6 +47,13 @@
     // Helper: format Rupiah
     const rupiah = (num) => 'Rp' + Number(num || 0).toLocaleString('id-ID');
 
+    // Helper: Escape HTML string
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
     // Toast Notification helper
     function showToast(message, isAlert = false) {
       const toastEl = document.getElementById('adminToast');
