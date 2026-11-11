@@ -16,6 +16,7 @@
     let expenses = [];
     let debts = [];
     let debtSummary = null;
+    let cashSummary = null;
     let recipes = [];
     let activeRecipeProductId = null;
     let localRecipeItems = [];

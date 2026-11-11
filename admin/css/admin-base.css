@@ -534,15 +534,15 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 20px;
+      padding: 16px 18px;
       box-shadow: 0 4px 15px rgba(59, 31, 18, 0.03);
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     .stat-card .card-lbl {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: #8c7365;
       text-transform: uppercase;
@@ -551,13 +551,16 @@
 
     .stat-card .card-val {
       font-family: 'Outfit', sans-serif;
-      font-size: 26px;
+      font-size: clamp(16px, 1.2rem, 20px);
       font-weight: 800;
       color: var(--coffee);
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.25;
     }
 
     .stat-card .card-footer {
-      font-size: 12px;
+      font-size: 11px;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -1287,10 +1290,12 @@
 
     .report-kpi-card .kpi-value {
       font-family: 'Outfit', sans-serif;
-      font-size: 24px;
+      font-size: clamp(16px, 1.2rem, 20px);
       font-weight: 800;
       color: var(--coffee);
-      line-height: 1.2;
+      line-height: 1.25;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .report-kpi-card .kpi-sub {
@@ -1331,4 +1336,102 @@
       margin-bottom: 24px;
       padding-bottom: 16px;
       border-bottom: 2px solid #3b1f12;
+    }
+
+    /* Cash & Bank Ledger Widgets */
+    .cash-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .cash-balance-card {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 4px 14px rgba(59, 31, 18, 0.04);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cash-balance-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 100%;
+    }
+
+    .cash-card-drawer::before {
+      background: #2563eb;
+    }
+
+    .cash-card-bank::before {
+      background: #059669;
+    }
+
+    .cash-card-total::before {
+      background: var(--gold);
+    }
+
+    .cash-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .cash-card-drawer .cash-icon-box {
+      background: #eff6ff;
+      color: #2563eb;
+    }
+
+    .cash-card-bank .cash-icon-box {
+      background: #ecfdf5;
+      color: #059669;
+    }
+
+    .cash-card-total .cash-icon-box {
+      background: #fbf5eb;
+      color: var(--coffee);
+    }
+
+    .cash-balance-card .cash-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .cash-balance-card .cash-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: #8c7365;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .cash-balance-card .cash-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(16px, 1.25rem, 20px);
+      font-weight: 800;
+      color: var(--coffee);
+      line-height: 1.2;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .cash-balance-card .cash-sub {
+      font-size: 11px;
+      color: #927568;
+      margin-top: 3px;
     }

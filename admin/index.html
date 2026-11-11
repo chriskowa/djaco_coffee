@@ -18,9 +18,9 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Modular Stylesheets -->
-  <link rel="stylesheet" href="/admin/css/admin-base.css">
-  <link rel="stylesheet" href="/admin/css/pos.css">
-  <link rel="stylesheet" href="/admin/css/receipt.css">
+  <link rel="stylesheet" href="/admin/css/admin-base.css?v=6.3.0">
+  <link rel="stylesheet" href="/admin/css/pos.css?v=6.3.0">
+  <link rel="stylesheet" href="/admin/css/receipt.css?v=6.3.0">
 </head>
 
 <body>
@@ -213,6 +213,44 @@
             <span id="dashPeriodLoading" style="display: none; color: var(--coffee); font-size: 13px;">
               <i class="fa-solid fa-spinner fa-spin"></i>
             </span>
+          </div>
+        </div>
+
+        <!-- Real-Time Cash & Bank Ledger Widget -->
+        <div style="margin-bottom: 22px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
+            <span style="font-weight: 700; font-size: 13px; color: var(--coffee); text-transform: uppercase; letter-spacing: 0.5px;">
+              <i class="fa-solid fa-vault"></i> Posisi Uang Kas Toko & Rekening (Real-Time)
+            </span>
+            <span style="font-size: 11px; color: #8c7365;">
+              <i class="fa-solid fa-arrows-rotate"></i> Sinkronisasi otomatis dari kasir, beban & hutang
+            </span>
+          </div>
+          <div class="cash-grid">
+            <div class="cash-balance-card cash-card-drawer">
+              <div class="cash-icon-box"><i class="fa-solid fa-cash-register"></i></div>
+              <div class="cash-info">
+                <div class="cash-lbl">Kas Tunai (Laci Kasir)</div>
+                <div class="cash-val val-cash-drawer" id="dash-cash-drawer">Rp0</div>
+                <div class="cash-sub"><i class="fa-solid fa-money-bill-wave"></i> Uang fisik wajib di laci kasir</div>
+              </div>
+            </div>
+            <div class="cash-balance-card cash-card-bank">
+              <div class="cash-icon-box"><i class="fa-solid fa-building-columns"></i></div>
+              <div class="cash-info">
+                <div class="cash-lbl">Kas Bank & QRIS</div>
+                <div class="cash-val val-cash-bank" id="dash-cash-bank">Rp0</div>
+                <div class="cash-sub"><i class="fa-solid fa-qrcode"></i> Tabungan bank & QRIS SpeedCash</div>
+              </div>
+            </div>
+            <div class="cash-balance-card cash-card-total">
+              <div class="cash-icon-box"><i class="fa-solid fa-vault"></i></div>
+              <div class="cash-info">
+                <div class="cash-lbl">Total Uang Kas Tersedia</div>
+                <div class="cash-val val-cash-total" id="dash-cash-total">Rp0</div>
+                <div class="cash-sub"><i class="fa-solid fa-coins"></i> Total likuiditas toko (Laci + Bank)</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -813,10 +851,20 @@
               <option value="Gaji & Upah">Gaji & Upah</option>
               <option value="Sewa & Tempat">Sewa & Tempat</option>
               <option value="Servis & Maintenance">Servis & Maintenance</option>
+              <option value="Setor Kas ke Bank">Setor Kas ke Bank</option>
               <option value="Operasional Lainnya">Operasional Lainnya</option>
+            </select>
+            <select class="form-control" id="expenseSourceFilter" style="width: 175px; padding: 10px;"
+              onchange="filterExpenses()">
+              <option value="Semua">Semua Sumber Dana</option>
+              <option value="Kas Tunai (Laci)">💵 Kas Tunai (Laci)</option>
+              <option value="Transfer Bank">💳 Transfer Bank</option>
             </select>
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-outline" style="background: #eff6ff; color: #1d4ed8; border-color: #93c5fd;" onclick="openSetorBankModal()">
+              <i class="fa-solid fa-arrow-right-arrow-left"></i> Setor Kas ke Bank
+            </button>
             <button class="btn btn-outline" style="background: #efe0c8; color: var(--coffee); border-color: var(--gold);" onclick="syncSpreadsheetExpenses()" id="btnSyncExpenses">
               <i class="fa-solid fa-cloud-arrow-down"></i> Impor dari Spreadsheet
             </button>
@@ -842,6 +890,7 @@
                   <th style="padding:12px 14px;">Tanggal</th>
                   <th style="padding:12px 14px;">Kategori</th>
                   <th style="padding:12px 14px;">Keterangan Pengeluaran</th>
+                  <th style="padding:12px 14px;">Sumber Dana</th>
                   <th style="padding:12px 14px;">Nominal (Rp)</th>
                   <th style="padding:12px 14px;">Catatan</th>
                   <th style="padding:12px 14px; text-align:right;">Aksi</th>
@@ -931,7 +980,7 @@
       <section class="tab-section" id="section-reports">
         <!-- Print Header (Visible only when printing) -->
         <div class="report-print-header">
-          <h2 style="font-family:'Outfit', sans-serif; font-size: 22px; color: #3b1f12; margin-bottom: 4px;">DjaCo Coffee & Roastery</h2>
+          <h2 style="font-family:'Outfit', sans-serif; font-size: 22px; color: #3b1f12; margin-bottom: 4px;">DjaCo Coffee</h2>
           <div style="font-size: 14px; font-weight: 700; color: #5c3523; text-transform: uppercase; letter-spacing: 1px;">Laporan Keuangan & Penjualan Lengkap (P&L)</div>
           <div id="repPrintPeriodLabel" style="font-size: 12px; color: #666; margin-top: 6px;">Periode: -</div>
         </div>
@@ -1092,6 +1141,145 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- PANEL: CASH & BANK LEDGER REPORT (ARUS KAS & SISA UANG KAS) -->
+        <div class="panel" style="margin-top: 24px;" id="reportCashLedgerPanel">
+          <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <i class="fa-solid fa-vault"></i> Laporan Arus Kas & Sisa Saldo Uang Kas
+              <div style="font-size: 12px; font-weight: 500; color: #8c7365;">
+                Pemasukan kas riil, pengeluaran kas riil pada periode ini, dan posisi uang kas yang wajib tersedia saat ini
+              </div>
+            </div>
+            <div id="rep-cashflow-net-badge"></div>
+          </div>
+
+          <!-- Section A: Posisi Sisa Saldo Uang Kas (Real-Time Balances) -->
+          <div style="margin-bottom: 20px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--coffee); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+              <i class="fa-solid fa-wallet"></i> 1. Posisi Sisa Uang Kas Saat Ini (Sisa Saldo Kas Toko)
+            </div>
+            <div class="cash-grid" style="margin-bottom: 0;">
+              <div class="cash-balance-card cash-card-drawer">
+                <div class="cash-icon-box"><i class="fa-solid fa-cash-register"></i></div>
+                <div class="cash-info">
+                  <div class="cash-lbl">Sisa Kas Fisik (Laci Kasir)</div>
+                  <div class="cash-val val-cash-drawer" id="rep-cash-drawer-balance">Rp0</div>
+                  <div class="cash-sub"><i class="fa-solid fa-money-bill-wave"></i> Uang fisik wajib ada di laci</div>
+                </div>
+              </div>
+              <div class="cash-balance-card cash-card-bank">
+                <div class="cash-icon-box"><i class="fa-solid fa-building-columns"></i></div>
+                <div class="cash-info">
+                  <div class="cash-lbl">Sisa Kas Bank & QRIS</div>
+                  <div class="cash-val val-cash-bank" id="rep-cash-bank-balance">Rp0</div>
+                  <div class="cash-sub"><i class="fa-solid fa-qrcode"></i> Saldo rekening bank & settlement QRIS</div>
+                </div>
+              </div>
+              <div class="cash-balance-card cash-card-total">
+                <div class="cash-icon-box"><i class="fa-solid fa-vault"></i></div>
+                <div class="cash-info">
+                  <div class="cash-lbl">Total Uang Kas Tersedia</div>
+                  <div class="cash-val val-cash-total" id="rep-cash-total-balance">Rp0</div>
+                  <div class="cash-sub"><i class="fa-solid fa-coins"></i> Total dana likuid (Laci + Bank)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section B: Aliran Kas Masuk & Keluar Periode Ini (Cash Flow Statement) -->
+          <div style="margin-top: 20px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--coffee); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+              <i class="fa-solid fa-money-bill-transfer"></i> 2. Rincian Pemasukan & Pengeluaran Kas Periode Terpilih
+            </div>
+
+            <!-- 3 Summary Flow Cards -->
+            <div class="overview-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 16px;">
+              <div class="stat-card" style="border-left: 4px solid var(--success);">
+                <span class="card-lbl">Total Uang Masuk</span>
+                <span class="card-val" id="rep-cashflow-total-in" style="color: var(--success);">Rp0</span>
+                <div class="card-footer"><i class="fa-solid fa-arrow-down-long"></i> Penjualan Tunai + QRIS + Modal Pinjam</div>
+              </div>
+              <div class="stat-card" style="border-left: 4px solid var(--danger);">
+                <span class="card-lbl">Total Uang Keluar</span>
+                <span class="card-val" id="rep-cashflow-total-out" style="color: var(--danger);">Rp0</span>
+                <div class="card-footer"><i class="fa-solid fa-arrow-up-long"></i> Beban Toko + Cicilan Pokok Hutang</div>
+              </div>
+              <div class="stat-card" style="border-left: 4px solid var(--gold);">
+                <span class="card-lbl">Arus Kas Bersih (Net)</span>
+                <span class="card-val" id="rep-cashflow-period-net">Rp0</span>
+                <div class="card-footer"><i class="fa-solid fa-scale-balanced"></i> Selisih Kas Masuk − Kas Keluar</div>
+              </div>
+            </div>
+
+            <!-- Two-column Detailed Breakdown Table: Kas Laci vs Kas Bank -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+              <!-- Left Column: Akun Kas Tunai (Laci Kasir) -->
+              <div style="background: var(--light); border: 1px solid var(--border); border-radius: 16px; padding: 16px 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                  <span style="font-weight: 700; font-size: 13px; color: #1d4ed8;">
+                    <i class="fa-solid fa-cash-register"></i> Arus Kas Tunai (Laci Toko)
+                  </span>
+                  <span style="font-size: 11px; font-weight: 700;" id="rep-flow-drawer-net">Rp0</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color:#5c3523;"><i class="fa-solid fa-plus" style="color:var(--success);"></i> Penjualan Tunai Kasir:</span>
+                    <b id="rep-flow-cash-in" style="color:var(--coffee);">Rp0</b>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color:#5c3523;"><i class="fa-solid fa-plus" style="color:var(--success);"></i> Modal Masuk ke Laci:</span>
+                    <b id="rep-flow-cash-loan" style="color:var(--coffee);">Rp0</b>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color:#5c3523;"><i class="fa-solid fa-minus" style="color:var(--danger);"></i> Beban Dibayar Tunai (Laci):</span>
+                    <b id="rep-flow-cash-exp" style="color:var(--danger);">Rp0</b>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color:#5c3523;"><i class="fa-solid fa-minus" style="color:var(--danger);"></i> Cicilan Hutang Tunai:</span>
+                    <b id="rep-flow-cash-debt" style="color:var(--danger);">Rp0</b>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color:#5c3523;"><i class="fa-solid fa-arrow-right-arrow-left" style="color:#b45309;"></i> Setoran Laci ke Bank:</span>
+                    <b id="rep-flow-cash-tobank" style="color:#b45309;">Rp0</b>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: Akun Kas Bank & QRIS (Rekening Usaha) -->
+              <div style="background: var(--light); border: 1px solid var(--border); border-radius: 16px; padding: 16px 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                  <span style="font-weight: 700; font-size: 13px; color: #047857;">
+                    <i class="fa-solid fa-building-columns"></i> Arus Kas Bank & QRIS
+                  </span>
+                  <span style="font-size: 11px; font-weight: 700;" id="rep-flow-bank-net">Rp0</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color:#5c3523;"><i class="fa-solid fa-plus" style="color:var(--success);"></i> Penjualan QRIS (Masuk Rekening):</span>
+                    <b id="rep-flow-qris-in" style="color:var(--coffee);">Rp0</b>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color:#5c3523;"><i class="fa-solid fa-plus" style="color:var(--success);"></i> Modal Pinjaman Masuk ke Bank:</span>
+                    <b id="rep-flow-bank-loan" style="color:var(--coffee);">Rp0</b>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color:#5c3523;"><i class="fa-solid fa-minus" style="color:var(--danger);"></i> Beban Operasional Transfer Bank:</span>
+                    <b id="rep-flow-bank-exp" style="color:var(--danger);">Rp0</b>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color:#5c3523;"><i class="fa-solid fa-minus" style="color:var(--danger);"></i> Cicilan Hutang via Transfer Bank:</span>
+                    <b id="rep-flow-bank-debt" style="color:var(--danger);">Rp0</b>
+                  </div>
+                  <div style="font-size: 11px; color: #8c7365; margin-top: 4px;">
+                    *QRIS di-settle otomatis ke rekening bank terdaftar merchant SpeedCash.
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -1637,6 +1825,7 @@
                 <option value="Gaji & Upah">Gaji & Upah</option>
                 <option value="Sewa & Tempat">Sewa & Tempat</option>
                 <option value="Servis & Maintenance">Servis & Maintenance</option>
+                <option value="Setor Kas ke Bank">Setor Kas ke Bank</option>
                 <option value="Operasional Lainnya">Operasional Lainnya</option>
               </select>
             </div>
@@ -1652,9 +1841,18 @@
               placeholder="Contoh: Gaji Barista Dadang, Servis Mesin Espresso" required>
           </div>
 
-          <div class="form-group">
-            <label for="exp-amount">Jumlah Nominal (Rp)*</label>
-            <input type="number" id="exp-amount" class="form-control" placeholder="Contoh: 250000" min="1" required>
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0;">
+            <div class="form-group">
+              <label for="exp-amount">Jumlah Nominal (Rp)*</label>
+              <input type="number" id="exp-amount" class="form-control" placeholder="Contoh: 250000" min="1" required>
+            </div>
+            <div class="form-group">
+              <label for="exp-payment-source">Sumber Dana (Diambil Dari)*</label>
+              <select id="exp-payment-source" class="form-control" required>
+                <option value="Kas Tunai (Laci)">💵 Kas Tunai (Laci Toko)</option>
+                <option value="Transfer Bank">💳 Transfer Bank (Rekening Usaha)</option>
+              </select>
+            </div>
           </div>
 
           <div class="form-group">
@@ -1695,9 +1893,17 @@
               <input type="number" id="debt-amount" class="form-control" placeholder="Contoh: 50000000" min="1" required>
             </div>
             <div class="form-group">
-              <label for="debt-date">Tanggal Mulai Pinjam*</label>
-              <input type="date" id="debt-date" class="form-control" required>
+              <label for="debt-deposit-account">Uang Masuk / Dicairkan Ke*</label>
+              <select id="debt-deposit-account" class="form-control" required>
+                <option value="Transfer Bank">💳 Transfer Rekening Bank (Default)</option>
+                <option value="Kas Tunai (Laci)">💵 Kas Tunai (Laci Toko)</option>
+              </select>
             </div>
+          </div>
+
+          <div class="form-group">
+            <label for="debt-date">Tanggal Mulai Pinjam*</label>
+            <input type="date" id="debt-date" class="form-control" required>
           </div>
 
           <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 0;">
@@ -1922,17 +2128,17 @@
   </div>
 
     <!-- Modular Scripts with Cache-Busting Version -->
-  <script src="/admin/js/config.js?v=6.2.1"></script>
-  <script src="/admin/js/api.js?v=6.2.1"></script>
-  <script src="/admin/js/dashboard.js?v=6.2.1"></script>
-  <script src="/admin/js/pos.js?v=6.2.1"></script>
-  <script src="/admin/js/orders.js?v=6.2.1"></script>
-  <script src="/admin/js/products.js?v=6.2.1"></script>
-  <script src="/admin/js/ingredients.js?v=6.2.1"></script>
-  <script src="/admin/js/expenses.js?v=6.2.1"></script>
-  <script src="/admin/js/debts.js?v=6.2.1"></script>
-  <script src="/admin/js/reports.js?v=6.2.1"></script>
-  <script src="/admin/js/app.js?v=6.2.1"></script>
+  <script src="/admin/js/config.js?v=6.3.0"></script>
+  <script src="/admin/js/api.js?v=6.3.0"></script>
+  <script src="/admin/js/dashboard.js?v=6.3.0"></script>
+  <script src="/admin/js/pos.js?v=6.3.0"></script>
+  <script src="/admin/js/orders.js?v=6.3.0"></script>
+  <script src="/admin/js/products.js?v=6.3.0"></script>
+  <script src="/admin/js/ingredients.js?v=6.3.0"></script>
+  <script src="/admin/js/expenses.js?v=6.3.0"></script>
+  <script src="/admin/js/debts.js?v=6.3.0"></script>
+  <script src="/admin/js/reports.js?v=6.3.0"></script>
+  <script src="/admin/js/app.js?v=6.3.0"></script>
 </body>
 
 </html>

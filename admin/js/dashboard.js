@@ -190,6 +190,13 @@ async function loadDashboardData(startDate, endDate, periodLabel) {
     // Render low stock alerts
     renderDashboardLowStock();
 
+    // Render Cash Balance Widgets
+    if (res.cashReport) {
+      renderCashBalanceWidgets(res.cashReport);
+    } else if (cashSummary) {
+      renderCashBalanceWidgets(cashSummary);
+    }
+
   } catch (err) {
     console.error('Failed to load dashboard data:', err);
     if (badgeEl) badgeEl.innerText = 'Gagal memuat data periode.';
@@ -381,4 +388,33 @@ function renderDashboardOverview() {
   } else {
     loadDashboardData(dashStartDateVal, dashEndDateVal);
   }
+}
+
+// Cash & Bank Real-Time Ledger renderer
+function renderCashBalanceWidgets(customCash = null) {
+  const cash = customCash || cashSummary || (dashboardDataCache && dashboardDataCache.cashReport) || null;
+  if (!cash) return;
+
+  const drawer = Number(cash.drawerCashBalance || 0);
+  const bank = Number(cash.bankBalance || 0);
+  const total = Number(cash.totalLiquidCash != null ? cash.totalLiquidCash : (drawer + bank));
+
+  const drawerEls = document.querySelectorAll('.val-cash-drawer');
+  const bankEls = document.querySelectorAll('.val-cash-bank');
+  const totalEls = document.querySelectorAll('.val-cash-total');
+
+  drawerEls.forEach(el => {
+    el.innerText = rupiah(drawer);
+    el.style.color = drawer < 0 ? 'var(--danger)' : '#2563eb';
+  });
+
+  bankEls.forEach(el => {
+    el.innerText = rupiah(bank);
+    el.style.color = bank < 0 ? 'var(--danger)' : '#059669';
+  });
+
+  totalEls.forEach(el => {
+    el.innerText = rupiah(total);
+    el.style.color = total < 0 ? 'var(--danger)' : 'var(--coffee)';
+  });
 }

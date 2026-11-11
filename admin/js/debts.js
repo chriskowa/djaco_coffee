@@ -137,6 +137,8 @@ function openAddDebtModal(id = null) {
     idInput.value = d.id;
     document.getElementById('debt-creditor').value = d.creditorName || '';
     document.getElementById('debt-amount').value = d.loanAmount || 0;
+    const depEl = document.getElementById('debt-deposit-account');
+    if (depEl) depEl.value = d.depositAccount || 'Transfer Bank';
     document.getElementById('debt-date').value = d.loanDate || '';
     document.getElementById('debt-due-date').value = d.dueDate || '';
     document.getElementById('debt-tenor').value = d.tenorMonths || '';
@@ -147,6 +149,8 @@ function openAddDebtModal(id = null) {
     titleEl.innerText = 'Catat Pinjaman / Hutang Modal Baru';
     idInput.value = '0';
     document.getElementById('debt-date').value = new Date().toISOString().split('T')[0];
+    const depEl = document.getElementById('debt-deposit-account');
+    if (depEl) depEl.value = 'Transfer Bank';
     document.getElementById('debt-status').value = 'Active';
   }
 
@@ -167,6 +171,7 @@ async function saveDebtForm(event) {
     id: Number(document.getElementById('debt-id').value || 0),
     creditorName: document.getElementById('debt-creditor').value.trim(),
     loanAmount: Number(document.getElementById('debt-amount').value || 0),
+    depositAccount: document.getElementById('debt-deposit-account')?.value || 'Transfer Bank',
     loanDate: document.getElementById('debt-date').value,
     dueDate: document.getElementById('debt-due-date').value || null,
     tenorMonths: Number(document.getElementById('debt-tenor').value || 0),

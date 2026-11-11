@@ -191,6 +191,8 @@
         window.debts = debts;
         debtSummary = data.debtSummary || null;
         window.debtSummary = debtSummary;
+        cashSummary = data.cashSummary || null;
+        window.cashSummary = cashSummary;
         recipes = data.recipes || [];
         reports = data.reports;
         orders = data.orders || [];
@@ -198,6 +200,9 @@
         checkNewOrders(orders);
 
         renderDashboardOverview();
+        if (typeof renderCashBalanceWidgets === 'function') {
+          renderCashBalanceWidgets();
+        }
         filterOrders();
         renderProductsGrid();
         populateCategoryFilter();

@@ -48,6 +48,16 @@ function ensureDebtTablesExist($pdo) {
               CONSTRAINT `fk_debt_payments_debt` FOREIGN KEY (`debt_id`) REFERENCES `debts` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         ");
+
+        // Auto-migrate payment_source column in expenses
+        try {
+            $pdo->exec("ALTER TABLE expenses ADD COLUMN payment_source VARCHAR(50) NOT NULL DEFAULT 'Kas Tunai (Laci)' AFTER amount");
+        } catch (Exception $e) {}
+
+        // Auto-migrate deposit_account column in debts
+        try {
+            $pdo->exec("ALTER TABLE debts ADD COLUMN deposit_account VARCHAR(50) NOT NULL DEFAULT 'Transfer Bank' AFTER loan_amount");
+        } catch (Exception $e) {}
     } catch (Exception $e) {}
 }
 ensureDebtTablesExist($pdo);
@@ -412,7 +422,7 @@ switch ($action) {
         $expStmt = $pdo->query("
             SELECT 
                 id, expense_no as expenseNo, category, title, 
-                CAST(amount AS DECIMAL(12,2)) as amount, notes, 
+                CAST(amount AS DECIMAL(12,2)) as amount, payment_source as paymentSource, notes, 
                 expense_date as expenseDate, created_at as createdAt 
             FROM expenses 
             ORDER BY expense_date DESC, id DESC 
@@ -421,14 +431,15 @@ switch ($action) {
         $rawExpenses = $expStmt->fetchAll();
         $expenses = array_map(function($e) {
             return [
-                'id'          => (int)$e['id'],
-                'expenseNo'   => (string)$e['expenseNo'],
-                'category'    => (string)$e['category'],
-                'title'       => (string)$e['title'],
-                'amount'      => (float)$e['amount'],
-                'notes'       => (string)($e['notes'] ?? ''),
-                'expenseDate' => (string)$e['expenseDate'],
-                'createdAt'   => (string)$e['createdAt']
+                'id'            => (int)$e['id'],
+                'expenseNo'     => (string)$e['expenseNo'],
+                'category'      => (string)$e['category'],
+                'title'         => (string)$e['title'],
+                'amount'        => (float)$e['amount'],
+                'paymentSource' => (string)($e['paymentSource'] ?? 'Kas Tunai (Laci)'),
+                'notes'         => (string)($e['notes'] ?? ''),
+                'expenseDate'   => (string)$e['expenseDate'],
+                'createdAt'     => (string)$e['createdAt']
             ];
         }, $rawExpenses);
 
@@ -486,6 +497,7 @@ switch ($action) {
             SELECT 
                 d.id, d.debt_no, d.creditor_name, 
                 CAST(d.loan_amount AS DECIMAL(14,2)) as loan_amount, 
+                d.deposit_account as depositAccount,
                 d.loan_date, d.due_date, d.tenor_months, 
                 CAST(d.interest_rate AS DECIMAL(6,2)) as interest_rate, 
                 d.notes, d.status, d.created_at,
@@ -547,6 +559,7 @@ switch ($action) {
                 'debtNo'          => (string)$d['debt_no'],
                 'creditorName'    => (string)$d['creditor_name'],
                 'loanAmount'      => $loanAmt,
+                'depositAccount'  => (string)($d['depositAccount'] ?? 'Transfer Bank'),
                 'loanDate'        => (string)$d['loan_date'],
                 'dueDate'         => (string)($d['due_date'] ?? ''),
                 'tenorMonths'     => (int)$d['tenor_months'],
@@ -572,6 +585,71 @@ switch ($action) {
             'paidCount'        => $paidDebtCount
         ];
 
+        // -------------------------------------------------------------
+        // CASH & BANK SUMMARY (KAS LACI vs REKENING BANK)
+        // -------------------------------------------------------------
+        $salesByMethodStmt = $pdo->query("
+            SELECT 
+                COALESCE(SUM(CASE WHEN payment_method = 'Tunai' THEN total ELSE 0 END), 0) as cashSales,
+                COALESCE(SUM(CASE WHEN payment_method = 'QRIS' THEN total ELSE 0 END), 0) as qrisSales
+            FROM orders
+            WHERE status != 'Cancelled'
+        ");
+        $salesByMethod = $salesByMethodStmt->fetch();
+        $allCashSales = (float)$salesByMethod['cashSales'];
+        $allQrisSales = (float)$salesByMethod['qrisSales'];
+
+        $expBySourceStmt = $pdo->query("
+            SELECT 
+                COALESCE(SUM(CASE WHEN category IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank') THEN amount ELSE 0 END), 0) as cashToBank,
+                COALESCE(SUM(CASE WHEN payment_source = 'Kas Tunai (Laci)' AND category NOT IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank') THEN amount ELSE 0 END), 0) as cashExpense,
+                COALESCE(SUM(CASE WHEN payment_source = 'Transfer Bank' AND category NOT IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank') THEN amount ELSE 0 END), 0) as bankExpense
+            FROM expenses
+        ");
+        $expBySource = $expBySourceStmt->fetch();
+        $allCashToBank = (float)$expBySource['cashToBank'];
+        $allCashExpense = (float)$expBySource['cashExpense'];
+        $allBankExpense = (float)$expBySource['bankExpense'];
+
+        $debtByAccStmt = $pdo->query("
+            SELECT 
+                COALESCE(SUM(CASE WHEN deposit_account = 'Kas Tunai (Laci)' THEN loan_amount ELSE 0 END), 0) as cashLoan,
+                COALESCE(SUM(CASE WHEN deposit_account != 'Kas Tunai (Laci)' OR deposit_account IS NULL THEN loan_amount ELSE 0 END), 0) as bankLoan
+            FROM debts
+        ");
+        $debtByAcc = $debtByAccStmt->fetch();
+        $allCashLoan = (float)$debtByAcc['cashLoan'];
+        $allBankLoan = (float)$debtByAcc['bankLoan'];
+
+        $debtPayByMethodStmt = $pdo->query("
+            SELECT 
+                COALESCE(SUM(CASE WHEN payment_method IN ('Kas Kafe / Tunai', 'Kas Tunai') THEN amount ELSE 0 END), 0) as cashDebtPaid,
+                COALESCE(SUM(CASE WHEN payment_method NOT IN ('Kas Kafe / Tunai', 'Kas Tunai') THEN amount ELSE 0 END), 0) as bankDebtPaid
+            FROM debt_payments
+        ");
+        $debtPayByMethod = $debtPayByMethodStmt->fetch();
+        $allCashDebtPaid = (float)$debtPayByMethod['cashDebtPaid'];
+        $allBankDebtPaid = (float)$debtPayByMethod['bankDebtPaid'];
+
+        $drawerCashBalance = ($allCashSales + $allCashLoan) - ($allCashExpense + $allCashDebtPaid + $allCashToBank);
+        $bankBalance = ($allQrisSales + $allBankLoan + $allCashToBank) - ($allBankExpense + $allBankDebtPaid);
+        $totalLiquidCash = $drawerCashBalance + $bankBalance;
+
+        $cashSummary = [
+            'drawerCashBalance' => $drawerCashBalance,
+            'bankBalance'       => $bankBalance,
+            'totalLiquidCash'   => $totalLiquidCash,
+            'cashSales'         => $allCashSales,
+            'qrisSales'         => $allQrisSales,
+            'cashLoan'          => $allCashLoan,
+            'bankLoan'          => $allBankLoan,
+            'cashExpense'       => $allCashExpense,
+            'bankExpense'       => $allBankExpense,
+            'cashToBank'        => $allCashToBank,
+            'cashDebtPaid'      => $allCashDebtPaid,
+            'bankDebtPaid'      => $allBankDebtPaid
+        ];
+
         jsonSuccess([
             'products'    => $products,
             'options'     => $options,
@@ -581,6 +659,7 @@ switch ($action) {
             'recipes'     => $recipes,
             'debts'       => $debts,
             'debtSummary' => $debtSummary,
+            'cashSummary' => $cashSummary,
             'reports'     => [
                 'todaySales'          => (float)$stats['todaySales'],
                 'todayOrders'         => (int)$stats['todayOrders'],
@@ -1602,6 +1681,16 @@ switch ($action) {
         $amount      = (float)($input['amount'] ?? 0);
         $notes       = trim($input['notes'] ?? '');
         $expenseDate = trim($input['expenseDate'] ?? date('Y-m-d'));
+        $id            = (int)($input['id'] ?? 0);
+        $category      = trim($input['category'] ?? 'Operasional');
+        $title         = trim($input['title'] ?? '');
+        $amount        = (float)($input['amount'] ?? 0);
+        $paymentSource = trim($input['paymentSource'] ?? 'Kas Tunai (Laci)');
+        if (!in_array($paymentSource, ['Kas Tunai (Laci)', 'Transfer Bank'])) {
+            $paymentSource = 'Kas Tunai (Laci)';
+        }
+        $notes         = trim($input['notes'] ?? '');
+        $expenseDate   = trim($input['expenseDate'] ?? date('Y-m-d'));
 
         if (empty($title) || $amount <= 0) jsonError('Judul dan nominal pengeluaran wajib valid');
 
@@ -1609,16 +1698,21 @@ switch ($action) {
             $stmt = $pdo->prepare("
                 UPDATE expenses 
                 SET category = ?, title = ?, amount = ?, notes = ?, expense_date = ?
+                SET category = ?, title = ?, amount = ?, payment_source = ?, notes = ?, expense_date = ?
                 WHERE id = ?
             ");
             $stmt->execute([$category, $title, $amount, $notes, $expenseDate, $id]);
+            $stmt->execute([$category, $title, $amount, $paymentSource, $notes, $expenseDate, $id]);
         } else {
             $expNo = 'EXP-' . date('Ymd-His') . '-' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
             $stmt = $pdo->prepare("
                 INSERT INTO expenses (expense_no, category, title, amount, notes, expense_date)
                 VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO expenses (expense_no, category, title, amount, payment_source, notes, expense_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([$expNo, $category, $title, $amount, $notes, $expenseDate]);
+            $stmt->execute([$expNo, $category, $title, $amount, $paymentSource, $notes, $expenseDate]);
             $id = (int)$pdo->lastInsertId();
         }
 
@@ -1652,6 +1746,19 @@ switch ($action) {
         $interestRate = (float)($input['interestRate'] ?? 0);
         $notes        = trim($input['notes'] ?? '');
         $status       = trim($input['status'] ?? 'Active');
+        $id             = (int)($input['id'] ?? 0);
+        $creditorName   = trim($input['creditorName'] ?? '');
+        $loanAmount     = (float)($input['loanAmount'] ?? 0);
+        $depositAccount = trim($input['depositAccount'] ?? 'Transfer Bank');
+        if (!in_array($depositAccount, ['Transfer Bank', 'Kas Tunai (Laci)'])) {
+            $depositAccount = 'Transfer Bank';
+        }
+        $loanDate       = trim($input['loanDate'] ?? '') ?: date('Y-m-d');
+        $dueDate        = trim($input['dueDate'] ?? '') ?: null;
+        $tenorMonths    = (int)($input['tenorMonths'] ?? 0);
+        $interestRate   = (float)($input['interestRate'] ?? 0);
+        $notes          = trim($input['notes'] ?? '');
+        $status         = trim($input['status'] ?? 'Active');
 
         if (empty($creditorName)) jsonError('Nama kreditur / pemberi pinjaman wajib diisi');
         if ($loanAmount <= 0) jsonError('Nominal pokok pinjaman harus lebih besar dari 0');
@@ -1659,38 +1766,40 @@ switch ($action) {
         if ($id > 0) {
             $stmt = $pdo->prepare("
                 UPDATE debts 
-                SET creditor_name = :creditor_name, loan_amount = :loan_amount, 
+                SET creditor_name = :creditor_name, loan_amount = :loan_amount, deposit_account = :deposit_account,
                     loan_date = :loan_date, due_date = :due_date, tenor_months = :tenor_months, 
                     interest_rate = :interest_rate, notes = :notes, status = :status
                 WHERE id = :id
             ");
             $stmt->execute([
-                ':creditor_name' => $creditorName,
-                ':loan_amount'   => $loanAmount,
-                ':loan_date'     => $loanDate,
-                ':due_date'      => $dueDate,
-                ':tenor_months'  => $tenorMonths,
-                ':interest_rate' => $interestRate,
-                ':notes'         => $notes,
-                ':status'        => $status,
-                ':id'            => $id
+                ':creditor_name'    => $creditorName,
+                ':loan_amount'      => $loanAmount,
+                ':deposit_account'  => $depositAccount,
+                ':loan_date'        => $loanDate,
+                ':due_date'         => $dueDate,
+                ':tenor_months'     => $tenorMonths,
+                ':interest_rate'    => $interestRate,
+                ':notes'            => $notes,
+                ':status'           => $status,
+                ':id'               => $id
             ]);
         } else {
             $debtNo = 'DBT-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
             $stmt = $pdo->prepare("
-                INSERT INTO debts (debt_no, creditor_name, loan_amount, loan_date, due_date, tenor_months, interest_rate, notes, status)
-                VALUES (:debt_no, :creditor_name, :loan_amount, :loan_date, :due_date, :tenor_months, :interest_rate, :notes, :status)
+                INSERT INTO debts (debt_no, creditor_name, loan_amount, deposit_account, loan_date, due_date, tenor_months, interest_rate, notes, status)
+                VALUES (:debt_no, :creditor_name, :loan_amount, :deposit_account, :loan_date, :due_date, :tenor_months, :interest_rate, :notes, :status)
             ");
             $stmt->execute([
-                ':debt_no'       => $debtNo,
-                ':creditor_name' => $creditorName,
-                ':loan_amount'   => $loanAmount,
-                ':loan_date'     => $loanDate,
-                ':due_date'      => $dueDate,
-                ':tenor_months'  => $tenorMonths,
-                ':interest_rate' => $interestRate,
-                ':notes'         => $notes,
-                ':status'        => $status
+                ':debt_no'          => $debtNo,
+                ':creditor_name'    => $creditorName,
+                ':loan_amount'      => $loanAmount,
+                ':deposit_account'  => $depositAccount,
+                ':loan_date'        => $loanDate,
+                ':due_date'         => $dueDate,
+                ':tenor_months'     => $tenorMonths,
+                ':interest_rate'    => $interestRate,
+                ':notes'            => $notes,
+                ':status'           => $status
             ]);
             $id = (int)$pdo->lastInsertId();
         }
@@ -2065,6 +2174,92 @@ switch ($action) {
 
         $freeCashflow = $netProfit - $periodPaymentsTotal;
 
+        // 8. Period Cash Flow & Real-Time Cash Position
+        $periodExpFlowStmt = $pdo->prepare("
+            SELECT 
+                COALESCE(SUM(CASE WHEN category IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank') THEN amount ELSE 0 END), 0) as cashToBank,
+                COALESCE(SUM(CASE WHEN payment_source = 'Kas Tunai (Laci)' AND category NOT IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank') THEN amount ELSE 0 END), 0) as cashExpense,
+                COALESCE(SUM(CASE WHEN payment_source = 'Transfer Bank' AND category NOT IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank') THEN amount ELSE 0 END), 0) as bankExpense
+            FROM expenses
+            WHERE expense_date BETWEEN :start_date AND :end_date
+        ");
+        $periodExpFlowStmt->execute([':start_date' => $startDate, ':end_date' => $endDate]);
+        $periodExpFlow = $periodExpFlowStmt->fetch();
+
+        $periodDebtFlowStmt = $pdo->prepare("
+            SELECT 
+                COALESCE(SUM(CASE WHEN payment_method IN ('Kas Kafe / Tunai', 'Kas Tunai') THEN amount ELSE 0 END), 0) as cashDebtPaid,
+                COALESCE(SUM(CASE WHEN payment_method NOT IN ('Kas Kafe / Tunai', 'Kas Tunai') THEN amount ELSE 0 END), 0) as bankDebtPaid
+            FROM debt_payments
+            WHERE payment_date BETWEEN :start_date AND :end_date
+        ");
+        $periodDebtFlowStmt->execute([':start_date' => $startDate, ':end_date' => $endDate]);
+        $periodDebtFlow = $periodDebtFlowStmt->fetch();
+
+        $periodDebtDisbursedStmt = $pdo->prepare("
+            SELECT 
+                COALESCE(SUM(CASE WHEN deposit_account = 'Kas Tunai (Laci)' THEN loan_amount ELSE 0 END), 0) as cashLoanReceived,
+                COALESCE(SUM(CASE WHEN deposit_account != 'Kas Tunai (Laci)' OR deposit_account IS NULL THEN loan_amount ELSE 0 END), 0) as bankLoanReceived
+            FROM debts
+            WHERE loan_date BETWEEN :start_date AND :end_date
+        ");
+        $periodDebtDisbursedStmt->execute([':start_date' => $startDate, ':end_date' => $endDate]);
+        $pLoanFlow = $periodDebtDisbursedStmt->fetch();
+        $pCashLoan = (float)$pLoanFlow['cashLoanReceived'];
+        $pBankLoan = (float)$pLoanFlow['bankLoanReceived'];
+
+        $pCashIn = (float)$salesSummary['cashSales'];
+        $pQrisIn = (float)$salesSummary['qrisSales'];
+        $pCashExp = (float)$periodExpFlow['cashExpense'];
+        $pBankExp = (float)$periodExpFlow['bankExpense'];
+        $pCashToBank = (float)$periodExpFlow['cashToBank'];
+        $pCashDebt = (float)$periodDebtFlow['cashDebtPaid'];
+        $pBankDebt = (float)$periodDebtFlow['bankDebtPaid'];
+
+        $pDrawerNet = ($pCashIn + $pCashLoan) - ($pCashExp + $pCashDebt + $pCashToBank);
+        $pBankNet = ($pQrisIn + $pBankLoan + $pCashToBank) - ($pBankExp + $pBankDebt);
+
+        // Overall real-time balance
+        $allDrawerBalance = (float)$pdo->query("
+            SELECT 
+                (COALESCE((SELECT SUM(total) FROM orders WHERE payment_method = 'Tunai' AND status != 'Cancelled'), 0)
+                 + COALESCE((SELECT SUM(loan_amount) FROM debts WHERE deposit_account = 'Kas Tunai (Laci)'), 0))
+                - (COALESCE((SELECT SUM(amount) FROM expenses WHERE payment_source = 'Kas Tunai (Laci)' AND category NOT IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0)
+                 + COALESCE((SELECT SUM(amount) FROM debt_payments WHERE payment_method IN ('Kas Kafe / Tunai', 'Kas Tunai')), 0)
+                 + COALESCE((SELECT SUM(amount) FROM expenses WHERE category IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0))
+        ")->fetchColumn();
+
+        $allBankBalance = (float)$pdo->query("
+            SELECT 
+                (COALESCE((SELECT SUM(total) FROM orders WHERE payment_method = 'QRIS' AND status != 'Cancelled'), 0)
+                 + COALESCE((SELECT SUM(loan_amount) FROM debts WHERE deposit_account != 'Kas Tunai (Laci)' OR deposit_account IS NULL), 0)
+                 + COALESCE((SELECT SUM(amount) FROM expenses WHERE category IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0))
+                - (COALESCE((SELECT SUM(amount) FROM expenses WHERE payment_source = 'Transfer Bank' AND category NOT IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0)
+                 + COALESCE((SELECT SUM(amount) FROM debt_payments WHERE payment_method NOT IN ('Kas Kafe / Tunai', 'Kas Tunai')), 0))
+        ")->fetchColumn();
+
+        $cashReport = [
+            'drawerCashBalance' => $allDrawerBalance,
+            'bankBalance'       => $allBankBalance,
+            'totalLiquidCash'   => $allDrawerBalance + $allBankBalance,
+            'periodFlow'        => [
+                'cashIn'        => $pCashIn,
+                'qrisIn'        => $pQrisIn,
+                'cashLoan'      => $pCashLoan,
+                'bankLoan'      => $pBankLoan,
+                'totalIn'       => $pCashIn + $pQrisIn + $pCashLoan + $pBankLoan,
+                'cashExpense'   => $pCashExp,
+                'bankExpense'   => $pBankExp,
+                'cashToBank'    => $pCashToBank,
+                'cashDebtPaid'  => $pCashDebt,
+                'bankDebtPaid'  => $pBankDebt,
+                'totalOut'      => $pCashExp + $pBankExp + $pCashDebt + $pBankDebt,
+                'drawerNet'     => $pDrawerNet,
+                'bankNet'       => $pBankNet,
+                'periodNet'     => $pDrawerNet + $pBankNet
+            ]
+        ];
+
         jsonSuccess([
             'period' => [
                 'startDate' => $startDate,
@@ -2095,6 +2290,7 @@ switch ($action) {
                 'debtsList'           => $debtsList,
                 'periodPayments'      => $periodPayments
             ],
+            'cashReport' => $cashReport,
             'paymentMethods' => [
                 'qrisSales'  => (float)$salesSummary['qrisSales'],
                 'cashSales'  => (float)$salesSummary['cashSales'],

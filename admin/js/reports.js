@@ -171,6 +171,9 @@ async function loadFinancialReports() {
     // 6. Debts & Installments Position & Cashflow
     renderReportDebtSection(data.debtReport || {}, data.financialSummary || {});
 
+    // 7. Cash & Bank Ledger Flow & Current Balances
+    renderReportCashSection(data.cashReport || {});
+
   } catch (err) {
     console.error('Failed to load financial reports:', err);
     if (activeText) activeText.innerText = 'Gagal memuat laporan: ' + (err.message || 'Error API');
@@ -584,6 +587,95 @@ function renderReportDebtSection(debtReport = {}, finSummary = {}) {
   }
 }
 
+// 7. Cash & Bank Ledger Flow & Current Balances Renderer
+function renderReportCashSection(cashReport = {}) {
+  const drawerBal = Number(cashReport.drawerCashBalance || 0);
+  const bankBal = Number(cashReport.bankBalance || 0);
+  const totalBal = Number(cashReport.totalLiquidCash != null ? cashReport.totalLiquidCash : (drawerBal + bankBal));
+
+  const flow = cashReport.periodFlow || {};
+  const cashIn = Number(flow.cashIn || 0);
+  const qrisIn = Number(flow.qrisIn || 0);
+  const cashLoan = Number(flow.cashLoan || 0);
+  const bankLoan = Number(flow.bankLoan || 0);
+  const totalIn = Number(flow.totalIn != null ? flow.totalIn : (cashIn + qrisIn + cashLoan + bankLoan));
+
+  const cashExp = Number(flow.cashExpense || 0);
+  const bankExp = Number(flow.bankExpense || 0);
+  const cashDebt = Number(flow.cashDebtPaid || 0);
+  const bankDebt = Number(flow.bankDebtPaid || 0);
+  const cashToBank = Number(flow.cashToBank || 0);
+  const totalOut = Number(flow.totalOut != null ? flow.totalOut : (cashExp + bankExp + cashDebt + bankDebt));
+
+  const drawerNet = Number(flow.drawerNet != null ? flow.drawerNet : (cashIn + cashLoan - (cashExp + cashDebt + cashToBank)));
+  const bankNet = Number(flow.bankNet != null ? flow.bankNet : (qrisIn + bankLoan + cashToBank - (bankExp + bankDebt)));
+  const periodNet = Number(flow.periodNet != null ? flow.periodNet : (totalIn - totalOut));
+
+  // Current real-time balances
+  const elDrawerBal = document.getElementById('rep-cash-drawer-balance');
+  const elBankBal = document.getElementById('rep-cash-bank-balance');
+  const elTotalBal = document.getElementById('rep-cash-total-balance');
+
+  if (elDrawerBal) elDrawerBal.innerText = rupiah(drawerBal);
+  if (elBankBal) elBankBal.innerText = rupiah(bankBal);
+  if (elTotalBal) elTotalBal.innerText = rupiah(totalBal);
+
+  // Period flow summaries
+  const elTotalIn = document.getElementById('rep-cashflow-total-in');
+  const elTotalOut = document.getElementById('rep-cashflow-total-out');
+  const elPeriodNet = document.getElementById('rep-cashflow-period-net');
+  const elNetBadge = document.getElementById('rep-cashflow-net-badge');
+
+  if (elTotalIn) elTotalIn.innerText = rupiah(totalIn);
+  if (elTotalOut) elTotalOut.innerText = rupiah(totalOut);
+  if (elPeriodNet) {
+    elPeriodNet.innerText = (periodNet >= 0 ? '+' : '') + rupiah(periodNet);
+    elPeriodNet.style.color = periodNet >= 0 ? 'var(--success)' : 'var(--danger)';
+  }
+
+  if (elNetBadge) {
+    if (periodNet > 0) {
+      elNetBadge.innerHTML = `<span class="badge" style="background:#16a34a; color:#fff; font-size:11px;"><i class="fa-solid fa-arrow-trend-up"></i> Surplus Kas (+${rupiah(periodNet)})</span>`;
+    } else if (periodNet < 0) {
+      elNetBadge.innerHTML = `<span class="badge" style="background:#ef4444; color:#fff; font-size:11px;"><i class="fa-solid fa-arrow-trend-down"></i> Defisit Kas (${rupiah(periodNet)})</span>`;
+    } else {
+      elNetBadge.innerHTML = `<span class="badge" style="background:#6b7280; color:#fff; font-size:11px;"><i class="fa-solid fa-equals"></i> Kas Berimbang</span>`;
+    }
+  }
+
+  // Breakdown details
+  const elFlowCashIn = document.getElementById('rep-flow-cash-in');
+  const elFlowQrisIn = document.getElementById('rep-flow-qris-in');
+  const elFlowCashLoan = document.getElementById('rep-flow-cash-loan');
+  const elFlowBankLoan = document.getElementById('rep-flow-bank-loan');
+  const elFlowCashExp = document.getElementById('rep-flow-cash-exp');
+  const elFlowBankExp = document.getElementById('rep-flow-bank-exp');
+  const elFlowCashDebt = document.getElementById('rep-flow-cash-debt');
+  const elFlowBankDebt = document.getElementById('rep-flow-bank-debt');
+  const elFlowCashToBank = document.getElementById('rep-flow-cash-tobank');
+  const elFlowDrawerNet = document.getElementById('rep-flow-drawer-net');
+  const elFlowBankNet = document.getElementById('rep-flow-bank-net');
+
+  if (elFlowCashIn) elFlowCashIn.innerText = rupiah(cashIn);
+  if (elFlowQrisIn) elFlowQrisIn.innerText = rupiah(qrisIn);
+  if (elFlowCashLoan) elFlowCashLoan.innerText = rupiah(cashLoan);
+  if (elFlowBankLoan) elFlowBankLoan.innerText = rupiah(bankLoan);
+  if (elFlowCashExp) elFlowCashExp.innerText = rupiah(cashExp);
+  if (elFlowBankExp) elFlowBankExp.innerText = rupiah(bankExp);
+  if (elFlowCashDebt) elFlowCashDebt.innerText = rupiah(cashDebt);
+  if (elFlowBankDebt) elFlowBankDebt.innerText = rupiah(bankDebt);
+  if (elFlowCashToBank) elFlowCashToBank.innerText = rupiah(cashToBank);
+
+  if (elFlowDrawerNet) {
+    elFlowDrawerNet.innerText = (drawerNet >= 0 ? '+' : '') + rupiah(drawerNet);
+    elFlowDrawerNet.style.color = drawerNet >= 0 ? 'var(--success)' : 'var(--danger)';
+  }
+  if (elFlowBankNet) {
+    elFlowBankNet.innerText = (bankNet >= 0 ? '+' : '') + rupiah(bankNet);
+    elFlowBankNet.style.color = bankNet >= 0 ? 'var(--success)' : 'var(--danger)';
+  }
+}
+
 // 8. Download Clean CSV / Excel Report
 function downloadReportsCSV() {
   if (!currentReportData) {
@@ -599,7 +691,7 @@ function downloadReportsCSV() {
   let csv = '';
 
   // Header & Metadata
-  csv += 'DJACO COFFEE & ROASTERY - LAPORAN KEUANGAN DAN PENJUALAN\n';
+  csv += 'DJACO COFFEE - LAPORAN KEUANGAN DAN PENJUALAN\n';
   csv += `Periode;${reportStartDateVal} s/d ${reportEndDateVal}\n`;
   csv += `Tanggal Export;${new Date().toLocaleString('id-ID')}\n\n`;
 
@@ -654,6 +746,18 @@ function downloadReportsCSV() {
     });
     csv += '\n';
   }
+
+  // Section 6: Cash & Bank Ledger Flow & Balances
+  const cash = currentReportData.cashReport || {};
+  const cFlow = cash.periodFlow || {};
+  csv += '=== LAPORAN ARUS KAS & SALDO KAS USAHA ===\n';
+  csv += 'Komponen Kas;Nominal (Rp);Keterangan\n';
+  csv += `Saldo Kas Tunai Fisik (Laci Kasir);${cash.drawerCashBalance || 0};Uang Fisik di Toko Saat Ini\n`;
+  csv += `Saldo Rekening Bank & QRIS;${cash.bankBalance || 0};Saldo Rekening Usaha Saat Ini\n`;
+  csv += `Total Kas Likuid Usaha;${cash.totalLiquidCash || 0};Total Uang Kas Tersedia Saat Ini\n`;
+  csv += `Total Uang Kas Masuk Periode Ini;${cFlow.totalIn || 0};Penjualan Tunai + QRIS + Modal Pinjaman Masuk\n`;
+  csv += `Total Uang Kas Keluar Periode Ini;${cFlow.totalOut || 0};Beban Operasional + Cicilan Hutang\n`;
+  csv += `Arus Kas Bersih Periode Ini;${cFlow.periodNet || 0};Net Cash Flow Periode Ini\n\n`;
 
   // Trigger file download
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
