@@ -457,6 +457,23 @@ CREATE TABLE IF NOT EXISTS `debt_payments` (
   CONSTRAINT `fk_debt_payments_debt` FOREIGN KEY (`debt_id`) REFERENCES `debts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Table structure for cash_adjustments (Penyesuaian / Saldo Awal Kas)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `cash_adjustments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `adjustment_date` date NOT NULL,
+  `account_type` varchar(50) NOT NULL,
+  `adjustment_type` varchar(50) NOT NULL DEFAULT 'Kalibrasi Saldo',
+  `amount` decimal(14,2) NOT NULL DEFAULT 0.00,
+  `notes` text DEFAULT NULL,
+  `created_by` varchar(100) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_adj_date` (`adjustment_date`),
+  KEY `idx_account_type` (`account_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Auto-sync initial product COGS from recipe BOM
 UPDATE `products` p 
 SET p.cogs = (

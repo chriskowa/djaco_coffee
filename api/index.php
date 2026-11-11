@@ -47,6 +47,20 @@ function ensureDebtTablesExist($pdo) {
               KEY `idx_payment_date` (`payment_date`),
               CONSTRAINT `fk_debt_payments_debt` FOREIGN KEY (`debt_id`) REFERENCES `debts` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+            CREATE TABLE IF NOT EXISTS `cash_adjustments` (
+              `id` int(11) NOT NULL AUTO_INCREMENT,
+              `adjustment_date` date NOT NULL,
+              `account_type` varchar(50) NOT NULL,
+              `adjustment_type` varchar(50) NOT NULL DEFAULT 'Kalibrasi Saldo',
+              `amount` decimal(14,2) NOT NULL DEFAULT 0.00,
+              `notes` text DEFAULT NULL,
+              `created_by` varchar(100) DEFAULT NULL,
+              `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`),
+              KEY `idx_adj_date` (`adjustment_date`),
+              KEY `idx_account_type` (`account_type`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         ");
 
         // Auto-migrate payment_source column in expenses
@@ -645,8 +659,29 @@ switch ($action) {
         $allCashDebtPaid = (float)$debtPayByMethod['cashDebtPaid'];
         $allBankDebtPaid = (float)$debtPayByMethod['bankDebtPaid'];
 
-        $drawerCashBalance = ($allCashSales + $allCashLoan) - ($allCashExpense + $allCashDebtPaid + $allCashToBank);
-        $bankBalance = ($allQrisSales + $allBankLoan + $allCashToBank) - ($allBankExpense + $allBankDebtPaid);
+        // Cash adjustments (Kalibrasi Saldo Awal / Baseline Kas Toko & Bank)
+        $adjStmt = $pdo->query("
+            SELECT 
+                COALESCE(SUM(CASE WHEN account_type = 'Kas Tunai (Laci)' THEN amount ELSE 0 END), 0) as cashAdj,
+                COALESCE(SUM(CASE WHEN account_type = 'Transfer Bank' THEN amount ELSE 0 END), 0) as bankAdj
+            FROM cash_adjustments
+        ");
+        $adjRow = $adjStmt->fetch();
+        $allCashAdj = (float)($adjRow['cashAdj'] ?? 0);
+        $allBankAdj = (float)($adjRow['bankAdj'] ?? 0);
+
+        $adjListStmt = $pdo->query("
+            SELECT id, adjustment_date as adjustmentDate, account_type as accountType, 
+                   adjustment_type as adjustmentType, CAST(amount AS DECIMAL(14,2)) as amount, 
+                   notes, created_by as createdBy, created_at as createdAt
+            FROM cash_adjustments
+            ORDER BY adjustment_date DESC, id DESC
+            LIMIT 25
+        ");
+        $recentAdjustments = $adjListStmt->fetchAll();
+
+        $drawerCashBalance = ($allCashSales + $allCashLoan + $allCashAdj) - ($allCashExpense + $allCashDebtPaid + $allCashToBank);
+        $bankBalance = ($allQrisSales + $allBankLoan + $allCashToBank + $allBankAdj) - ($allBankExpense + $allBankDebtPaid);
         $totalLiquidCash = $drawerCashBalance + $bankBalance;
 
         $cashSummary = [
@@ -661,7 +696,10 @@ switch ($action) {
             'bankExpense'       => $allBankExpense,
             'cashToBank'        => $allCashToBank,
             'cashDebtPaid'      => $allCashDebtPaid,
-            'bankDebtPaid'      => $allBankDebtPaid
+            'bankDebtPaid'      => $allBankDebtPaid,
+            'cashAdjustments'   => $allCashAdj,
+            'bankAdjustments'   => $allBankAdj,
+            'recentAdjustments' => $recentAdjustments
         ];
 
         jsonSuccess([
@@ -1954,6 +1992,108 @@ switch ($action) {
         jsonSuccess(['message' => 'Catatan cicilan berhasil dihapus']);
         break;
 
+    case 'savecashadjustment':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+
+        $drawerTarget   = isset($input['drawerTarget']) && $input['drawerTarget'] !== '' ? (float)$input['drawerTarget'] : null;
+        $bankTarget     = isset($input['bankTarget']) && $input['bankTarget'] !== '' ? (float)$input['bankTarget'] : null;
+        $adjustmentDate = trim($input['adjustmentDate'] ?? '') ?: date('Y-m-d');
+        $notes          = trim($input['notes'] ?? '');
+
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $adjustmentDate)) {
+            $adjustmentDate = date('Y-m-d');
+        }
+
+        if ($drawerTarget === null && $bankTarget === null) {
+            jsonError('Masukkan target saldo untuk Kas Laci atau Kas Bank.');
+        }
+
+        // Query current balance before adjustment
+        $curDrawer = (float)$pdo->query("
+            SELECT 
+                (COALESCE((SELECT SUM(total) FROM orders WHERE payment_method = 'Tunai' AND status != 'Cancelled'), 0)
+                 + COALESCE((SELECT SUM(loan_amount) FROM debts WHERE deposit_account = 'Kas Tunai (Laci)'), 0)
+                 + COALESCE((SELECT SUM(amount) FROM cash_adjustments WHERE account_type = 'Kas Tunai (Laci)'), 0))
+                - (COALESCE((SELECT SUM(amount) FROM expenses WHERE payment_source = 'Kas Tunai (Laci)' AND category NOT IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0)
+                 + COALESCE((SELECT SUM(amount) FROM debt_payments WHERE payment_method IN ('Kas Kafe / Tunai', 'Kas Tunai')), 0)
+                 + COALESCE((SELECT SUM(amount) FROM expenses WHERE category IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0))
+        ")->fetchColumn();
+
+        $curBank = (float)$pdo->query("
+            SELECT 
+                (COALESCE((SELECT SUM(total) FROM orders WHERE payment_method = 'QRIS' AND status != 'Cancelled'), 0)
+                 + COALESCE((SELECT SUM(loan_amount) FROM debts WHERE deposit_account != 'Kas Tunai (Laci)' OR deposit_account IS NULL), 0)
+                 + COALESCE((SELECT SUM(amount) FROM expenses WHERE category IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0)
+                 + COALESCE((SELECT SUM(amount) FROM cash_adjustments WHERE account_type = 'Transfer Bank'), 0))
+                - (COALESCE((SELECT SUM(amount) FROM expenses WHERE payment_source = 'Transfer Bank' AND category NOT IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0)
+                 + COALESCE((SELECT SUM(amount) FROM debt_payments WHERE payment_method NOT IN ('Kas Kafe / Tunai', 'Kas Tunai')), 0))
+        ")->fetchColumn();
+
+        $insertedCount = 0;
+        $insStmt = $pdo->prepare("
+            INSERT INTO cash_adjustments 
+            (adjustment_date, account_type, adjustment_type, amount, notes, created_by)
+            VALUES (:adj_date, :account_type, :adj_type, :amount, :notes, :created_by)
+        ");
+
+        $baseNote = $notes ? $notes : 'Penyesuaian saldo uang kas';
+
+        if ($drawerTarget !== null) {
+            $diffDrawer = round($drawerTarget - $curDrawer, 2);
+            if (abs($diffDrawer) > 0.001) {
+                $noteWithDiff = $baseNote . " (Penyesuaian laci dari Rp " . number_format($curDrawer, 0, ',', '.') . " ke Rp " . number_format($drawerTarget, 0, ',', '.') . ")";
+                $insStmt->execute([
+                    ':adj_date'     => $adjustmentDate,
+                    ':account_type' => 'Kas Tunai (Laci)',
+                    ':adj_type'     => 'Kalibrasi Saldo',
+                    ':amount'       => $diffDrawer,
+                    ':notes'        => $noteWithDiff,
+                    ':created_by'   => $currentUser['username'] ?? 'admin'
+                ]);
+                $insertedCount++;
+            }
+        }
+
+        if ($bankTarget !== null) {
+            $diffBank = round($bankTarget - $curBank, 2);
+            if (abs($diffBank) > 0.001) {
+                $noteWithDiff = $baseNote . " (Penyesuaian bank dari Rp " . number_format($curBank, 0, ',', '.') . " ke Rp " . number_format($bankTarget, 0, ',', '.') . ")";
+                $insStmt->execute([
+                    ':adj_date'     => $adjustmentDate,
+                    ':account_type' => 'Transfer Bank',
+                    ':adj_type'     => 'Kalibrasi Saldo',
+                    ':amount'       => $diffBank,
+                    ':notes'        => $noteWithDiff,
+                    ':created_by'   => $currentUser['username'] ?? 'admin'
+                ]);
+                $insertedCount++;
+            }
+        }
+
+        $finalDrawer = $drawerTarget !== null ? $drawerTarget : $curDrawer;
+        $finalBank   = $bankTarget !== null ? $bankTarget : $curBank;
+
+        jsonSuccess([
+            'message'       => $insertedCount > 0 ? 'Saldo uang kas berhasil dikalibrasi dan disinkronkan' : 'Saldo kas sudah sama dengan target, tidak ada selisih.',
+            'updatedCount'  => $insertedCount,
+            'drawerBalance' => $finalDrawer,
+            'bankBalance'   => $finalBank,
+            'totalLiquid'   => $finalDrawer + $finalBank
+        ]);
+        break;
+
+    case 'deletecashadjustment':
+        if ($method !== 'POST') jsonError('Method POST required', 405);
+        $currentUser = requireAuth($pdo, 'admin');
+        $id = (int)($input['id'] ?? 0);
+        if ($id <= 0) jsonError('ID penyesuaian kas tidak valid');
+
+        $stmt = $pdo->prepare("DELETE FROM cash_adjustments WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        jsonSuccess(['message' => 'Catatan penyesuaian kas berhasil dihapus']);
+        break;
+
     case 'resettransactions':
         if ($method !== 'POST') jsonError('Method POST required', 405);
         $currentUser = requireAuth($pdo, 'admin');
@@ -2249,6 +2389,19 @@ switch ($action) {
         $pCashLoan = (float)$pLoanFlow['cashLoanReceived'];
         $pBankLoan = (float)$pLoanFlow['bankLoanReceived'];
 
+        // Period cash adjustments
+        $periodAdjStmt = $pdo->prepare("
+            SELECT 
+                COALESCE(SUM(CASE WHEN account_type = 'Kas Tunai (Laci)' THEN amount ELSE 0 END), 0) as drawerAdj,
+                COALESCE(SUM(CASE WHEN account_type = 'Transfer Bank' THEN amount ELSE 0 END), 0) as bankAdj
+            FROM cash_adjustments
+            WHERE adjustment_date BETWEEN :start_date AND :end_date
+        ");
+        $periodAdjStmt->execute([':start_date' => $startDate, ':end_date' => $endDate]);
+        $pAdjFlow = $periodAdjStmt->fetch();
+        $pDrawerAdj = (float)($pAdjFlow['drawerAdj'] ?? 0);
+        $pBankAdj   = (float)($pAdjFlow['bankAdj'] ?? 0);
+
         $pCashIn = (float)$salesSummary['cashSales'];
         $pQrisIn = (float)$salesSummary['qrisSales'];
         $pCashExp = (float)$periodExpFlow['cashExpense'];
@@ -2257,14 +2410,15 @@ switch ($action) {
         $pCashDebt = (float)$periodDebtFlow['cashDebtPaid'];
         $pBankDebt = (float)$periodDebtFlow['bankDebtPaid'];
 
-        $pDrawerNet = ($pCashIn + $pCashLoan) - ($pCashExp + $pCashDebt + $pCashToBank);
-        $pBankNet = ($pQrisIn + $pBankLoan + $pCashToBank) - ($pBankExp + $pBankDebt);
+        $pDrawerNet = ($pCashIn + $pCashLoan + $pDrawerAdj) - ($pCashExp + $pCashDebt + $pCashToBank);
+        $pBankNet = ($pQrisIn + $pBankLoan + $pCashToBank + $pBankAdj) - ($pBankExp + $pBankDebt);
 
         // Overall real-time balance
         $allDrawerBalance = (float)$pdo->query("
             SELECT 
                 (COALESCE((SELECT SUM(total) FROM orders WHERE payment_method = 'Tunai' AND status != 'Cancelled'), 0)
-                 + COALESCE((SELECT SUM(loan_amount) FROM debts WHERE deposit_account = 'Kas Tunai (Laci)'), 0))
+                 + COALESCE((SELECT SUM(loan_amount) FROM debts WHERE deposit_account = 'Kas Tunai (Laci)'), 0)
+                 + COALESCE((SELECT SUM(amount) FROM cash_adjustments WHERE account_type = 'Kas Tunai (Laci)'), 0))
                 - (COALESCE((SELECT SUM(amount) FROM expenses WHERE payment_source = 'Kas Tunai (Laci)' AND category NOT IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0)
                  + COALESCE((SELECT SUM(amount) FROM debt_payments WHERE payment_method IN ('Kas Kafe / Tunai', 'Kas Tunai')), 0)
                  + COALESCE((SELECT SUM(amount) FROM expenses WHERE category IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0))
@@ -2274,7 +2428,8 @@ switch ($action) {
             SELECT 
                 (COALESCE((SELECT SUM(total) FROM orders WHERE payment_method = 'QRIS' AND status != 'Cancelled'), 0)
                  + COALESCE((SELECT SUM(loan_amount) FROM debts WHERE deposit_account != 'Kas Tunai (Laci)' OR deposit_account IS NULL), 0)
-                 + COALESCE((SELECT SUM(amount) FROM expenses WHERE category IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0))
+                 + COALESCE((SELECT SUM(amount) FROM expenses WHERE category IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0)
+                 + COALESCE((SELECT SUM(amount) FROM cash_adjustments WHERE account_type = 'Transfer Bank'), 0))
                 - (COALESCE((SELECT SUM(amount) FROM expenses WHERE payment_source = 'Transfer Bank' AND category NOT IN ('Setor Kas ke Bank', 'Transfer Kas ke Bank')), 0)
                  + COALESCE((SELECT SUM(amount) FROM debt_payments WHERE payment_method NOT IN ('Kas Kafe / Tunai', 'Kas Tunai')), 0))
         ")->fetchColumn();
@@ -2288,6 +2443,8 @@ switch ($action) {
                 'qrisIn'        => $pQrisIn,
                 'cashLoan'      => $pCashLoan,
                 'bankLoan'      => $pBankLoan,
+                'drawerAdj'     => $pDrawerAdj,
+                'bankAdj'       => $pBankAdj,
                 'totalIn'       => $pCashIn + $pQrisIn + $pCashLoan + $pBankLoan,
                 'cashExpense'   => $pCashExp,
                 'bankExpense'   => $pBankExp,

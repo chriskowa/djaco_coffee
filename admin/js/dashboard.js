@@ -417,4 +417,156 @@ function renderCashBalanceWidgets(customCash = null) {
     el.innerText = rupiah(total);
     el.style.color = total < 0 ? 'var(--danger)' : 'var(--coffee)';
   });
+
+  // Also render adjustment history if container is present
+  renderCashAdjustmentHistory();
 }
+
+// ---------------- CASH ADJUSTMENT / OPENING BALANCE MODAL ----------------
+function openCashAdjustmentModal() {
+  const modal = document.getElementById('cashAdjustmentModalOverlay');
+  if (!modal) return;
+
+  const curDrawer = cashSummary ? Number(cashSummary.drawerCashBalance || 0) : 0;
+  const curBank = cashSummary ? Number(cashSummary.bankBalance || 0) : 0;
+
+  const inpDrawer = document.getElementById('adj-drawer-target');
+  const inpBank = document.getElementById('adj-bank-target');
+  const inpDate = document.getElementById('adj-date');
+  const inpNotes = document.getElementById('adj-notes');
+
+  // Pre-populate input fields
+  if (inpDrawer) inpDrawer.value = curDrawer > 0 ? curDrawer : '';
+  if (inpBank) inpBank.value = curBank > 0 ? curBank : '';
+
+  if (inpDate) {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    inpDate.value = `${y}-${m}-${d}`;
+  }
+
+  if (inpNotes && !inpNotes.value) {
+    inpNotes.value = 'Serah terima kas pengelola baru';
+  }
+
+  modal.classList.add('show');
+}
+
+function closeCashAdjustmentModal() {
+  const modal = document.getElementById('cashAdjustmentModalOverlay');
+  if (modal) modal.classList.remove('show');
+}
+
+async function saveCashAdjustmentForm(e) {
+  if (e) e.preventDefault();
+
+  const inpDrawer = document.getElementById('adj-drawer-target');
+  const inpBank = document.getElementById('adj-bank-target');
+  const inpDate = document.getElementById('adj-date');
+  const inpNotes = document.getElementById('adj-notes');
+  const saveBtn = document.getElementById('saveCashAdjustmentBtn');
+
+  const drawerVal = inpDrawer && inpDrawer.value !== '' ? parseFloat(inpDrawer.value) : null;
+  const bankVal = inpBank && inpBank.value !== '' ? parseFloat(inpBank.value) : null;
+  const dateVal = inpDate ? inpDate.value : '';
+  const notesVal = inpNotes ? inpNotes.value.trim() : '';
+
+  if (drawerVal === null && bankVal === null) {
+    showToast('Masukkan target nominal saldo Kas Laci atau Kas Bank', 'warning');
+    return;
+  }
+
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+  }
+
+  try {
+    const res = await apiPost('savecashadjustment', {
+      drawerTarget: drawerVal,
+      bankTarget: bankVal,
+      adjustmentDate: dateVal,
+      notes: notesVal
+    });
+
+    showToast(res.message || 'Saldo kas berhasil disinkronkan', 'success');
+    closeCashAdjustmentModal();
+
+    if (typeof reloadData === 'function') {
+      await reloadData();
+    } else if (typeof loadDashboardData === 'function') {
+      await loadDashboardData(dashStartDateVal, dashEndDateVal);
+    }
+  } catch (err) {
+    console.error('Failed to save cash adjustment:', err);
+    showToast(err.message || 'Gagal menyimpan penyesuaian saldo kas', 'danger');
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Simpan & Terapkan Saldo';
+    }
+  }
+}
+
+function renderCashAdjustmentHistory() {
+  const container = document.getElementById('cashAdjustmentHistoryList');
+  if (!container) return;
+
+  const list = (cashSummary && Array.isArray(cashSummary.recentAdjustments)) ? cashSummary.recentAdjustments : [];
+  if (!list.length) {
+    container.innerHTML = '<div style="color: #8c7365; font-style: italic; padding: 6px 0;">Belum ada catatan penyesuaian / kalibrasi saldo kas.</div>';
+    return;
+  }
+
+  let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
+  list.slice(0, 10).forEach(item => {
+    const numAmt = Number(item.amount || 0);
+    const isPlus = numAmt >= 0;
+    const isDrawer = item.accountType === 'Kas Tunai (Laci)';
+    const badgeBg = isDrawer ? '#eff6ff' : '#ecfdf5';
+    const badgeColor = isDrawer ? '#2563eb' : '#059669';
+    const sign = isPlus ? '+' : '';
+
+    html += `
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #fff; border: 1px solid var(--border); padding: 8px 12px; border-radius: 10px; flex-wrap: wrap; gap: 6px;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 11px; font-weight: 700; background: ${badgeBg}; color: ${badgeColor}; padding: 2px 8px; border-radius: 6px;">
+            ${esc(item.accountType)}
+          </span>
+          <span style="font-weight: 600; color: var(--coffee); font-size: 12px;">${esc(item.notes || item.adjustmentType)}</span>
+          <span style="font-size: 11px; color: #8c7365;">(${item.adjustmentDate})</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-weight: 800; font-size: 13px; color: ${isPlus ? '#16a34a' : 'var(--danger)'};">
+            ${sign}${rupiah(numAmt)}
+          </span>
+          <button type="button" class="btn btn-outline btn-sm" onclick="deleteCashAdjustmentRecord(${item.id})" title="Hapus catatan ini" style="padding: 2px 8px; font-size: 11px; color: var(--danger); border-color: #fca5a5; background: #fff5f5;">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+async function deleteCashAdjustmentRecord(id) {
+  if (!confirm('Hapus catatan penyesuaian kas ini? Saldo kas akan dihitung ulang secara otomatis.')) return;
+  try {
+    const res = await apiPost('deletecashadjustment', { id });
+    showToast(res.message || 'Catatan penyesuaian kas berhasil dihapus', 'success');
+    if (typeof reloadData === 'function') await reloadData();
+  } catch (err) {
+    showToast(err.message || 'Gagal menghapus penyesuaian kas', 'danger');
+  }
+}
+
+// Expose cash adjustment functions to window
+window.openCashAdjustmentModal = openCashAdjustmentModal;
+window.closeCashAdjustmentModal = closeCashAdjustmentModal;
+window.saveCashAdjustmentForm = saveCashAdjustmentForm;
+window.renderCashAdjustmentHistory = renderCashAdjustmentHistory;
+window.deleteCashAdjustmentRecord = deleteCashAdjustmentRecord;

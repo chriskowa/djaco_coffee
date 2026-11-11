@@ -653,8 +653,13 @@ function renderReportCashSection(cashReport = {}) {
   const elFlowCashDebt = document.getElementById('rep-flow-cash-debt');
   const elFlowBankDebt = document.getElementById('rep-flow-bank-debt');
   const elFlowCashToBank = document.getElementById('rep-flow-cash-tobank');
+  const elFlowDrawerAdj = document.getElementById('rep-flow-drawer-adj');
+  const elFlowBankAdj = document.getElementById('rep-flow-bank-adj');
   const elFlowDrawerNet = document.getElementById('rep-flow-drawer-net');
   const elFlowBankNet = document.getElementById('rep-flow-bank-net');
+
+  const drawerAdj = Number(flow.drawerAdj || 0);
+  const bankAdj = Number(flow.bankAdj || 0);
 
   if (elFlowCashIn) elFlowCashIn.innerText = rupiah(cashIn);
   if (elFlowQrisIn) elFlowQrisIn.innerText = rupiah(qrisIn);
@@ -665,6 +670,8 @@ function renderReportCashSection(cashReport = {}) {
   if (elFlowCashDebt) elFlowCashDebt.innerText = rupiah(cashDebt);
   if (elFlowBankDebt) elFlowBankDebt.innerText = rupiah(bankDebt);
   if (elFlowCashToBank) elFlowCashToBank.innerText = rupiah(cashToBank);
+  if (elFlowDrawerAdj) elFlowDrawerAdj.innerText = (drawerAdj >= 0 ? '+' : '') + rupiah(drawerAdj);
+  if (elFlowBankAdj) elFlowBankAdj.innerText = (bankAdj >= 0 ? '+' : '') + rupiah(bankAdj);
 
   if (elFlowDrawerNet) {
     elFlowDrawerNet.innerText = (drawerNet >= 0 ? '+' : '') + rupiah(drawerNet);
